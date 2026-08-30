@@ -3,13 +3,49 @@
 import { useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
 
-const tickets = [
-  ['Tarif plein', 20],
-  ['Moins de 12 ans', 12],
-  ['Moins de 3 ans', 0],
-  ['Invitation', 0],
-  ['PMR', 20],
+/* =========================================================
+   ÉVÈNEMENTS ET TARIFS
+========================================================= */
+
+const eventTypes = [
+  {
+    id: 'visite',
+    name: 'Visite avant spectacle',
+    tickets: [
+      ['Tarif plein', 10],
+      ['Moins de 12 ans', 5],
+      ['Moins de 3 ans', 0],
+      ['Invitation', 0],
+      ['PMR', 10],
+    ],
+  },
+  {
+    id: 'spectacle',
+    name: 'Spectacle',
+    tickets: [
+      ['Tarif plein', 20],
+      ['Moins de 12 ans', 12],
+      ['Moins de 3 ans', 0],
+      ['Invitation', 0],
+      ['PMR', 20],
+    ],
+  },
+  {
+    id: 'atelier',
+    name: 'Atelier',
+    tickets: [
+      ['Tarif plein', 15],
+      ['Moins de 12 ans', 8],
+      ['Moins de 3 ans', 0],
+      ['Invitation', 0],
+      ['PMR', 15],
+    ],
+  },
 ];
+
+/* =========================================================
+   ESPÈCES
+========================================================= */
 
 const cashValues = [
   50, 20, 10, 5,
@@ -19,6 +55,10 @@ const cashValues = [
 ];
 
 const ancvValues = [10, 20, 25, 50];
+
+/* =========================================================
+   OUTILS
+========================================================= */
 
 const money = n =>
   new Intl.NumberFormat('fr-FR', {
@@ -51,283 +91,404 @@ function NumberField({
   );
 }
 
+function createTicketQuantities(event) {
+  return Object.fromEntries(
+    event.tickets.map(([name]) => [
+      name,
+      0
+    ])
+  );
+}
+
+function createEventSale(event) {
+  return {
+    id:
+      Date.now() +
+      Math.random(),
+
+    eventId: event.id,
+    eventName: event.name,
+
+    tickets: event.tickets,
+
+    quantities:
+      createTicketQuantities(event)
+  };
+}
+
 function createEmptyMultiple() {
   return {
     amount: 0,
+
     allocations: {
       cash: 0,
       tpe: 0,
       web: 0,
       cheque: 0,
       ancv: 0,
-      connect: 0,
       autre: 0
     }
   };
 }
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export default function Home() {
-  const [dark, setDark] = useState(false);
 
-  const [eventName, setEventName] = useState('');
-
-  const [date, setDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
-
-  /* =========================
-     OUVERTURE
-  ========================= */
-
-  const [opening, setOpening] = useState(
-    Object.fromEntries(
-      cashValues.map(v => [v, 0])
-    )
-  );
-
-  /* =========================
-     FERMETURE
-  ========================= */
-
-  const [closing, setClosing] = useState(
-    Object.fromEntries(
-      cashValues.map(v => [v, 0])
-    )
-  );
-
-  /* =========================
-     BILLETS
-  ========================= */
-
-  const [qty, setQty] = useState(
-    Object.fromEntries(
-      tickets.map(([name]) => [name, 0])
-    )
-  );
-
-  /* =========================
-     ANCV
-  ========================= */
-
-  const [ancv, setAncv] = useState(
-    Object.fromEntries(
-      ancvValues.map(v => [v, 0])
-    )
-  );
-
-  /* =========================
-     AUTRES PAIEMENTS
-  ========================= */
-
-  const [payments, setPayments] = useState({
-    tpe: 0,
-    web: 0,
-    cheque: 0,
-    connect: 0,
-    autre: 0
-  });
-
-  const [paymentsValidated, setPaymentsValidated] =
+  const [dark, setDark] =
     useState(false);
 
-  /* =========================
-     PAIEMENTS MULTIPLES
-  ========================= */
+  const [eventName, setEventName] =
+    useState('');
 
-  const [multipleDraft, setMultipleDraft] =
-    useState(null);
+  const [responsible, setResponsible] =
+    useState('');
 
-  const [multiplePayments, setMultiplePayments] =
+  const [date, setDate] =
+    useState(
+      new Date()
+        .toISOString()
+        .slice(0, 10)
+    );
+
+  /* =======================================================
+     OUVERTURE
+  ======================================================= */
+
+  const [opening, setOpening] =
+    useState(
+      Object.fromEntries(
+        cashValues.map(v => [
+          v,
+          0
+        ])
+      )
+    );
+
+  /* =======================================================
+     FERMETURE
+  ======================================================= */
+
+  const [closing, setClosing] =
+    useState(
+      Object.fromEntries(
+        cashValues.map(v => [
+          v,
+          0
+        ])
+      )
+    );
+
+  /* =======================================================
+     BILLETERIE
+  ======================================================= */
+
+  const [eventSales, setEventSales] =
     useState([]);
 
-  /* =========================
+  const [selectedEventId, setSelectedEventId] =
+    useState(eventTypes[0].id);
+
+  /* =======================================================
+     ANCV
+  ======================================================= */
+
+  const [ancv, setAncv] =
+    useState(
+      Object.fromEntries(
+        ancvValues.map(v => [
+          v,
+          0
+        ])
+      )
+    );
+
+  /* =======================================================
+     PAIEMENTS
+  ======================================================= */
+
+  const [payments, setPayments] =
+    useState({
+      tpe: 0,
+      web: 0,
+      cheque: 0,
+      autre: 0
+    });
+
+  const [
+    paymentsValidated,
+    setPaymentsValidated
+  ] = useState(false);
+
+  /* =======================================================
+     PAIEMENTS MULTIPLES
+  ======================================================= */
+
+  const [
+    multipleDraft,
+    setMultipleDraft
+  ] = useState(null);
+
+  const [
+    multiplePayments,
+    setMultiplePayments
+  ] = useState([]);
+
+  /* =======================================================
      CAISSE
-  ========================= */
+  ======================================================= */
 
-  const [closed, setClosed] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [closed, setClosed] =
+    useState(false);
 
-  /* =========================
+  const [saving, setSaving] =
+    useState(false);
+
+  /* =======================================================
      CALCULS ESPÈCES
-  ========================= */
+  ======================================================= */
 
-  const openingCash = useMemo(
-    () =>
-      cashValues.reduce(
-        (sum, value) =>
-          sum + value * opening[value],
-        0
-      ),
-    [opening]
-  );
+  const openingCash =
+    useMemo(
+      () =>
+        cashValues.reduce(
+          (sum, value) =>
+            sum +
+            value *
+              opening[value],
+          0
+        ),
+      [opening]
+    );
 
-  const closingCash = useMemo(
-    () =>
-      cashValues.reduce(
-        (sum, value) =>
-          sum + value * closing[value],
-        0
-      ),
-    [closing]
-  );
+  const closingCash =
+    useMemo(
+      () =>
+        cashValues.reduce(
+          (sum, value) =>
+            sum +
+            value *
+              closing[value],
+          0
+        ),
+      [closing]
+    );
 
-  const cashBills = useMemo(
-    () =>
-      [50, 20, 10, 5].reduce(
-        (sum, value) =>
-          sum + value * closing[value],
-        0
-      ),
-    [closing]
-  );
+  const cashBills =
+    useMemo(
+      () =>
+        [50, 20, 10, 5].reduce(
+          (sum, value) =>
+            sum +
+            value *
+              closing[value],
+          0
+        ),
+      [closing]
+    );
 
-  const cashCoins = useMemo(
-    () =>
-      [
-        2,
-        1,
-        0.5,
-        0.2,
-        0.1,
-        0.05,
-        0.02,
-        0.01
-      ].reduce(
-        (sum, value) =>
-          sum + value * closing[value],
-        0
-      ),
-    [closing]
-  );
+  const cashCoins =
+    useMemo(
+      () =>
+        [
+          2,
+          1,
+          0.5,
+          0.2,
+          0.1,
+          0.05,
+          0.02,
+          0.01
+        ].reduce(
+          (sum, value) =>
+            sum +
+            value *
+              closing[value],
+          0
+        ),
+      [closing]
+    );
 
   const cashSales =
-    closingCash - openingCash;
+    closingCash -
+    openingCash;
 
-  /* =========================
-     CA
-  ========================= */
+  /* =======================================================
+     CALCUL DU CA PAR ÉVÈNEMENT
+  ======================================================= */
 
-  const ca = useMemo(
-    () =>
-      tickets.reduce(
-        (sum, [name, price]) =>
-          sum + price * qty[name],
-        0
-      ),
-    [qty]
-  );
+  const eventTotals =
+    useMemo(
+      () =>
+        eventSales.map(event => {
 
-  /* =========================
-     ANCV DIRECT
-  ========================= */
+          const total =
+            event.tickets.reduce(
+              (
+                sum,
+                [name, price]
+              ) =>
+                sum +
+                price *
+                  Number(
+                    event
+                      .quantities[
+                        name
+                      ] || 0
+                  ),
+              0
+            );
 
-  const ancvDirectTotal = useMemo(
-    () =>
-      ancvValues.reduce(
-        (sum, value) =>
-          sum + value * ancv[value],
-        0
-      ),
-    [ancv]
-  );
+          return {
+            ...event,
+            total
+          };
+        }),
+      [eventSales]
+    );
 
-  /* =========================
+  /* =======================================================
+     CA GLOBAL
+  ======================================================= */
+
+  const ca =
+    useMemo(
+      () =>
+        eventTotals.reduce(
+          (sum, event) =>
+            sum +
+            event.total,
+          0
+        ),
+      [eventTotals]
+    );
+
+  /* =======================================================
+     ANCV
+  ======================================================= */
+
+  const ancvDirectTotal =
+    useMemo(
+      () =>
+        ancvValues.reduce(
+          (sum, value) =>
+            sum +
+            value *
+              ancv[value],
+          0
+        ),
+      [ancv]
+    );
+
+  /* =======================================================
      PAIEMENTS MULTIPLES
-  ========================= */
+  ======================================================= */
 
-  const multipleCash = useMemo(
-    () =>
-      multiplePayments.reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.allocations.cash || 0
-          ),
-        0
-      ),
-    [multiplePayments]
-  );
+  const multipleCash =
+    useMemo(
+      () =>
+        multiplePayments.reduce(
+          (sum, payment) =>
+            sum +
+            Number(
+              payment
+                .allocations
+                .cash || 0
+            ),
+          0
+        ),
+      [multiplePayments]
+    );
 
-  const multipleTpe = useMemo(
-    () =>
-      multiplePayments.reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.allocations.tpe || 0
-          ),
-        0
-      ),
-    [multiplePayments]
-  );
+  const multipleTpe =
+    useMemo(
+      () =>
+        multiplePayments.reduce(
+          (sum, payment) =>
+            sum +
+            Number(
+              payment
+                .allocations
+                .tpe || 0
+            ),
+          0
+        ),
+      [multiplePayments]
+    );
 
-  const multipleWeb = useMemo(
-    () =>
-      multiplePayments.reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.allocations.web || 0
-          ),
-        0
-      ),
-    [multiplePayments]
-  );
+  const multipleWeb =
+    useMemo(
+      () =>
+        multiplePayments.reduce(
+          (sum, payment) =>
+            sum +
+            Number(
+              payment
+                .allocations
+                .web || 0
+            ),
+          0
+        ),
+      [multiplePayments]
+    );
 
-  const multipleCheque = useMemo(
-    () =>
-      multiplePayments.reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.allocations.cheque || 0
-          ),
-        0
-      ),
-    [multiplePayments]
-  );
+  const multipleCheque =
+    useMemo(
+      () =>
+        multiplePayments.reduce(
+          (sum, payment) =>
+            sum +
+            Number(
+              payment
+                .allocations
+                .cheque || 0
+            ),
+          0
+        ),
+      [multiplePayments]
+    );
 
-  const multipleAncv = useMemo(
-    () =>
-      multiplePayments.reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.allocations.ancv || 0
-          ),
-        0
-      ),
-    [multiplePayments]
-  );
+  const multipleAncv =
+    useMemo(
+      () =>
+        multiplePayments.reduce(
+          (sum, payment) =>
+            sum +
+            Number(
+              payment
+                .allocations
+                .ancv || 0
+            ),
+          0
+        ),
+      [multiplePayments]
+    );
 
-  const multipleConnect = useMemo(
-    () =>
-      multiplePayments.reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.allocations.connect || 0
-          ),
-        0
-      ),
-    [multiplePayments]
-  );
-
-  const multipleAutre = useMemo(
-    () =>
-      multiplePayments.reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.allocations.autre || 0
-          ),
-        0
-      ),
-    [multiplePayments]
-  );
+  const multipleAutre =
+    useMemo(
+      () =>
+        multiplePayments.reduce(
+          (sum, payment) =>
+            sum +
+            Number(
+              payment
+                .allocations
+                .autre || 0
+            ),
+          0
+        ),
+      [multiplePayments]
+    );
 
   const ancvTotal =
-    ancvDirectTotal + multipleAncv;
+    ancvDirectTotal +
+    multipleAncv;
+
+  /* =======================================================
+     TOTAL ENCAISSÉ
+  ======================================================= */
 
   const paymentsTotal =
     cashSales +
@@ -335,44 +496,52 @@ export default function Home() {
     payments.web +
     payments.cheque +
     ancvDirectTotal +
-    payments.connect +
     payments.autre +
     multipleTpe +
     multipleWeb +
     multipleCheque +
     multipleAncv +
-    multipleConnect +
     multipleAutre;
 
   const difference =
     paymentsTotal - ca;
 
-  /* =========================
-     PAIEMENT MULTIPLE EN COURS
-  ========================= */
+  /* =======================================================
+     PAIEMENT MULTIPLE
+  ======================================================= */
 
   const multipleAllocated =
     multipleDraft
       ? Object.values(
-          multipleDraft.allocations
+          multipleDraft
+            .allocations
         ).reduce(
           (sum, value) =>
-            sum + Number(value || 0),
+            sum +
+            Number(
+              value || 0
+            ),
           0
         )
       : 0;
 
   const multipleIsValid =
     multipleDraft &&
-    Number(multipleDraft.amount || 0) > 0 &&
+    Number(
+      multipleDraft.amount ||
+        0
+    ) > 0 &&
     Math.abs(
       multipleAllocated -
-        Number(multipleDraft.amount || 0)
+        Number(
+          multipleDraft.amount ||
+            0
+        )
     ) < 0.005;
 
-  /* =========================
+  /* =======================================================
      OUTILS
-  ========================= */
+  ======================================================= */
 
   const setCount = (
     setter,
@@ -385,31 +554,113 @@ export default function Home() {
     }));
   };
 
+  function addEvent() {
+
+    const event =
+      eventTypes.find(
+        e =>
+          e.id ===
+          selectedEventId
+      );
+
+    if (!event) return;
+
+    const alreadyExists =
+      eventSales.some(
+        sale =>
+          sale.eventId ===
+          event.id
+      );
+
+    if (alreadyExists) {
+      alert(
+        'Cet évènement est déjà ajouté à la caisse.'
+      );
+      return;
+    }
+
+    setEventSales(
+      prev => [
+        ...prev,
+        createEventSale(event)
+      ]
+    );
+  }
+
+  function removeEvent(id) {
+
+    setEventSales(
+      prev =>
+        prev.filter(
+          event =>
+            event.id !== id
+        )
+    );
+  }
+
+  function updateTicketQuantity(
+    eventId,
+    ticketName,
+    value
+  ) {
+
+    setEventSales(
+      prev =>
+        prev.map(event => {
+
+          if (
+            event.id !==
+            eventId
+          ) {
+            return event;
+          }
+
+          return {
+            ...event,
+
+            quantities: {
+              ...event.quantities,
+
+              [ticketName]:
+                value
+            }
+          };
+        })
+    );
+  }
+
   function reset() {
+
     setOpening(
       Object.fromEntries(
-        cashValues.map(v => [v, 0])
-      )
-    );
-
-    setClosing(
-      Object.fromEntries(
-        cashValues.map(v => [v, 0])
-      )
-    );
-
-    setQty(
-      Object.fromEntries(
-        tickets.map(([name]) => [
-          name,
+        cashValues.map(v => [
+          v,
           0
         ])
       )
     );
 
+    setClosing(
+      Object.fromEntries(
+        cashValues.map(v => [
+          v,
+          0
+        ])
+      )
+    );
+
+    setEventSales([]);
+
+    setSelectedEventId(
+      eventTypes[0].id
+    );
+
     setAncv(
       Object.fromEntries(
-        ancvValues.map(v => [v, 0])
+        ancvValues.map(v => [
+          v,
+          0
+        ])
       )
     );
 
@@ -417,20 +668,32 @@ export default function Home() {
       tpe: 0,
       web: 0,
       cheque: 0,
-      connect: 0,
       autre: 0
     });
 
-    setPaymentsValidated(false);
+    setPaymentsValidated(
+      false
+    );
 
     setMultipleDraft(null);
+
     setMultiplePayments([]);
 
+    setEventName('');
+
+    setResponsible('');
+
     setClosed(false);
+
     setSaving(false);
   }
 
+  /* =======================================================
+     PAIEMENTS MULTIPLES
+  ======================================================= */
+
   function startMultiple() {
+
     if (multipleDraft) return;
 
     setMultipleDraft(
@@ -438,55 +701,75 @@ export default function Home() {
     );
   }
 
-  function updateMultipleAmount(value) {
-    setMultipleDraft(prev => ({
-      ...prev,
-      amount: value
-    }));
+  function updateMultipleAmount(
+    value
+  ) {
+
+    setMultipleDraft(
+      prev => ({
+        ...prev,
+        amount: value
+      })
+    );
   }
 
   function updateMultipleAllocation(
     type,
     value
   ) {
-    setMultipleDraft(prev => ({
-      ...prev,
-      allocations: {
-        ...prev.allocations,
-        [type]: value
-      }
-    }));
+
+    setMultipleDraft(
+      prev => ({
+        ...prev,
+
+        allocations: {
+          ...prev.allocations,
+          [type]: value
+        }
+      })
+    );
   }
 
   function validateMultiple() {
-    if (!multipleDraft) return;
+
+    if (!multipleDraft)
+      return;
 
     const amount =
       Number(
-        multipleDraft.amount || 0
+        multipleDraft.amount ||
+          0
       );
 
     const allocated =
       Object.values(
-        multipleDraft.allocations
+        multipleDraft
+          .allocations
       ).reduce(
         (sum, value) =>
-          sum + Number(value || 0),
+          sum +
+          Number(
+            value || 0
+          ),
         0
       );
 
     if (amount <= 0) {
+
       alert(
         'Indique le montant de la transaction.'
       );
+
       return;
     }
 
     if (
       Math.abs(
-        amount - allocated
+        amount -
+          allocated
       ) > 0.005
     ) {
+
       alert(
         `La répartition doit correspondre exactement au montant de la transaction.\n\nTransaction : ${money(
           amount
@@ -494,123 +777,210 @@ export default function Home() {
           allocated
         )}`
       );
+
       return;
     }
 
-    setMultiplePayments(prev => [
-      ...prev,
-      {
-        id:
-          Date.now() +
-          Math.random(),
-        amount,
-        allocations: {
-          ...multipleDraft.allocations
+    setMultiplePayments(
+      prev => [
+        ...prev,
+
+        {
+          id:
+            Date.now() +
+            Math.random(),
+
+          amount,
+
+          allocations: {
+            ...multipleDraft
+              .allocations
+          }
         }
-      }
-    ]);
+      ]
+    );
 
     setMultipleDraft(null);
   }
 
   function editMultiple(id) {
+
     const payment =
       multiplePayments.find(
-        p => p.id === id
+        p =>
+          p.id === id
       );
 
     if (!payment) return;
 
     setMultipleDraft({
-      amount: payment.amount,
+      amount:
+        payment.amount,
+
       allocations: {
         ...payment.allocations
       }
     });
 
-    setMultiplePayments(prev =>
-      prev.filter(
-        p => p.id !== id
-      )
+    setMultiplePayments(
+      prev =>
+        prev.filter(
+          p =>
+            p.id !== id
+        )
     );
   }
 
   function removeMultiple(id) {
-    setMultiplePayments(prev =>
-      prev.filter(
-        p => p.id !== id
-      )
+
+    setMultiplePayments(
+      prev =>
+        prev.filter(
+          p =>
+            p.id !== id
+        )
     );
   }
 
+  /* =======================================================
+     SAUVEGARDE
+  ======================================================= */
+
   async function closeCash() {
+
     if (multipleDraft) {
+
       alert(
         'Termine ou annule le paiement multiple en cours.'
       );
+
       return;
     }
 
     if (!paymentsValidated) {
+
       alert(
         'Valide les moyens de paiement avant de clôturer la caisse.'
       );
+
+      return;
+    }
+
+    if (
+      eventSales.length ===
+      0
+    ) {
+
+      alert(
+        'Ajoute au moins un évènement à la billetterie.'
+      );
+
+      return;
+    }
+
+    if (!responsible.trim()) {
+
+      alert(
+        'Indique le nom du responsable de caisse.'
+      );
+
       return;
     }
 
     setSaving(true);
 
     const caisseData = {
-      event_name: eventName || null,
+
+      event_name:
+        eventName || null,
+
+      responsible:
+        responsible || null,
+
       date,
 
       ca_data: {
-        tickets,
-        quantities: qty,
-        total: ca
+
+        events:
+          eventTotals,
+
+        total:
+          ca
       },
 
       opening_data: {
-        denominations: opening,
-        total: openingCash
+
+        denominations:
+          opening,
+
+        total:
+          openingCash
       },
 
       closing_data: {
-        denominations: closing,
-        total: closingCash,
-        bills_total: cashBills,
-        coins_total: cashCoins,
-        cash_sales: cashSales
+
+        denominations:
+          closing,
+
+        total:
+          closingCash,
+
+        bills_total:
+          cashBills,
+
+        coins_total:
+          cashCoins,
+
+        cash_sales:
+          cashSales
       },
 
       payments_data: {
+
         simple: {
-          tpe: payments.tpe,
-          web: payments.web,
-          cheque: payments.cheque,
-          ancv: ancvDirectTotal,
-          connect: payments.connect,
-          autre: payments.autre
+
+          tpe:
+            payments.tpe,
+
+          web:
+            payments.web,
+
+          cheque:
+            payments.cheque,
+
+          ancv:
+            ancvDirectTotal,
+
+          autre:
+            payments.autre
         },
 
-        ancv_by_value: ancv,
+        ancv_by_value:
+          ancv,
 
         totals: {
-          ancv: ancvTotal,
-          cash: cashSales,
-          cash_multiple: multipleCash,
+
+          ancv:
+            ancvTotal,
+
+          cash:
+            cashSales,
+
+          cash_multiple:
+            multipleCash,
+
           tpe:
             payments.tpe +
             multipleTpe,
+
           web:
             payments.web +
             multipleWeb,
+
           cheque:
             payments.cheque +
             multipleCheque,
-          connect:
-            payments.connect +
-            multipleConnect,
+
           autre:
             payments.autre +
             multipleAutre
@@ -620,20 +990,26 @@ export default function Home() {
       multiple_payments:
         multiplePayments,
 
-      total_ca: ca,
+      total_ca:
+        ca,
+
       total_encaisse:
         paymentsTotal,
+
       difference
     };
 
     const { error } =
       await supabase
         .from('caisses')
-        .insert(caisseData);
+        .insert(
+          caisseData
+        );
 
     setSaving(false);
 
     if (error) {
+
       console.error(
         'Erreur sauvegarde caisse:',
         error
@@ -649,18 +1025,30 @@ export default function Home() {
     setClosed(true);
   }
 
+  /* =======================================================
+     AFFICHAGE
+  ======================================================= */
+
   return (
+
     <main
       className={
-        dark ? 'dark' : ''
+        dark
+          ? 'dark'
+          : ''
       }
     >
+
       <div className="wrap">
 
-        {/* HEADER */}
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
         <header>
+
           <div>
+
             <div className="eyebrow">
               BILLETTERIE ASSOCIATIVE
             </div>
@@ -672,12 +1060,15 @@ export default function Home() {
             <p>
               Ouverture → comptage → fermeture → contrôle.
             </p>
+
           </div>
 
           <button
             className="theme"
             onClick={() =>
-              setDark(!dark)
+              setDark(
+                !dark
+              )
             }
             aria-label="Changer de thème"
           >
@@ -685,11 +1076,12 @@ export default function Home() {
               ? '☀️'
               : '🌙'}
           </button>
+
         </header>
 
-        {/* =========================
+        {/* =================================================
             1. OUVERTURE
-        ========================= */}
+        ================================================= */}
 
         <section className="card">
 
@@ -700,34 +1092,61 @@ export default function Home() {
           <div className="grid2">
 
             <label>
+
               Manifestation
 
               <input
-                value={eventName}
+                value={
+                  eventName
+                }
                 onChange={e =>
                   setEventName(
-                    e.target.value
+                    e.target
+                      .value
                   )
                 }
                 placeholder="Nom de la manifestation"
               />
+
             </label>
 
             <label>
-              Date
+
+              Responsable de caisse
 
               <input
-                type="date"
-                value={date}
+                value={
+                  responsible
+                }
                 onChange={e =>
-                  setDate(
-                    e.target.value
+                  setResponsible(
+                    e.target
+                      .value
                   )
                 }
+                placeholder="Nom du responsable"
               />
+
             </label>
 
           </div>
+
+          <label>
+
+            Date
+
+            <input
+              type="date"
+              value={date}
+              onChange={e =>
+                setDate(
+                  e.target
+                    .value
+                )
+              }
+            />
+
+          </label>
 
           <h3>
             Fond de caisse
@@ -735,43 +1154,49 @@ export default function Home() {
 
           <div className="cashgrid">
 
-            {cashValues.map(value => (
+            {cashValues.map(
+              value => (
 
-              <div
-                className="cashrow"
-                key={
-                  'opening' +
-                  value
-                }
-              >
-
-                <span>
-                  {money(value)}
-                </span>
-
-                <NumberField
-                  value={
-                    opening[value]
+                <div
+                  className="cashrow"
+                  key={
+                    'opening' +
+                    value
                   }
-                  onChange={x =>
-                    setCount(
-                      setOpening,
-                      value,
-                      x
-                    )
-                  }
-                />
+                >
 
-                <strong>
-                  {money(
-                    value *
-                      opening[value]
-                  )}
-                </strong>
+                  <span>
+                    {money(value)}
+                  </span>
 
-              </div>
+                  <NumberField
+                    value={
+                      opening[
+                        value
+                      ]
+                    }
+                    onChange={x =>
+                      setCount(
+                        setOpening,
+                        value,
+                        x
+                      )
+                    }
+                  />
 
-            ))}
+                  <strong>
+                    {money(
+                      value *
+                        opening[
+                          value
+                        ]
+                    )}
+                  </strong>
+
+                </div>
+
+              )
+            )}
 
           </div>
 
@@ -791,9 +1216,9 @@ export default function Home() {
 
         </section>
 
-        {/* =========================
+        {/* =================================================
             2. BILLETTERIE
-        ========================= */}
+        ================================================= */}
 
         <section className="card">
 
@@ -802,62 +1227,197 @@ export default function Home() {
           </h2>
 
           <p className="muted">
-            Saisis uniquement le nombre de billets vendus.
+            Ajoute les évènements concernés par la manifestation puis saisis les ventes.
           </p>
 
-          <div className="ticketgrid">
+          <div className="grid2">
 
-            {tickets.map(
-              ([name, price]) => (
+            <label>
+
+              Évènement
+
+              <select
+                value={
+                  selectedEventId
+                }
+                onChange={e =>
+                  setSelectedEventId(
+                    e.target
+                      .value
+                  )
+                }
+              >
+
+                {eventTypes.map(
+                  event => (
+
+                    <option
+                      key={
+                        event.id
+                      }
+                      value={
+                        event.id
+                      }
+                    >
+                      {event.name}
+                    </option>
+
+                  )
+                )}
+
+              </select>
+
+            </label>
+
+            <div>
+
+              <button
+                type="button"
+                className="primary"
+                onClick={
+                  addEvent
+                }
+              >
+                ＋ Ajouter l'évènement
+              </button>
+
+            </div>
+
+          </div>
+
+          {eventTotals.length ===
+          0 ? (
+
+            <div className="info">
+
+              Aucun évènement ajouté.
+
+            </div>
+
+          ) : (
+
+            eventTotals.map(
+              event => (
 
                 <div
-                  className="ticket"
-                  key={name}
+                  className="multiple"
+                  key={
+                    event.id
+                  }
                 >
 
-                  <div>
+                  <div className="multipleHeader">
 
                     <strong>
-                      {name}
+                      {event.eventName}
                     </strong>
 
-                    <span>
-                      {money(price)}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeEvent(
+                          event.id
+                        )
+                      }
+                    >
+                      🗑️ Supprimer
+                    </button>
 
                   </div>
 
-                  <NumberField
-                    value={
-                      qty[name]
-                    }
-                    onChange={x =>
-                      setCount(
-                        setQty,
-                        name,
-                        x
-                      )
-                    }
-                  />
+                  <div className="ticketgrid">
 
-                  <b>
-                    {money(
-                      price *
-                        qty[name]
+                    {event.tickets.map(
+                      (
+                        [
+                          name,
+                          price
+                        ]
+                      ) => (
+
+                        <div
+                          className="ticket"
+                          key={
+                            name
+                          }
+                        >
+
+                          <div>
+
+                            <strong>
+                              {name}
+                            </strong>
+
+                            <span>
+                              {money(
+                                price
+                              )}
+                            </span>
+
+                          </div>
+
+                          <NumberField
+                            value={
+                              event
+                                .quantities[
+                                name
+                              ] ||
+                              0
+                            }
+                            onChange={x =>
+                              updateTicketQuantity(
+                                event.id,
+                                name,
+                                x
+                              )
+                            }
+                          />
+
+                          <b>
+                            {money(
+                              price *
+                                (
+                                  event
+                                    .quantities[
+                                    name
+                                  ] ||
+                                  0
+                                )
+                            )}
+                          </b>
+
+                        </div>
+
+                      )
                     )}
-                  </b>
+
+                  </div>
+
+                  <div className="caBox">
+
+                    <span>
+                      CA {event.eventName}
+                    </span>
+
+                    <strong>
+                      {money(
+                        event.total
+                      )}
+                    </strong>
+
+                  </div>
 
                 </div>
 
               )
-            )}
+            )
 
-          </div>
+          )}
 
           <div className="caBox">
 
             <span>
-              CA billetterie
+              CA BILLETTERIE TOTAL
             </span>
 
             <strong>
@@ -868,9 +1428,9 @@ export default function Home() {
 
         </section>
 
-        {/* =========================
-            3. FERMETURE ESPECES
-        ========================= */}
+        {/* =================================================
+            3. FERMETURE ESPÈCES
+        ================================================= */}
 
         <section className="card">
 
@@ -884,43 +1444,49 @@ export default function Home() {
 
           <div className="cashgrid">
 
-            {cashValues.map(value => (
+            {cashValues.map(
+              value => (
 
-              <div
-                className="cashrow"
-                key={
-                  'closing' +
-                  value
-                }
-              >
-
-                <span>
-                  {money(value)}
-                </span>
-
-                <NumberField
-                  value={
-                    closing[value]
+                <div
+                  className="cashrow"
+                  key={
+                    'closing' +
+                    value
                   }
-                  onChange={x =>
-                    setCount(
-                      setClosing,
-                      value,
-                      x
-                    )
-                  }
-                />
+                >
 
-                <strong>
-                  {money(
-                    value *
-                      closing[value]
-                  )}
-                </strong>
+                  <span>
+                    {money(value)}
+                  </span>
 
-              </div>
+                  <NumberField
+                    value={
+                      closing[
+                        value
+                      ]
+                    }
+                    onChange={x =>
+                      setCount(
+                        setClosing,
+                        value,
+                        x
+                      )
+                    }
+                  />
 
-            ))}
+                  <strong>
+                    {money(
+                      value *
+                        closing[
+                          value
+                        ]
+                    )}
+                  </strong>
+
+                </div>
+
+              )
+            )}
 
           </div>
 
@@ -962,9 +1528,9 @@ export default function Home() {
 
         </section>
 
-        {/* =========================
+        {/* =================================================
             4. MOYENS DE PAIEMENT
-        ========================= */}
+        ================================================= */}
 
         <section className="card">
 
@@ -979,6 +1545,7 @@ export default function Home() {
               <div className="paymentgrid">
 
                 <label>
+
                   CB Guichet — TPE
 
                   <NumberField
@@ -998,6 +1565,7 @@ export default function Home() {
                 </label>
 
                 <label>
+
                   CB Web
 
                   <NumberField
@@ -1017,6 +1585,7 @@ export default function Home() {
                 </label>
 
                 <label>
+
                   Chèques
 
                   <NumberField
@@ -1036,25 +1605,7 @@ export default function Home() {
                 </label>
 
                 <label>
-                  Chèques-Vacances Connect
 
-                  <NumberField
-                    step="0.01"
-                    value={
-                      payments.connect
-                    }
-                    onChange={x =>
-                      setCount(
-                        setPayments,
-                        'connect',
-                        x
-                      )
-                    }
-                  />
-
-                </label>
-
-                <label>
                   Autre
 
                   <NumberField
@@ -1141,18 +1692,6 @@ export default function Home() {
 
                 <div>
                   <span>
-                    ANCV Connect
-                  </span>
-
-                  <strong>
-                    {money(
-                      payments.connect
-                    )}
-                  </strong>
-                </div>
-
-                <div>
-                  <span>
                     Autre
                   </span>
 
@@ -1186,43 +1725,49 @@ export default function Home() {
 
           <div className="cashgrid">
 
-            {ancvValues.map(value => (
+            {ancvValues.map(
+              value => (
 
-              <div
-                className="cashrow"
-                key={
-                  'ancv' +
-                  value
-                }
-              >
-
-                <span>
-                  {money(value)}
-                </span>
-
-                <NumberField
-                  value={
-                    ancv[value]
+                <div
+                  className="cashrow"
+                  key={
+                    'ancv' +
+                    value
                   }
-                  onChange={x =>
-                    setCount(
-                      setAncv,
-                      value,
-                      x
-                    )
-                  }
-                />
+                >
 
-                <strong>
-                  {money(
-                    value *
-                      ancv[value]
-                  )}
-                </strong>
+                  <span>
+                    {money(value)}
+                  </span>
 
-              </div>
+                  <NumberField
+                    value={
+                      ancv[
+                        value
+                      ]
+                    }
+                    onChange={x =>
+                      setCount(
+                        setAncv,
+                        value,
+                        x
+                      )
+                    }
+                  />
 
-            ))}
+                  <strong>
+                    {money(
+                      value *
+                        ancv[
+                          value
+                        ]
+                    )}
+                  </strong>
+
+                </div>
+
+              )
+            )}
 
           </div>
 
@@ -1242,9 +1787,9 @@ export default function Home() {
 
         </section>
 
-        {/* =========================
+        {/* =================================================
             5. PAIEMENTS MULTIPLES
-        ========================= */}
+        ================================================= */}
 
         <section className="card">
 
@@ -1257,11 +1802,16 @@ export default function Home() {
           </p>
 
           {multiplePayments.map(
-            (payment, index) => (
+            (
+              payment,
+              index
+            ) => (
 
               <div
                 className="multiple"
-                key={payment.id}
+                key={
+                  payment.id
+                }
               >
 
                 <div className="multipleHeader">
@@ -1313,7 +1863,9 @@ export default function Home() {
                     <>
                       Espèces :{' '}
                       {money(
-                        payment.allocations.cash
+                        payment
+                          .allocations
+                          .cash
                       )}{' '}
                     </>
                   )}
@@ -1322,7 +1874,9 @@ export default function Home() {
                     <>
                       TPE :{' '}
                       {money(
-                        payment.allocations.tpe
+                        payment
+                          .allocations
+                          .tpe
                       )}{' '}
                     </>
                   )}
@@ -1331,7 +1885,9 @@ export default function Home() {
                     <>
                       CB Web :{' '}
                       {money(
-                        payment.allocations.web
+                        payment
+                          .allocations
+                          .web
                       )}{' '}
                     </>
                   )}
@@ -1340,7 +1896,9 @@ export default function Home() {
                     <>
                       Chèque :{' '}
                       {money(
-                        payment.allocations.cheque
+                        payment
+                          .allocations
+                          .cheque
                       )}{' '}
                     </>
                   )}
@@ -1349,16 +1907,9 @@ export default function Home() {
                     <>
                       ANCV :{' '}
                       {money(
-                        payment.allocations.ancv
-                      )}{' '}
-                    </>
-                  )}
-
-                  {payment.allocations.connect > 0 && (
-                    <>
-                      ANCV Connect :{' '}
-                      {money(
-                        payment.allocations.connect
+                        payment
+                          .allocations
+                          .ancv
                       )}{' '}
                     </>
                   )}
@@ -1367,7 +1918,9 @@ export default function Home() {
                     <>
                       Autre :{' '}
                       {money(
-                        payment.allocations.autre
+                        payment
+                          .allocations
+                          .autre
                       )}
                     </>
                   )}
@@ -1383,7 +1936,9 @@ export default function Home() {
 
             <button
               type="button"
-              onClick={startMultiple}
+              onClick={
+                startMultiple
+              }
             >
               ＋ Nouveau paiement multiple
             </button>
@@ -1434,17 +1989,43 @@ export default function Home() {
               <div className="paymentgrid">
 
                 {[
-                  ['cash', 'Espèces'],
-                  ['tpe', 'CB Guichet — TPE'],
-                  ['web', 'CB Web'],
-                  ['cheque', 'Chèque'],
-                  ['ancv', 'ANCV'],
-                  ['connect', 'ANCV Connect'],
-                  ['autre', 'Autre']
+                  [
+                    'cash',
+                    'Espèces'
+                  ],
+                  [
+                    'tpe',
+                    'CB Guichet — TPE'
+                  ],
+                  [
+                    'web',
+                    'CB Web'
+                  ],
+                  [
+                    'cheque',
+                    'Chèque'
+                  ],
+                  [
+                    'ancv',
+                    'ANCV'
+                  ],
+                  [
+                    'autre',
+                    'Autre'
+                  ]
                 ].map(
-                  ([type, label]) => (
+                  (
+                    [
+                      type,
+                      label
+                    ]
+                  ) => (
 
-                    <label key={type}>
+                    <label
+                      key={
+                        type
+                      }
+                    >
 
                       {label}
 
@@ -1453,8 +2034,8 @@ export default function Home() {
                         value={
                           multipleDraft
                             .allocations[
-                              type
-                            ]
+                            type
+                          ]
                         }
                         onChange={value =>
                           updateMultipleAllocation(
@@ -1522,7 +2103,8 @@ export default function Home() {
 
           )}
 
-          {multiplePayments.length > 0 && (
+          {multiplePayments.length >
+            0 && (
 
             <div className="totalline">
 
@@ -1533,11 +2115,14 @@ export default function Home() {
               <strong>
                 {money(
                   multiplePayments.reduce(
-                    (sum, payment) =>
+                    (
+                      sum,
+                      payment
+                    ) =>
                       sum +
                       Number(
                         payment.amount ||
-                        0
+                          0
                       ),
                     0
                   )
@@ -1550,13 +2135,14 @@ export default function Home() {
 
         </section>
 
-        {/* =========================
+        {/* =================================================
             RESULTATS
-        ========================= */}
+        ================================================= */}
 
         <section className="result">
 
           <div>
+
             <span>
               CA billetterie
             </span>
@@ -1564,59 +2150,81 @@ export default function Home() {
             <strong>
               {money(ca)}
             </strong>
+
           </div>
 
           <div>
+
             <span>
               Somme billets
             </span>
 
             <strong>
-              {money(cashBills)}
+              {money(
+                cashBills
+              )}
             </strong>
+
           </div>
 
           <div>
+
             <span>
               Somme monnaie
             </span>
 
             <strong>
-              {money(cashCoins)}
+              {money(
+                cashCoins
+              )}
             </strong>
+
           </div>
 
           <div>
+
             <span>
               Somme totale espèces
             </span>
 
             <strong>
-              {money(closingCash)}
+              {money(
+                closingCash
+              )}
             </strong>
+
           </div>
 
           <div>
+
             <span>
               Espèces issues des ventes
             </span>
 
             <strong>
-              {money(cashSales)}
+              {money(
+                cashSales
+              )}
             </strong>
+
           </div>
 
           <div>
+
             <span>
               ANCV total
             </span>
 
             <strong>
-              {money(ancvTotal)}
+              {money(
+                ancvTotal
+              )}
             </strong>
+
           </div>
 
           <div>
+
             <span>
               Total encaissé
             </span>
@@ -1626,6 +2234,7 @@ export default function Home() {
                 paymentsTotal
               )}
             </strong>
+
           </div>
 
           <div
@@ -1662,16 +2271,22 @@ export default function Home() {
                 closed
               }
             >
+
               {saving
                 ? '⏳ Sauvegarde...'
                 : closed
                   ? '✓ Caisse sauvegardée'
                   : 'Clôturer et sauvegarder'}
+
             </button>
 
             <button
-              onClick={reset}
-              disabled={saving}
+              onClick={
+                reset
+              }
+              disabled={
+                saving
+              }
             >
               Nouvelle caisse
             </button>
@@ -1701,6 +2316,10 @@ export default function Home() {
 
               {' — '}
 
+              {responsible}
+
+              {' — '}
+
               {date}
 
             </div>
@@ -1710,6 +2329,7 @@ export default function Home() {
         </section>
 
       </div>
+
     </main>
   );
 }
