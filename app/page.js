@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { supabase } from './lib/supabase';
 
 const tickets = [
   ['Tarif plein', 20],
@@ -144,6 +145,7 @@ export default function Home() {
   ========================= */
 
   const [closed, setClosed] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   /* =========================
      CALCULS ESPÈCES
@@ -198,10 +200,6 @@ export default function Home() {
     [closing]
   );
 
-  /*
-   * Espèces réellement entrées dans la caisse
-   * pendant la manifestation.
-   */
   const cashSales =
     closingCash - openingCash;
 
@@ -328,36 +326,9 @@ export default function Home() {
     [multiplePayments]
   );
 
-  /*
-   * ANCV TOTAL
-   *
-   * ANCV simples + ANCV provenant
-   * des paiements multiples.
-   */
   const ancvTotal =
     ancvDirectTotal + multipleAncv;
 
-  /*
-   * IMPORTANT :
-   *
-   * Les espèces des paiements multiples
-   * sont physiquement présentes dans la caisse.
-   *
-   * Elles sont donc déjà incluses dans :
-   *
-   * closingCash - openingCash
-   *
-   * On ne les ajoute PAS une deuxième fois.
-   */
-
-  /*
-   * Total réellement encaissé.
-   *
-   * On prend :
-   * - espèces physiques entrées
-   * - paiements simples hors espèces
-   * - parties hors espèces des paiements multiples
-   */
   const paymentsTotal =
     cashSales +
     payments.tpe +
@@ -456,6 +427,7 @@ export default function Home() {
     setMultiplePayments([]);
 
     setClosed(false);
+    setSaving(false);
   }
 
   function startMultiple() {
@@ -571,7 +543,7 @@ export default function Home() {
     );
   }
 
-  function closeCash() {
+  async function closeCash() {
     if (multipleDraft) {
       alert(
         'Termine ou annule le paiement multiple en cours.'
@@ -579,15 +551,110 @@ export default function Home() {
       return;
     }
 
+    if (!paymentsValidated) {
+      alert(
+        'Valide les moyens de paiement avant de clôturer la caisse.'
+      );
+      return;
+    }
+
+    setSaving(true);
+
+    const caisseData = {
+      event_name: eventName || null,
+      date,
+
+      ca_data: {
+        tickets,
+        quantities: qty,
+        total: ca
+      },
+
+      opening_data: {
+        denominations: opening,
+        total: openingCash
+      },
+
+      closing_data: {
+        denominations: closing,
+        total: closingCash,
+        bills_total: cashBills,
+        coins_total: cashCoins,
+        cash_sales: cashSales
+      },
+
+      payments_data: {
+        simple: {
+          tpe: payments.tpe,
+          web: payments.web,
+          cheque: payments.cheque,
+          ancv: ancvDirectTotal,
+          connect: payments.connect,
+          autre: payments.autre
+        },
+
+        ancv_by_value: ancv,
+
+        totals: {
+          ancv: ancvTotal,
+          cash: cashSales,
+          cash_multiple: multipleCash,
+          tpe:
+            payments.tpe +
+            multipleTpe,
+          web:
+            payments.web +
+            multipleWeb,
+          cheque:
+            payments.cheque +
+            multipleCheque,
+          connect:
+            payments.connect +
+            multipleConnect,
+          autre:
+            payments.autre +
+            multipleAutre
+        }
+      },
+
+      multiple_payments:
+        multiplePayments,
+
+      total_ca: ca,
+      total_encaisse:
+        paymentsTotal,
+      difference
+    };
+
+    const { error } =
+      await supabase
+        .from('caisses')
+        .insert(caisseData);
+
+    setSaving(false);
+
+    if (error) {
+      console.error(
+        'Erreur sauvegarde caisse:',
+        error
+      );
+
+      alert(
+        `Impossible de sauvegarder la caisse.\n\n${error.message}`
+      );
+
+      return;
+    }
+
     setClosed(true);
   }
 
-  /* =========================
-     AFFICHAGE
-  ========================= */
-
   return (
-    <main className={dark ? 'dark' : ''}>
+    <main
+      className={
+        dark ? 'dark' : ''
+      }
+    >
       <div className="wrap">
 
         {/* HEADER */}
@@ -614,7 +681,9 @@ export default function Home() {
             }
             aria-label="Changer de thème"
           >
-            {dark ? '☀️' : '🌙'}
+            {dark
+              ? '☀️'
+              : '🌙'}
           </button>
         </header>
 
@@ -623,11 +692,13 @@ export default function Home() {
         ========================= */}
 
         <section className="card">
+
           <h2>
             1. Ouverture de caisse
           </h2>
 
           <div className="grid2">
+
             <label>
               Manifestation
 
@@ -655,6 +726,7 @@ export default function Home() {
                 }
               />
             </label>
+
           </div>
 
           <h3>
@@ -662,11 +734,17 @@ export default function Home() {
           </h3>
 
           <div className="cashgrid">
+
             {cashValues.map(value => (
+
               <div
                 className="cashrow"
-                key={'opening' + value}
+                key={
+                  'opening' +
+                  value
+                }
               >
+
                 <span>
                   {money(value)}
                 </span>
@@ -690,19 +768,27 @@ export default function Home() {
                       opening[value]
                   )}
                 </strong>
+
               </div>
+
             ))}
+
           </div>
 
           <div className="totalline">
+
             <span>
               Fond de caisse initial
             </span>
 
             <strong>
-              {money(openingCash)}
+              {money(
+                openingCash
+              )}
             </strong>
+
           </div>
+
         </section>
 
         {/* =========================
@@ -710,6 +796,7 @@ export default function Home() {
         ========================= */}
 
         <section className="card">
+
           <h2>
             2. Billetterie
           </h2>
@@ -719,13 +806,17 @@ export default function Home() {
           </p>
 
           <div className="ticketgrid">
+
             {tickets.map(
               ([name, price]) => (
+
                 <div
                   className="ticket"
                   key={name}
                 >
+
                   <div>
+
                     <strong>
                       {name}
                     </strong>
@@ -733,6 +824,7 @@ export default function Home() {
                     <span>
                       {money(price)}
                     </span>
+
                   </div>
 
                   <NumberField
@@ -754,12 +846,16 @@ export default function Home() {
                         qty[name]
                     )}
                   </b>
+
                 </div>
+
               )
             )}
+
           </div>
 
           <div className="caBox">
+
             <span>
               CA billetterie
             </span>
@@ -767,7 +863,9 @@ export default function Home() {
             <strong>
               {money(ca)}
             </strong>
+
           </div>
+
         </section>
 
         {/* =========================
@@ -775,6 +873,7 @@ export default function Home() {
         ========================= */}
 
         <section className="card">
+
           <h2>
             3. Fermeture — espèces
           </h2>
@@ -784,11 +883,17 @@ export default function Home() {
           </p>
 
           <div className="cashgrid">
+
             {cashValues.map(value => (
+
               <div
                 className="cashrow"
-                key={'closing' + value}
+                key={
+                  'closing' +
+                  value
+                }
               >
+
                 <span>
                   {money(value)}
                 </span>
@@ -812,31 +917,49 @@ export default function Home() {
                       closing[value]
                   )}
                 </strong>
+
               </div>
+
             ))}
+
           </div>
 
           <div className="totalline">
+
             <span>
               Espèces en caisse
             </span>
 
             <strong>
-              {money(closingCash)}
+              {money(
+                closingCash
+              )}
             </strong>
+
           </div>
 
           <div className="info">
+
             Fond initial :{' '}
+
             <strong>
-              {money(openingCash)}
+              {money(
+                openingCash
+              )}
             </strong>
+
             {' — '}
+
             Espèces issues des ventes :{' '}
+
             <strong>
-              {money(cashSales)}
+              {money(
+                cashSales
+              )}
             </strong>
+
           </div>
+
         </section>
 
         {/* =========================
@@ -844,12 +967,15 @@ export default function Home() {
         ========================= */}
 
         <section className="card">
+
           <h2>
             4. Moyens de paiement
           </h2>
 
           {!paymentsValidated ? (
+
             <>
+
               <div className="paymentgrid">
 
                 <label>
@@ -868,6 +994,7 @@ export default function Home() {
                       )
                     }
                   />
+
                 </label>
 
                 <label>
@@ -886,6 +1013,7 @@ export default function Home() {
                       )
                     }
                   />
+
                 </label>
 
                 <label>
@@ -904,6 +1032,7 @@ export default function Home() {
                       )
                     }
                   />
+
                 </label>
 
                 <label>
@@ -922,6 +1051,7 @@ export default function Home() {
                       )
                     }
                   />
+
                 </label>
 
                 <label>
@@ -940,6 +1070,7 @@ export default function Home() {
                       )
                     }
                   />
+
                 </label>
 
               </div>
@@ -955,13 +1086,19 @@ export default function Home() {
               >
                 ✓ Valider les moyens de paiement
               </button>
+
             </>
+
           ) : (
+
             <>
+
               <div className="info">
+
                 <strong>
                   Moyens de paiement validés ✓
                 </strong>
+
               </div>
 
               <div className="paymentSummary">
@@ -1038,7 +1175,9 @@ export default function Home() {
               >
                 ✏️ Modifier
               </button>
+
             </>
+
           )}
 
           <h3>
@@ -1046,11 +1185,17 @@ export default function Home() {
           </h3>
 
           <div className="cashgrid">
+
             {ancvValues.map(value => (
+
               <div
                 className="cashrow"
-                key={'ancv' + value}
+                key={
+                  'ancv' +
+                  value
+                }
               >
+
                 <span>
                   {money(value)}
                 </span>
@@ -1074,11 +1219,15 @@ export default function Home() {
                       ancv[value]
                   )}
                 </strong>
+
               </div>
+
             ))}
+
           </div>
 
           <div className="totalline">
+
             <span>
               ANCV directs
             </span>
@@ -1088,7 +1237,9 @@ export default function Home() {
                 ancvDirectTotal
               )}
             </strong>
+
           </div>
+
         </section>
 
         {/* =========================
@@ -1096,6 +1247,7 @@ export default function Home() {
         ========================= */}
 
         <section className="card">
+
           <h2>
             5. Paiements multiples
           </h2>
@@ -1106,16 +1258,21 @@ export default function Home() {
 
           {multiplePayments.map(
             (payment, index) => (
+
               <div
                 className="multiple"
                 key={payment.id}
               >
+
                 <div className="multipleHeader">
+
                   <strong>
-                    Paiement multiple #{index + 1}
+                    Paiement multiple #
+                    {index + 1}
                   </strong>
 
                   <div>
+
                     <button
                       type="button"
                       onClick={() =>
@@ -1137,10 +1294,13 @@ export default function Home() {
                     >
                       🗑️
                     </button>
+
                   </div>
+
                 </div>
 
                 <div className="info">
+
                   <strong>
                     {money(
                       payment.amount
@@ -1211,22 +1371,29 @@ export default function Home() {
                       )}
                     </>
                   )}
+
                 </div>
+
               </div>
+
             )
           )}
 
           {!multipleDraft ? (
+
             <button
               type="button"
               onClick={startMultiple}
             >
               ＋ Nouveau paiement multiple
             </button>
+
           ) : (
+
             <div className="multiple">
 
               <div className="multipleHeader">
+
                 <strong>
                   Nouveau paiement multiple
                 </strong>
@@ -1241,9 +1408,11 @@ export default function Home() {
                 >
                   Annuler
                 </button>
+
               </div>
 
               <label>
+
                 Montant de la transaction
 
                 <NumberField
@@ -1255,6 +1424,7 @@ export default function Home() {
                     updateMultipleAmount
                   }
                 />
+
               </label>
 
               <h3>
@@ -1263,138 +1433,41 @@ export default function Home() {
 
               <div className="paymentgrid">
 
-                <label>
-                  Espèces
+                {[
+                  ['cash', 'Espèces'],
+                  ['tpe', 'CB Guichet — TPE'],
+                  ['web', 'CB Web'],
+                  ['cheque', 'Chèque'],
+                  ['ancv', 'ANCV'],
+                  ['connect', 'ANCV Connect'],
+                  ['autre', 'Autre']
+                ].map(
+                  ([type, label]) => (
 
-                  <NumberField
-                    step="0.01"
-                    value={
-                      multipleDraft
-                        .allocations
-                        .cash
-                    }
-                    onChange={value =>
-                      updateMultipleAllocation(
-                        'cash',
-                        value
-                      )
-                    }
-                  />
-                </label>
+                    <label key={type}>
 
-                <label>
-                  CB Guichet — TPE
+                      {label}
 
-                  <NumberField
-                    step="0.01"
-                    value={
-                      multipleDraft
-                        .allocations
-                        .tpe
-                    }
-                    onChange={value =>
-                      updateMultipleAllocation(
-                        'tpe',
-                        value
-                      )
-                    }
-                  />
-                </label>
+                      <NumberField
+                        step="0.01"
+                        value={
+                          multipleDraft
+                            .allocations[
+                              type
+                            ]
+                        }
+                        onChange={value =>
+                          updateMultipleAllocation(
+                            type,
+                            value
+                          )
+                        }
+                      />
 
-                <label>
-                  CB Web
+                    </label>
 
-                  <NumberField
-                    step="0.01"
-                    value={
-                      multipleDraft
-                        .allocations
-                        .web
-                    }
-                    onChange={value =>
-                      updateMultipleAllocation(
-                        'web',
-                        value
-                      )
-                    }
-                  />
-                </label>
-
-                <label>
-                  Chèque
-
-                  <NumberField
-                    step="0.01"
-                    value={
-                      multipleDraft
-                        .allocations
-                        .cheque
-                    }
-                    onChange={value =>
-                      updateMultipleAllocation(
-                        'cheque',
-                        value
-                      )
-                    }
-                  />
-                </label>
-
-                <label>
-                  ANCV
-
-                  <NumberField
-                    step="0.01"
-                    value={
-                      multipleDraft
-                        .allocations
-                        .ancv
-                    }
-                    onChange={value =>
-                      updateMultipleAllocation(
-                        'ancv',
-                        value
-                      )
-                    }
-                  />
-                </label>
-
-                <label>
-                  ANCV Connect
-
-                  <NumberField
-                    step="0.01"
-                    value={
-                      multipleDraft
-                        .allocations
-                        .connect
-                    }
-                    onChange={value =>
-                      updateMultipleAllocation(
-                        'connect',
-                        value
-                      )
-                    }
-                  />
-                </label>
-
-                <label>
-                  Autre
-
-                  <NumberField
-                    step="0.01"
-                    value={
-                      multipleDraft
-                        .allocations
-                        .autre
-                    }
-                    onChange={value =>
-                      updateMultipleAllocation(
-                        'autre',
-                        value
-                      )
-                    }
-                  />
-                </label>
+                  )
+                )}
 
               </div>
 
@@ -1405,7 +1478,9 @@ export default function Home() {
                     : 'info bad'
                 }
               >
+
                 Montant de la transaction :{' '}
+
                 <strong>
                   {money(
                     multipleDraft.amount
@@ -1415,6 +1490,7 @@ export default function Home() {
                 <br />
 
                 Montant réparti :{' '}
+
                 <strong>
                   {money(
                     multipleAllocated
@@ -1426,6 +1502,7 @@ export default function Home() {
                 {multipleIsValid
                   ? '✓ Répartition correcte'
                   : '⚠️ La répartition doit correspondre au montant de la transaction'}
+
               </div>
 
               <button
@@ -1440,11 +1517,15 @@ export default function Home() {
               >
                 ✓ Valider le paiement multiple
               </button>
+
             </div>
+
           )}
 
           {multiplePayments.length > 0 && (
+
             <div className="totalline">
+
               <span>
                 Total paiements multiples
               </span>
@@ -1455,14 +1536,18 @@ export default function Home() {
                     (sum, payment) =>
                       sum +
                       Number(
-                        payment.amount || 0
+                        payment.amount ||
+                        0
                       ),
                     0
                   )
                 )}
               </strong>
+
             </div>
+
           )}
+
         </section>
 
         {/* =========================
@@ -1537,7 +1622,9 @@ export default function Home() {
             </span>
 
             <strong>
-              {money(paymentsTotal)}
+              {money(
+                paymentsTotal
+              )}
             </strong>
           </div>
 
@@ -1550,13 +1637,17 @@ export default function Home() {
                 : 'bad'
             }
           >
+
             <span>
               Écart
             </span>
 
             <strong>
-              {money(difference)}
+              {money(
+                difference
+              )}
             </strong>
+
           </div>
 
           <div className="actions">
@@ -1566,17 +1657,27 @@ export default function Home() {
               onClick={
                 closeCash
               }
+              disabled={
+                saving ||
+                closed
+              }
             >
-              Clôturer la caisse
+              {saving
+                ? '⏳ Sauvegarde...'
+                : closed
+                  ? '✓ Caisse sauvegardée'
+                  : 'Clôturer et sauvegarder'}
             </button>
 
             <button
               onClick={reset}
+              disabled={saving}
             >
               Nouvelle caisse
             </button>
 
             {closed && (
+
               <button
                 onClick={() =>
                   window.print()
@@ -1584,17 +1685,26 @@ export default function Home() {
               >
                 Imprimer
               </button>
+
             )}
 
           </div>
 
           {closed && (
+
             <div className="closed">
+
               ✓ Caisse clôturée —{' '}
+
               {eventName ||
-                'Manifestation'}{' '}
-              — {date}
+                'Manifestation'}
+
+              {' — '}
+
+              {date}
+
             </div>
+
           )}
 
         </section>
