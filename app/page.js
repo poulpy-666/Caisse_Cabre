@@ -39,7 +39,7 @@ const eventTypes = [
       ['Moins de 3 ans', 0],
       ['Invitation', 0],
       ['PMR', 15],
-    ],
+    },
   ],
 ];
 
