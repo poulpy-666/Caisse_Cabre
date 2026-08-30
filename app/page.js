@@ -40,26 +40,30 @@ function NumberField({
       value={value}
       onChange={e =>
         onChange(
-          Math.max(0, Number(e.target.value) || 0)
+          Math.max(
+            0,
+            Number(e.target.value) || 0
+          )
         )
       }
     />
   );
 }
 
-const emptyMultiple = () => ({
-  id: Date.now() + Math.random(),
-  amount: 0,
-  allocations: {
-    cash: 0,
-    tpe: 0,
-    web: 0,
-    cheque: 0,
-    ancv: 0,
-    connect: 0,
-    autre: 0
-  }
-});
+function createEmptyMultiple() {
+  return {
+    amount: 0,
+    allocations: {
+      cash: 0,
+      tpe: 0,
+      web: 0,
+      cheque: 0,
+      ancv: 0,
+      connect: 0,
+      autre: 0
+    }
+  };
+}
 
 export default function Home() {
   const [dark, setDark] = useState(false);
@@ -70,11 +74,15 @@ export default function Home() {
     new Date().toISOString().slice(0, 10)
   );
 
+  /* ---------------- OUVERTURE ---------------- */
+
   const [opening, setOpening] = useState(
     Object.fromEntries(
       cashValues.map(v => [v, 0])
     )
   );
+
+  /* ---------------- FERMETURE ---------------- */
 
   const [closing, setClosing] = useState(
     Object.fromEntries(
@@ -82,17 +90,23 @@ export default function Home() {
     )
   );
 
+  /* ---------------- BILLETS ---------------- */
+
   const [qty, setQty] = useState(
     Object.fromEntries(
       tickets.map(([n]) => [n, 0])
     )
   );
 
+  /* ---------------- ANCV ---------------- */
+
   const [ancv, setAncv] = useState(
     Object.fromEntries(
       ancvValues.map(v => [v, 0])
     )
   );
+
+  /* ---------------- PAIEMENTS ---------------- */
 
   const [payments, setPayments] = useState({
     tpe: 0,
@@ -102,18 +116,30 @@ export default function Home() {
     autre: 0
   });
 
-  const [multiples, setMultiples] = useState([]);
+  const [paymentsValidated, setPaymentsValidated] =
+    useState(false);
+
+  /* ---------------- PAIEMENT MULTIPLE ---------------- */
+
+  const [multipleDraft, setMultipleDraft] =
+    useState(null);
+
+  const [multiplePayments, setMultiplePayments] =
+    useState([]);
+
+  /* ---------------- CAISSE ---------------- */
 
   const [closed, setClosed] = useState(false);
 
-  /* -----------------------------
+  /* =====================================================
      CALCULS
-  ----------------------------- */
+  ===================================================== */
 
   const openingCash = useMemo(
     () =>
       cashValues.reduce(
-        (s, v) => s + v * opening[v],
+        (sum, value) =>
+          sum + value * opening[value],
         0
       ),
     [opening]
@@ -122,7 +148,8 @@ export default function Home() {
   const closingCash = useMemo(
     () =>
       cashValues.reduce(
-        (s, v) => s + v * closing[v],
+        (sum, value) =>
+          sum + value * closing[value],
         0
       ),
     [closing]
@@ -131,7 +158,8 @@ export default function Home() {
   const cashBills = useMemo(
     () =>
       [50, 20, 10, 5].reduce(
-        (s, v) => s + v * closing[v],
+        (sum, value) =>
+          sum + value * closing[value],
         0
       ),
     [closing]
@@ -139,19 +167,31 @@ export default function Home() {
 
   const cashCoins = useMemo(
     () =>
-      [2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01].reduce(
-        (s, v) => s + v * closing[v],
+      [
+        2,
+        1,
+        0.5,
+        0.2,
+        0.1,
+        0.05,
+        0.02,
+        0.01
+      ].reduce(
+        (sum, value) =>
+          sum + value * closing[value],
         0
       ),
     [closing]
   );
 
-  const cashSales = closingCash - openingCash;
+  const cashSales =
+    closingCash - openingCash;
 
   const ca = useMemo(
     () =>
       tickets.reduce(
-        (s, [n, p]) => s + p * qty[n],
+        (sum, [name, price]) =>
+          sum + price * qty[name],
         0
       ),
     [qty]
@@ -160,61 +200,121 @@ export default function Home() {
   const ancvTotal = useMemo(
     () =>
       ancvValues.reduce(
-        (s, v) => s + v * ancv[v],
+        (sum, value) =>
+          sum + value * ancv[value],
         0
       ),
     [ancv]
   );
 
   /*
-   * Montants des paiements multiples
+   * Total des paiements multiples.
+   * Ils représentent déjà une partie du CA,
+   * donc leur montant ne doit JAMAIS être ajouté
+   * une deuxième fois au total encaissé.
    */
-  const multipleTotal = useMemo(
+  const multipleCash = useMemo(
     () =>
-      multiples.reduce(
-        (s, p) => s + Number(p.amount || 0),
-        0
-      ),
-    [multiples]
-  );
-
-  const multipleAllocatedTotal = useMemo(
-    () =>
-      multiples.reduce(
-        (s, payment) =>
-          s +
-          Object.values(payment.allocations).reduce(
-            (a, b) => a + Number(b || 0),
-            0
+      multiplePayments.reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.allocations.cash || 0
           ),
         0
       ),
-    [multiples]
+    [multiplePayments]
+  );
+
+  const multipleTpe = useMemo(
+    () =>
+      multiplePayments.reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.allocations.tpe || 0
+          ),
+        0
+      ),
+    [multiplePayments]
+  );
+
+  const multipleWeb = useMemo(
+    () =>
+      multiplePayments.reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.allocations.web || 0
+          ),
+        0
+      ),
+    [multiplePayments]
+  );
+
+  const multipleCheque = useMemo(
+    () =>
+      multiplePayments.reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.allocations.cheque || 0
+          ),
+        0
+      ),
+    [multiplePayments]
+  );
+
+  const multipleAncv = useMemo(
+    () =>
+      multiplePayments.reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.allocations.ancv || 0
+          ),
+        0
+      ),
+    [multiplePayments]
+  );
+
+  const multipleConnect = useMemo(
+    () =>
+      multiplePayments.reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.allocations.connect || 0
+          ),
+        0
+      ),
+    [multiplePayments]
+  );
+
+  const multipleAutre = useMemo(
+    () =>
+      multiplePayments.reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.allocations.autre || 0
+          ),
+        0
+      ),
+    [multiplePayments]
   );
 
   /*
-   * Dans les paiements multiples,
-   * la partie espèces est déjà comprise
-   * dans cashSales.
+   * IMPORTANT :
+   * cashSales contient déjà les espèces issues
+   * des paiements multiples puisque ces espèces
+   * sont physiquement présentes dans la caisse.
    *
-   * On ne l'ajoute donc pas une deuxième fois.
+   * On ne rajoute donc PAS multipleCash ici.
+   *
+   * Les autres parties des paiements multiples
+   * sont ajoutées aux moyens non espèces.
    */
-  const multipleNonCash = useMemo(
-    () =>
-      multiples.reduce(
-        (s, payment) =>
-          s +
-          Number(payment.allocations.tpe || 0) +
-          Number(payment.allocations.web || 0) +
-          Number(payment.allocations.cheque || 0) +
-          Number(payment.allocations.ancv || 0) +
-          Number(payment.allocations.connect || 0) +
-          Number(payment.allocations.autre || 0),
-        0
-      ),
-    [multiples]
-  );
-
   const paymentsTotal =
     cashSales +
     payments.tpe +
@@ -223,85 +323,53 @@ export default function Home() {
     ancvTotal +
     payments.connect +
     payments.autre +
-    multipleNonCash;
+    multipleTpe +
+    multipleWeb +
+    multipleCheque +
+    multipleAncv +
+    multipleConnect +
+    multipleAutre;
 
-  const difference = paymentsTotal - ca;
+  const difference =
+    paymentsTotal - ca;
 
-  const invalidMultiple = multiples.some(payment => {
-    const allocated = Object.values(
-      payment.allocations
-    ).reduce(
-      (s, value) => s + Number(value || 0),
-      0
-    );
+  /* =====================================================
+     PAIEMENT MULTIPLE EN COURS
+  ===================================================== */
 
-    return Math.abs(
-      allocated - Number(payment.amount || 0)
-    ) > 0.005;
-  });
+  const multipleAllocated =
+    multipleDraft
+      ? Object.values(
+          multipleDraft.allocations
+        ).reduce(
+          (sum, value) =>
+            sum + Number(value || 0),
+          0
+        )
+      : 0;
 
-  /* -----------------------------
+  const multipleIsValid =
+    multipleDraft &&
+    Number(multipleDraft.amount || 0) > 0 &&
+    Math.abs(
+      multipleAllocated -
+        Number(multipleDraft.amount || 0)
+    ) < 0.005;
+
+  /* =====================================================
      OUTILS
-  ----------------------------- */
+  ===================================================== */
 
   const setCount = (
     setter,
     key,
     value
-  ) =>
+  ) => {
     setter(prev => ({
       ...prev,
       [key]: value
     }));
-
-  function addMultiple() {
-    setMultiples(prev => [
-      ...prev,
-      emptyMultiple()
-    ]);
-  }
-
-  function removeMultiple(id) {
-    setMultiples(prev =>
-      prev.filter(p => p.id !== id)
-    );
-  }
-
-  function updateMultipleAmount(
-    id,
-    value
-  ) {
-    setMultiples(prev =>
-      prev.map(p =>
-        p.id === id
-          ? {
-              ...p,
-              amount: value
-            }
-          : p
-      )
-    );
-  }
-
-  function updateMultipleAllocation(
-    id,
-    type,
-    value
-  ) {
-    setMultiples(prev =>
-      prev.map(p =>
-        p.id === id
-          ? {
-              ...p,
-              allocations: {
-                ...p.allocations,
-                [type]: value
-              }
-            }
-          : p
-      )
-    );
-  }
+  };
 
   function reset() {
     setOpening(
@@ -336,14 +404,128 @@ export default function Home() {
       autre: 0
     });
 
-    setMultiples([]);
+    setPaymentsValidated(false);
+
+    setMultipleDraft(null);
+    setMultiplePayments([]);
+
     setClosed(false);
   }
 
-  function closeCash() {
-    if (invalidMultiple) {
+  function startMultiple() {
+    if (multipleDraft) return;
+
+    setMultipleDraft(
+      createEmptyMultiple()
+    );
+  }
+
+  function updateMultipleAmount(value) {
+    setMultipleDraft(prev => ({
+      ...prev,
+      amount: value
+    }));
+  }
+
+  function updateMultipleAllocation(
+    type,
+    value
+  ) {
+    setMultipleDraft(prev => ({
+      ...prev,
+      allocations: {
+        ...prev.allocations,
+        [type]: value
+      }
+    }));
+  }
+
+  function validateMultiple() {
+    if (!multipleDraft) return;
+
+    const amount =
+      Number(
+        multipleDraft.amount || 0
+      );
+
+    const allocated =
+      Object.values(
+        multipleDraft.allocations
+      ).reduce(
+        (sum, value) =>
+          sum + Number(value || 0),
+        0
+      );
+
+    if (amount <= 0) {
       alert(
-        'Un ou plusieurs paiements multiples ne sont pas correctement répartis.'
+        'Indique le montant de la transaction.'
+      );
+      return;
+    }
+
+    if (
+      Math.abs(
+        amount - allocated
+      ) > 0.005
+    ) {
+      alert(
+        `La répartition doit correspondre exactement au montant de la transaction.\n\nTransaction : ${money(amount)}\nRéparti : ${money(allocated)}`
+      );
+      return;
+    }
+
+    setMultiplePayments(prev => [
+      ...prev,
+      {
+        id:
+          Date.now() +
+          Math.random(),
+        ...multipleDraft
+      }
+    ]);
+
+    setMultipleDraft(null);
+  }
+
+  function editMultiple(id) {
+    const payment =
+      multiplePayments.find(
+        p => p.id === id
+      );
+
+    if (!payment) return;
+
+    setMultipleDraft({
+      amount: payment.amount,
+      allocations: {
+        ...payment.allocations
+      },
+      editingId: id
+    });
+
+    setMultiplePayments(prev =>
+      prev.filter(
+        p => p.id !== id
+      )
+    );
+  }
+
+  function removeMultiple(id) {
+    setMultiplePayments(prev =>
+      prev.filter(
+        p => p.id !== id
+      )
+    );
+  }
+
+  function closeCash() {
+    if (
+      multipleDraft &&
+      !multipleIsValid
+    ) {
+      alert(
+        'Un paiement multiple est encore en cours de saisie.'
       );
       return;
     }
@@ -351,11 +533,15 @@ export default function Home() {
     setClosed(true);
   }
 
+  /* =====================================================
+     AFFICHAGE
+  ===================================================== */
+
   return (
     <main className={dark ? 'dark' : ''}>
       <div className="wrap">
 
-        {/* ---------------- HEADER ---------------- */}
+        {/* HEADER */}
 
         <header>
           <div>
@@ -363,7 +549,9 @@ export default function Home() {
               BILLETTERIE ASSOCIATIVE
             </div>
 
-            <h1>Clôture de caisse</h1>
+            <h1>
+              Clôture de caisse
+            </h1>
 
             <p>
               Ouverture → comptage → fermeture → contrôle.
@@ -372,25 +560,34 @@ export default function Home() {
 
           <button
             className="theme"
-            onClick={() => setDark(!dark)}
+            onClick={() =>
+              setDark(!dark)
+            }
             aria-label="Changer de thème"
           >
             {dark ? '☀️' : '🌙'}
           </button>
         </header>
 
-        {/* ---------------- OUVERTURE ---------------- */}
+        {/* =================================================
+            1. OUVERTURE
+        ================================================= */}
 
         <section className="card">
-          <h2>1. Ouverture de caisse</h2>
+          <h2>
+            1. Ouverture de caisse
+          </h2>
 
           <div className="grid2">
             <label>
               Manifestation
+
               <input
                 value={eventName}
                 onChange={e =>
-                  setEventName(e.target.value)
+                  setEventName(
+                    e.target.value
+                  )
                 }
                 placeholder="Nom de la manifestation"
               />
@@ -398,39 +595,51 @@ export default function Home() {
 
             <label>
               Date
+
               <input
                 type="date"
                 value={date}
                 onChange={e =>
-                  setDate(e.target.value)
+                  setDate(
+                    e.target.value
+                  )
                 }
               />
             </label>
           </div>
 
-          <h3>Fond de caisse</h3>
+          <h3>
+            Fond de caisse
+          </h3>
 
           <div className="cashgrid">
-            {cashValues.map(v => (
+            {cashValues.map(value => (
               <div
                 className="cashrow"
-                key={'o' + v}
+                key={'open' + value}
               >
-                <span>{money(v)}</span>
+                <span>
+                  {money(value)}
+                </span>
 
                 <NumberField
-                  value={opening[v]}
+                  value={
+                    opening[value]
+                  }
                   onChange={x =>
                     setCount(
                       setOpening,
-                      v,
+                      value,
                       x
                     )
                   }
                 />
 
                 <strong>
-                  {money(v * opening[v])}
+                  {money(
+                    value *
+                      opening[value]
+                  )}
                 </strong>
               </div>
             ))}
@@ -447,80 +656,110 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ---------------- BILLETTERIE ---------------- */}
+        {/* =================================================
+            2. BILLETTERIE
+        ================================================= */}
 
         <section className="card">
-          <h2>2. Billetterie</h2>
+          <h2>
+            2. Billetterie
+          </h2>
 
           <p className="muted">
             Saisis uniquement le nombre de billets vendus.
           </p>
 
           <div className="ticketgrid">
-            {tickets.map(([n, p]) => (
-              <div
-                className="ticket"
-                key={n}
-              >
-                <div>
-                  <strong>{n}</strong>
-                  <span>{money(p)}</span>
+            {tickets.map(
+              ([name, price]) => (
+                <div
+                  className="ticket"
+                  key={name}
+                >
+                  <div>
+                    <strong>
+                      {name}
+                    </strong>
+
+                    <span>
+                      {money(price)}
+                    </span>
+                  </div>
+
+                  <NumberField
+                    value={qty[name]}
+                    onChange={x =>
+                      setCount(
+                        setQty,
+                        name,
+                        x
+                      )
+                    }
+                  />
+
+                  <b>
+                    {money(
+                      price *
+                        qty[name]
+                    )}
+                  </b>
                 </div>
-
-                <NumberField
-                  value={qty[n]}
-                  onChange={x =>
-                    setCount(
-                      setQty,
-                      n,
-                      x
-                    )
-                  }
-                />
-
-                <b>
-                  {money(p * qty[n])}
-                </b>
-              </div>
-            ))}
+              )
+            )}
           </div>
 
           <div className="caBox">
-            <span>CA billetterie</span>
-            <strong>{money(ca)}</strong>
+            <span>
+              CA billetterie
+            </span>
+
+            <strong>
+              {money(ca)}
+            </strong>
           </div>
         </section>
 
-        {/* ---------------- FERMETURE ESPECES ---------------- */}
+        {/* =================================================
+            3. FERMETURE ESPECES
+        ================================================= */}
 
         <section className="card">
-          <h2>3. Fermeture — espèces</h2>
+          <h2>
+            3. Fermeture — espèces
+          </h2>
 
           <p className="muted">
             Compte les espèces présentes dans la caisse.
           </p>
 
           <div className="cashgrid">
-            {cashValues.map(v => (
+            {cashValues.map(value => (
               <div
                 className="cashrow"
-                key={'c' + v}
+                key={'close' + value}
               >
-                <span>{money(v)}</span>
+                <span>
+                  {money(value)}
+                </span>
 
                 <NumberField
-                  value={closing[v]}
+                  value={
+                    closing[value]
+                  }
                   onChange={x =>
                     setCount(
                       setClosing,
-                      v,
+                      value,
                       x
                     )
                   }
                 />
 
                 <strong>
-                  {money(v * closing[v])}
+                  {money(
+                    value *
+                      closing[value]
+                  )}
                 </strong>
               </div>
             ))}
@@ -540,122 +779,239 @@ export default function Home() {
             Espèces issues de la billetterie :{' '}
             <strong>
               {money(cashSales)}
-            </strong>{' '}
+            </strong>
+            {' '}
             (espèces finales − fond initial)
           </div>
         </section>
 
-        {/* ---------------- AUTRES PAIEMENTS ---------------- */}
+        {/* =================================================
+            4. MOYENS DE PAIEMENT
+        ================================================= */}
 
         <section className="card">
-          <h2>4. Autres moyens de paiement</h2>
+          <h2>
+            4. Moyens de paiement
+          </h2>
 
-          <div className="paymentgrid">
+          {!paymentsValidated ? (
+            <>
+              <div className="paymentgrid">
 
-            <label>
-              CB Guichet — TPE
-              <NumberField
-                step="0.01"
-                value={payments.tpe}
-                onChange={x =>
-                  setCount(
-                    setPayments,
-                    'tpe',
-                    x
+                <label>
+                  CB Guichet — TPE
+
+                  <NumberField
+                    step="0.01"
+                    value={
+                      payments.tpe
+                    }
+                    onChange={x =>
+                      setCount(
+                        setPayments,
+                        'tpe',
+                        x
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  CB Web
+
+                  <NumberField
+                    step="0.01"
+                    value={
+                      payments.web
+                    }
+                    onChange={x =>
+                      setCount(
+                        setPayments,
+                        'web',
+                        x
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  Chèques
+
+                  <NumberField
+                    step="0.01"
+                    value={
+                      payments.cheque
+                    }
+                    onChange={x =>
+                      setCount(
+                        setPayments,
+                        'cheque',
+                        x
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  Chèques-Vacances Connect
+
+                  <NumberField
+                    step="0.01"
+                    value={
+                      payments.connect
+                    }
+                    onChange={x =>
+                      setCount(
+                        setPayments,
+                        'connect',
+                        x
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  Autre
+
+                  <NumberField
+                    step="0.01"
+                    value={
+                      payments.autre
+                    }
+                    onChange={x =>
+                      setCount(
+                        setPayments,
+                        'autre',
+                        x
+                      )
+                    }
+                  />
+                </label>
+
+              </div>
+
+              <button
+                type="button"
+                className="primary"
+                onClick={() =>
+                  setPaymentsValidated(
+                    true
                   )
                 }
-              />
-            </label>
+              >
+                ✓ Valider les moyens de paiement
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="info">
+                <strong>
+                  Moyens de paiement validés ✓
+                </strong>
+              </div>
 
-            <label>
-              CB Web
-              <NumberField
-                step="0.01"
-                value={payments.web}
-                onChange={x =>
-                  setCount(
-                    setPayments,
-                    'web',
-                    x
+              <div className="paymentSummary">
+                <div>
+                  <span>
+                    CB TPE
+                  </span>
+                  <strong>
+                    {money(
+                      payments.tpe
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    CB Web
+                  </span>
+                  <strong>
+                    {money(
+                      payments.web
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    Chèques
+                  </span>
+                  <strong>
+                    {money(
+                      payments.cheque
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    ANCV Connect
+                  </span>
+                  <strong>
+                    {money(
+                      payments.connect
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    Autre
+                  </span>
+                  <strong>
+                    {money(
+                      payments.autre
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setPaymentsValidated(
+                    false
                   )
                 }
-              />
-            </label>
+              >
+                ✏️ Modifier
+              </button>
+            </>
+          )}
 
-            <label>
-              Chèques
-              <NumberField
-                step="0.01"
-                value={payments.cheque}
-                onChange={x =>
-                  setCount(
-                    setPayments,
-                    'cheque',
-                    x
-                  )
-                }
-              />
-            </label>
-
-            <label>
-              Chèques-Vacances Connect
-              <NumberField
-                step="0.01"
-                value={payments.connect}
-                onChange={x =>
-                  setCount(
-                    setPayments,
-                    'connect',
-                    x
-                  )
-                }
-              />
-            </label>
-
-            <label>
-              Autre
-              <NumberField
-                step="0.01"
-                value={payments.autre}
-                onChange={x =>
-                  setCount(
-                    setPayments,
-                    'autre',
-                    x
-                  )
-                }
-              />
-            </label>
-
-          </div>
-
-          {/* ---------------- ANCV ---------------- */}
+          {/* ANCV */}
 
           <h3>
             Chèques-Vacances ANCV
           </h3>
 
           <div className="cashgrid">
-            {ancvValues.map(v => (
+            {ancvValues.map(value => (
               <div
                 className="cashrow"
-                key={'ancv' + v}
+                key={'ancv' + value}
               >
-                <span>{money(v)}</span>
+                <span>
+                  {money(value)}
+                </span>
 
                 <NumberField
-                  value={ancv[v]}
+                  value={ancv[value]}
                   onChange={x =>
                     setCount(
                       setAncv,
-                      v,
+                      value,
                       x
                     )
                   }
                 />
 
                 <strong>
-                  {money(v * ancv[v])}
+                  {money(
+                    value *
+                      ancv[value]
+                  )}
                 </strong>
               </div>
             ))}
@@ -672,281 +1028,472 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ---------------- PAIEMENTS MULTIPLES ---------------- */}
+        {/* =================================================
+            5. PAIEMENTS MULTIPLES
+        ================================================= */}
 
         <section className="card">
-          <h2>5. Paiements multiples</h2>
+          <h2>
+            5. Paiements multiples
+          </h2>
 
           <p className="muted">
-            Pour une vente réglée avec plusieurs moyens de paiement.
+            Utilise cette section lorsqu'une même vente est réglée avec plusieurs moyens de paiement.
           </p>
 
-          {multiples.length === 0 && (
-            <div className="info">
-              Aucun paiement multiple ajouté.
+          {/* PAIEMENTS DEJA VALIDES */}
+
+          {multiplePayments.length > 0 && (
+            <div className="multipleList">
+
+              {multiplePayments.map(
+                (payment, index) => (
+                  <div
+                    className="multiple"
+                    key={payment.id}
+                  >
+                    <div className="multipleHeader">
+                      <strong>
+                        Paiement multiple #{index + 1}
+                      </strong>
+
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            editMultiple(
+                              payment.id
+                            )
+                          }
+                        >
+                          ✏️
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeMultiple(
+                              payment.id
+                            )
+                          }
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="info">
+                      <strong>
+                        {money(
+                          payment.amount
+                        )}
+                      </strong>
+
+                      {' → '}
+
+                      {payment.allocations.cash >
+                        0 && (
+                        <>
+                          Espèces :{' '}
+                          {money(
+                            payment
+                              .allocations
+                              .cash
+                          )}
+                          {' '}
+                        </>
+                      )}
+
+                      {payment.allocations.tpe >
+                        0 && (
+                        <>
+                          TPE :{' '}
+                          {money(
+                            payment
+                              .allocations
+                              .tpe
+                          )}
+                          {' '}
+                        </>
+                      )}
+
+                      {payment.allocations.web >
+                        0 && (
+                        <>
+                          CB Web :{' '}
+                          {money(
+                            payment
+                              .allocations
+                              .web
+                          )}
+                          {' '}
+                        </>
+                      )}
+
+                      {payment.allocations.cheque >
+                        0 && (
+                        <>
+                          Chèque :{' '}
+                          {money(
+                            payment
+                              .allocations
+                              .cheque
+                          )}
+                          {' '}
+                        </>
+                      )}
+
+                      {payment.allocations.ancv >
+                        0 && (
+                        <>
+                          ANCV :{' '}
+                          {money(
+                            payment
+                              .allocations
+                              .ancv
+                          )}
+                          {' '}
+                        </>
+                      )}
+
+                      {payment.allocations.connect >
+                        0 && (
+                        <>
+                          ANCV Connect :{' '}
+                          {money(
+                            payment
+                              .allocations
+                              .connect
+                          )}
+                          {' '}
+                        </>
+                      )}
+
+                      {payment.allocations.autre >
+                        0 && (
+                        <>
+                          Autre :{' '}
+                          {money(
+                            payment
+                              .allocations
+                              .autre
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           )}
 
-          {multiples.map((payment, index) => {
-            const allocated =
-              Object.values(
-                payment.allocations
-              ).reduce(
-                (s, v) =>
-                  s + Number(v || 0),
-                0
-              );
+          {/* SAISIE D'UN NOUVEAU PAIEMENT */}
 
-            const valid =
-              Math.abs(
-                allocated -
-                  Number(payment.amount || 0)
-              ) < 0.005;
+          {!multipleDraft ? (
+            <button
+              type="button"
+              onClick={startMultiple}
+            >
+              ＋ Nouveau paiement multiple
+            </button>
+          ) : (
+            <div className="multiple">
 
-            return (
-              <div
-                className="multiple"
-                key={payment.id}
-              >
-                <div className="multipleHeader">
-                  <strong>
-                    Paiement multiple #{index + 1}
-                  </strong>
+              <div className="multipleHeader">
+                <strong>
+                  Nouveau paiement multiple
+                </strong>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeMultiple(
-                        payment.id
-                      )
-                    }
-                  >
-                    Supprimer
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMultipleDraft(
+                      null
+                    )
+                  }
+                >
+                  Annuler
+                </button>
+              </div>
+
+              <label>
+                Montant de la transaction
+
+                <NumberField
+                  step="0.01"
+                  value={
+                    multipleDraft.amount
+                  }
+                  onChange={
+                    updateMultipleAmount
+                  }
+                />
+              </label>
+
+              <h3>
+                Répartition
+              </h3>
+
+              <div className="paymentgrid">
 
                 <label>
-                  Montant de la transaction
+                  Espèces
+
                   <NumberField
                     step="0.01"
-                    value={payment.amount}
+                    value={
+                      multipleDraft
+                        .allocations
+                        .cash
+                    }
                     onChange={value =>
-                      updateMultipleAmount(
-                        payment.id,
+                      updateMultipleAllocation(
+                        'cash',
                         value
                       )
                     }
                   />
                 </label>
 
-                <h3>
-                  Répartition
-                </h3>
+                <label>
+                  CB Guichet — TPE
 
-                <div className="paymentgrid">
+                  <NumberField
+                    step="0.01"
+                    value={
+                      multipleDraft
+                        .allocations
+                        .tpe
+                    }
+                    onChange={value =>
+                      updateMultipleAllocation(
+                        'tpe',
+                        value
+                      )
+                    }
+                  />
+                </label>
 
-                  <label>
-                    Espèces
-                    <NumberField
-                      step="0.01"
-                      value={
-                        payment.allocations.cash
-                      }
-                      onChange={value =>
-                        updateMultipleAllocation(
-                          payment.id,
-                          'cash',
-                          value
-                        )
-                      }
-                    />
-                  </label>
+                <label>
+                  CB Web
 
-                  <label>
-                    CB Guichet — TPE
-                    <NumberField
-                      step="0.01"
-                      value={
-                        payment.allocations.tpe
-                      }
-                      onChange={value =>
-                        updateMultipleAllocation(
-                          payment.id,
-                          'tpe',
-                          value
-                        )
-                      }
-                    />
-                  </label>
+                  <NumberField
+                    step="0.01"
+                    value={
+                      multipleDraft
+                        .allocations
+                        .web
+                    }
+                    onChange={value =>
+                      updateMultipleAllocation(
+                        'web',
+                        value
+                      )
+                    }
+                  />
+                </label>
 
-                  <label>
-                    CB Web
-                    <NumberField
-                      step="0.01"
-                      value={
-                        payment.allocations.web
-                      }
-                      onChange={value =>
-                        updateMultipleAllocation(
-                          payment.id,
-                          'web',
-                          value
-                        )
-                      }
-                    />
-                  </label>
+                <label>
+                  Chèque
 
-                  <label>
-                    Chèque
-                    <NumberField
-                      step="0.01"
-                      value={
-                        payment.allocations.cheque
-                      }
-                      onChange={value =>
-                        updateMultipleAllocation(
-                          payment.id,
-                          'cheque',
-                          value
-                        )
-                      }
-                    />
-                  </label>
+                  <NumberField
+                    step="0.01"
+                    value={
+                      multipleDraft
+                        .allocations
+                        .cheque
+                    }
+                    onChange={value =>
+                      updateMultipleAllocation(
+                        'cheque',
+                        value
+                      )
+                    }
+                  />
+                </label>
 
-                  <label>
-                    ANCV
-                    <NumberField
-                      step="0.01"
-                      value={
-                        payment.allocations.ancv
-                      }
-                      onChange={value =>
-                        updateMultipleAllocation(
-                          payment.id,
-                          'ancv',
-                          value
-                        )
-                      }
-                    />
-                  </label>
+                <label>
+                  ANCV
 
-                  <label>
-                    ANCV Connect
-                    <NumberField
-                      step="0.01"
-                      value={
-                        payment.allocations.connect
-                      }
-                      onChange={value =>
-                        updateMultipleAllocation(
-                          payment.id,
-                          'connect',
-                          value
-                        )
-                      }
-                    />
-                  </label>
+                  <NumberField
+                    step="0.01"
+                    value={
+                      multipleDraft
+                        .allocations
+                        .ancv
+                    }
+                    onChange={value =>
+                      updateMultipleAllocation(
+                        'ancv',
+                        value
+                      )
+                    }
+                  />
+                </label>
 
-                  <label>
-                    Autre
-                    <NumberField
-                      step="0.01"
-                      value={
-                        payment.allocations.autre
-                      }
-                      onChange={value =>
-                        updateMultipleAllocation(
-                          payment.id,
-                          'autre',
-                          value
-                        )
-                      }
-                    />
-                  </label>
+                <label>
+                  ANCV Connect
 
-                </div>
+                  <NumberField
+                    step="0.01"
+                    value={
+                      multipleDraft
+                        .allocations
+                        .connect
+                    }
+                    onChange={value =>
+                      updateMultipleAllocation(
+                        'connect',
+                        value
+                      )
+                    }
+                  />
+                </label>
 
-                <div
-                  className={
-                    valid
-                      ? 'info'
-                      : 'info bad'
-                  }
-                >
-                  Montant réparti :{' '}
-                  <strong>
-                    {money(allocated)}
-                  </strong>
+                <label>
+                  Autre
 
-                  {' — '}
+                  <NumberField
+                    step="0.01"
+                    value={
+                      multipleDraft
+                        .allocations
+                        .autre
+                    }
+                    onChange={value =>
+                      updateMultipleAllocation(
+                        'autre',
+                        value
+                      )
+                    }
+                  />
+                </label>
 
-                  {valid
-                    ? '✓ Répartition correcte'
-                    : `⚠️ Il reste ${money(
-                        Number(payment.amount || 0) -
-                          allocated
-                      )} à répartir`}
-                </div>
               </div>
-            );
-          })}
 
-          <button
-            type="button"
-            onClick={addMultiple}
-          >
-            ＋ Ajouter un paiement multiple
-          </button>
+              <div
+                className={
+                  multipleIsValid
+                    ? 'info'
+                    : 'info bad'
+                }
+              >
+                Montant de la transaction :{' '}
+                <strong>
+                  {money(
+                    multipleDraft.amount
+                  )}
+                </strong>
 
-          {multiples.length > 0 && (
+                <br />
+
+                Montant réparti :{' '}
+                <strong>
+                  {money(
+                    multipleAllocated
+                  )}
+                </strong>
+
+                <br />
+
+                {multipleIsValid
+                  ? '✓ Répartition correcte'
+                  : '⚠️ La répartition doit correspondre au montant de la transaction'}
+              </div>
+
+              <button
+                type="button"
+                className="primary"
+                disabled={
+                  !multipleIsValid
+                }
+                onClick={
+                  validateMultiple
+                }
+              >
+                ✓ Valider le paiement multiple
+              </button>
+            </div>
+          )}
+
+          {multiplePayments.length > 0 && (
             <div className="totalline">
               <span>
                 Total paiements multiples
               </span>
 
               <strong>
-                {money(multipleTotal)}
+                {money(
+                  multiplePayments.reduce(
+                    (sum, payment) =>
+                      sum +
+                      Number(
+                        payment.amount || 0
+                      ),
+                    0
+                  )
+                )}
               </strong>
             </div>
           )}
         </section>
 
-        {/* ---------------- RESULTATS ---------------- */}
+        {/* =================================================
+            RESULTATS
+        ================================================= */}
 
         <section className="result">
 
           <div>
-            <span>CA billetterie</span>
+            <span>
+              CA billetterie
+            </span>
+
             <strong>
               {money(ca)}
             </strong>
           </div>
 
           <div>
-            <span>Somme billets</span>
+            <span>
+              Somme billets
+            </span>
+
             <strong>
               {money(cashBills)}
             </strong>
           </div>
 
           <div>
-            <span>Somme monnaie</span>
+            <span>
+              Somme monnaie
+            </span>
+
             <strong>
               {money(cashCoins)}
             </strong>
           </div>
 
           <div>
-            <span>Somme totale espèces</span>
+            <span>
+              Somme totale espèces
+            </span>
+
             <strong>
               {money(closingCash)}
             </strong>
           </div>
 
           <div>
-            <span>ANCV</span>
+            <span>
+              ANCV
+            </span>
+
             <strong>
-              {money(ancvTotal)}
+              {money(
+                ancvTotal +
+                  multipleAncv
+              )}
             </strong>
           </div>
 
@@ -956,42 +1503,46 @@ export default function Home() {
             </span>
 
             <strong>
-              {money(paymentsTotal)}
+              {money(
+                paymentsTotal
+              )}
             </strong>
           </div>
 
           <div
             className={
-              Math.abs(difference) < 0.005 &&
-              !invalidMultiple
+              Math.abs(
+                difference
+              ) < 0.005
                 ? 'ok'
                 : 'bad'
             }
           >
-            <span>Écart</span>
+            <span>
+              Écart
+            </span>
 
             <strong>
-              {money(difference)}
+              {money(
+                difference
+              )}
             </strong>
           </div>
-
-          {invalidMultiple && (
-            <div className="bad">
-              ⚠️ Un paiement multiple
-              n'est pas correctement réparti.
-            </div>
-          )}
 
           <div className="actions">
 
             <button
               className="primary"
-              onClick={closeCash}
+              onClick={
+                closeCash
+              }
             >
               Clôturer la caisse
             </button>
 
-            <button onClick={reset}>
+            <button
+              onClick={reset}
+            >
               Nouvelle caisse
             </button>
 
