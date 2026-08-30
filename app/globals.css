@@ -20,3 +20,61 @@
     grid-template-columns: 1fr;
   }
 }
+.cashColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.cashPanel {
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.cashPanel h3 {
+  margin-top: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userRole {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.loginCard {
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.loginCard form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loginCard button[type="submit"] {
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .cashColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .headerActions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .userRole {
+    width: 100%;
+    text-align: right;
+  }
+}
