@@ -74,7 +74,9 @@ export default function Home() {
     new Date().toISOString().slice(0, 10)
   );
 
-  /* ---------------- OUVERTURE ---------------- */
+  /* =========================
+     OUVERTURE
+  ========================= */
 
   const [opening, setOpening] = useState(
     Object.fromEntries(
@@ -82,7 +84,9 @@ export default function Home() {
     )
   );
 
-  /* ---------------- FERMETURE ---------------- */
+  /* =========================
+     FERMETURE
+  ========================= */
 
   const [closing, setClosing] = useState(
     Object.fromEntries(
@@ -90,15 +94,19 @@ export default function Home() {
     )
   );
 
-  /* ---------------- BILLETS ---------------- */
+  /* =========================
+     BILLETS
+  ========================= */
 
   const [qty, setQty] = useState(
     Object.fromEntries(
-      tickets.map(([n]) => [n, 0])
+      tickets.map(([name]) => [name, 0])
     )
   );
 
-  /* ---------------- ANCV ---------------- */
+  /* =========================
+     ANCV
+  ========================= */
 
   const [ancv, setAncv] = useState(
     Object.fromEntries(
@@ -106,7 +114,9 @@ export default function Home() {
     )
   );
 
-  /* ---------------- PAIEMENTS ---------------- */
+  /* =========================
+     AUTRES PAIEMENTS
+  ========================= */
 
   const [payments, setPayments] = useState({
     tpe: 0,
@@ -119,7 +129,9 @@ export default function Home() {
   const [paymentsValidated, setPaymentsValidated] =
     useState(false);
 
-  /* ---------------- PAIEMENT MULTIPLE ---------------- */
+  /* =========================
+     PAIEMENTS MULTIPLES
+  ========================= */
 
   const [multipleDraft, setMultipleDraft] =
     useState(null);
@@ -127,13 +139,15 @@ export default function Home() {
   const [multiplePayments, setMultiplePayments] =
     useState([]);
 
-  /* ---------------- CAISSE ---------------- */
+  /* =========================
+     CAISSE
+  ========================= */
 
   const [closed, setClosed] = useState(false);
 
-  /* =====================================================
-     CALCULS
-  ===================================================== */
+  /* =========================
+     CALCULS ESPÈCES
+  ========================= */
 
   const openingCash = useMemo(
     () =>
@@ -184,8 +198,16 @@ export default function Home() {
     [closing]
   );
 
+  /*
+   * Espèces réellement entrées dans la caisse
+   * pendant la manifestation.
+   */
   const cashSales =
     closingCash - openingCash;
+
+  /* =========================
+     CA
+  ========================= */
 
   const ca = useMemo(
     () =>
@@ -197,7 +219,11 @@ export default function Home() {
     [qty]
   );
 
-  const ancvTotal = useMemo(
+  /* =========================
+     ANCV DIRECT
+  ========================= */
+
+  const ancvDirectTotal = useMemo(
     () =>
       ancvValues.reduce(
         (sum, value) =>
@@ -207,12 +233,10 @@ export default function Home() {
     [ancv]
   );
 
-  /*
-   * Total des paiements multiples.
-   * Ils représentent déjà une partie du CA,
-   * donc leur montant ne doit JAMAIS être ajouté
-   * une deuxième fois au total encaissé.
-   */
+  /* =========================
+     PAIEMENTS MULTIPLES
+  ========================= */
+
   const multipleCash = useMemo(
     () =>
       multiplePayments.reduce(
@@ -305,22 +329,41 @@ export default function Home() {
   );
 
   /*
+   * ANCV TOTAL
+   *
+   * ANCV simples + ANCV provenant
+   * des paiements multiples.
+   */
+  const ancvTotal =
+    ancvDirectTotal + multipleAncv;
+
+  /*
    * IMPORTANT :
-   * cashSales contient déjà les espèces issues
-   * des paiements multiples puisque ces espèces
+   *
+   * Les espèces des paiements multiples
    * sont physiquement présentes dans la caisse.
    *
-   * On ne rajoute donc PAS multipleCash ici.
+   * Elles sont donc déjà incluses dans :
    *
-   * Les autres parties des paiements multiples
-   * sont ajoutées aux moyens non espèces.
+   * closingCash - openingCash
+   *
+   * On ne les ajoute PAS une deuxième fois.
+   */
+
+  /*
+   * Total réellement encaissé.
+   *
+   * On prend :
+   * - espèces physiques entrées
+   * - paiements simples hors espèces
+   * - parties hors espèces des paiements multiples
    */
   const paymentsTotal =
     cashSales +
     payments.tpe +
     payments.web +
     payments.cheque +
-    ancvTotal +
+    ancvDirectTotal +
     payments.connect +
     payments.autre +
     multipleTpe +
@@ -333,9 +376,9 @@ export default function Home() {
   const difference =
     paymentsTotal - ca;
 
-  /* =====================================================
+  /* =========================
      PAIEMENT MULTIPLE EN COURS
-  ===================================================== */
+  ========================= */
 
   const multipleAllocated =
     multipleDraft
@@ -356,9 +399,9 @@ export default function Home() {
         Number(multipleDraft.amount || 0)
     ) < 0.005;
 
-  /* =====================================================
+  /* =========================
      OUTILS
-  ===================================================== */
+  ========================= */
 
   const setCount = (
     setter,
@@ -386,7 +429,10 @@ export default function Home() {
 
     setQty(
       Object.fromEntries(
-        tickets.map(([n]) => [n, 0])
+        tickets.map(([name]) => [
+          name,
+          0
+        ])
       )
     );
 
@@ -470,7 +516,11 @@ export default function Home() {
       ) > 0.005
     ) {
       alert(
-        `La répartition doit correspondre exactement au montant de la transaction.\n\nTransaction : ${money(amount)}\nRéparti : ${money(allocated)}`
+        `La répartition doit correspondre exactement au montant de la transaction.\n\nTransaction : ${money(
+          amount
+        )}\nRéparti : ${money(
+          allocated
+        )}`
       );
       return;
     }
@@ -481,7 +531,10 @@ export default function Home() {
         id:
           Date.now() +
           Math.random(),
-        ...multipleDraft
+        amount,
+        allocations: {
+          ...multipleDraft.allocations
+        }
       }
     ]);
 
@@ -500,8 +553,7 @@ export default function Home() {
       amount: payment.amount,
       allocations: {
         ...payment.allocations
-      },
-      editingId: id
+      }
     });
 
     setMultiplePayments(prev =>
@@ -520,12 +572,9 @@ export default function Home() {
   }
 
   function closeCash() {
-    if (
-      multipleDraft &&
-      !multipleIsValid
-    ) {
+    if (multipleDraft) {
       alert(
-        'Un paiement multiple est encore en cours de saisie.'
+        'Termine ou annule le paiement multiple en cours.'
       );
       return;
     }
@@ -533,9 +582,9 @@ export default function Home() {
     setClosed(true);
   }
 
-  /* =====================================================
+  /* =========================
      AFFICHAGE
-  ===================================================== */
+  ========================= */
 
   return (
     <main className={dark ? 'dark' : ''}>
@@ -569,9 +618,9 @@ export default function Home() {
           </button>
         </header>
 
-        {/* =================================================
+        {/* =========================
             1. OUVERTURE
-        ================================================= */}
+        ========================= */}
 
         <section className="card">
           <h2>
@@ -616,7 +665,7 @@ export default function Home() {
             {cashValues.map(value => (
               <div
                 className="cashrow"
-                key={'open' + value}
+                key={'opening' + value}
               >
                 <span>
                   {money(value)}
@@ -656,9 +705,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* =================================================
+        {/* =========================
             2. BILLETTERIE
-        ================================================= */}
+        ========================= */}
 
         <section className="card">
           <h2>
@@ -687,7 +736,9 @@ export default function Home() {
                   </div>
 
                   <NumberField
-                    value={qty[name]}
+                    value={
+                      qty[name]
+                    }
                     onChange={x =>
                       setCount(
                         setQty,
@@ -719,9 +770,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* =================================================
+        {/* =========================
             3. FERMETURE ESPECES
-        ================================================= */}
+        ========================= */}
 
         <section className="card">
           <h2>
@@ -736,7 +787,7 @@ export default function Home() {
             {cashValues.map(value => (
               <div
                 className="cashrow"
-                key={'close' + value}
+                key={'closing' + value}
               >
                 <span>
                   {money(value)}
@@ -776,18 +827,21 @@ export default function Home() {
           </div>
 
           <div className="info">
-            Espèces issues de la billetterie :{' '}
+            Fond initial :{' '}
+            <strong>
+              {money(openingCash)}
+            </strong>
+            {' — '}
+            Espèces issues des ventes :{' '}
             <strong>
               {money(cashSales)}
             </strong>
-            {' '}
-            (espèces finales − fond initial)
           </div>
         </section>
 
-        {/* =================================================
+        {/* =========================
             4. MOYENS DE PAIEMENT
-        ================================================= */}
+        ========================= */}
 
         <section className="card">
           <h2>
@@ -911,10 +965,12 @@ export default function Home() {
               </div>
 
               <div className="paymentSummary">
+
                 <div>
                   <span>
                     CB TPE
                   </span>
+
                   <strong>
                     {money(
                       payments.tpe
@@ -926,6 +982,7 @@ export default function Home() {
                   <span>
                     CB Web
                   </span>
+
                   <strong>
                     {money(
                       payments.web
@@ -937,6 +994,7 @@ export default function Home() {
                   <span>
                     Chèques
                   </span>
+
                   <strong>
                     {money(
                       payments.cheque
@@ -948,6 +1006,7 @@ export default function Home() {
                   <span>
                     ANCV Connect
                   </span>
+
                   <strong>
                     {money(
                       payments.connect
@@ -959,12 +1018,14 @@ export default function Home() {
                   <span>
                     Autre
                   </span>
+
                   <strong>
                     {money(
                       payments.autre
                     )}
                   </strong>
                 </div>
+
               </div>
 
               <button
@@ -979,8 +1040,6 @@ export default function Home() {
               </button>
             </>
           )}
-
-          {/* ANCV */}
 
           <h3>
             Chèques-Vacances ANCV
@@ -997,7 +1056,9 @@ export default function Home() {
                 </span>
 
                 <NumberField
-                  value={ancv[value]}
+                  value={
+                    ancv[value]
+                  }
                   onChange={x =>
                     setCount(
                       setAncv,
@@ -1019,18 +1080,20 @@ export default function Home() {
 
           <div className="totalline">
             <span>
-              Total ANCV
+              ANCV directs
             </span>
 
             <strong>
-              {money(ancvTotal)}
+              {money(
+                ancvDirectTotal
+              )}
             </strong>
           </div>
         </section>
 
-        {/* =================================================
+        {/* =========================
             5. PAIEMENTS MULTIPLES
-        ================================================= */}
+        ========================= */}
 
         <section className="card">
           <h2>
@@ -1038,156 +1101,120 @@ export default function Home() {
           </h2>
 
           <p className="muted">
-            Utilise cette section lorsqu'une même vente est réglée avec plusieurs moyens de paiement.
+            Pour une vente réglée avec plusieurs moyens de paiement.
           </p>
 
-          {/* PAIEMENTS DEJA VALIDES */}
+          {multiplePayments.map(
+            (payment, index) => (
+              <div
+                className="multiple"
+                key={payment.id}
+              >
+                <div className="multipleHeader">
+                  <strong>
+                    Paiement multiple #{index + 1}
+                  </strong>
 
-          {multiplePayments.length > 0 && (
-            <div className="multipleList">
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        editMultiple(
+                          payment.id
+                        )
+                      }
+                    >
+                      ✏️
+                    </button>
 
-              {multiplePayments.map(
-                (payment, index) => (
-                  <div
-                    className="multiple"
-                    key={payment.id}
-                  >
-                    <div className="multipleHeader">
-                      <strong>
-                        Paiement multiple #{index + 1}
-                      </strong>
-
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            editMultiple(
-                              payment.id
-                            )
-                          }
-                        >
-                          ✏️
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            removeMultiple(
-                              payment.id
-                            )
-                          }
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="info">
-                      <strong>
-                        {money(
-                          payment.amount
-                        )}
-                      </strong>
-
-                      {' → '}
-
-                      {payment.allocations.cash >
-                        0 && (
-                        <>
-                          Espèces :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .cash
-                          )}
-                          {' '}
-                        </>
-                      )}
-
-                      {payment.allocations.tpe >
-                        0 && (
-                        <>
-                          TPE :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .tpe
-                          )}
-                          {' '}
-                        </>
-                      )}
-
-                      {payment.allocations.web >
-                        0 && (
-                        <>
-                          CB Web :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .web
-                          )}
-                          {' '}
-                        </>
-                      )}
-
-                      {payment.allocations.cheque >
-                        0 && (
-                        <>
-                          Chèque :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .cheque
-                          )}
-                          {' '}
-                        </>
-                      )}
-
-                      {payment.allocations.ancv >
-                        0 && (
-                        <>
-                          ANCV :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .ancv
-                          )}
-                          {' '}
-                        </>
-                      )}
-
-                      {payment.allocations.connect >
-                        0 && (
-                        <>
-                          ANCV Connect :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .connect
-                          )}
-                          {' '}
-                        </>
-                      )}
-
-                      {payment.allocations.autre >
-                        0 && (
-                        <>
-                          Autre :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .autre
-                          )}
-                        </>
-                      )}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeMultiple(
+                          payment.id
+                        )
+                      }
+                    >
+                      🗑️
+                    </button>
                   </div>
-                )
-              )}
-            </div>
-          )}
+                </div>
 
-          {/* SAISIE D'UN NOUVEAU PAIEMENT */}
+                <div className="info">
+                  <strong>
+                    {money(
+                      payment.amount
+                    )}
+                  </strong>
+
+                  {' → '}
+
+                  {payment.allocations.cash > 0 && (
+                    <>
+                      Espèces :{' '}
+                      {money(
+                        payment.allocations.cash
+                      )}{' '}
+                    </>
+                  )}
+
+                  {payment.allocations.tpe > 0 && (
+                    <>
+                      TPE :{' '}
+                      {money(
+                        payment.allocations.tpe
+                      )}{' '}
+                    </>
+                  )}
+
+                  {payment.allocations.web > 0 && (
+                    <>
+                      CB Web :{' '}
+                      {money(
+                        payment.allocations.web
+                      )}{' '}
+                    </>
+                  )}
+
+                  {payment.allocations.cheque > 0 && (
+                    <>
+                      Chèque :{' '}
+                      {money(
+                        payment.allocations.cheque
+                      )}{' '}
+                    </>
+                  )}
+
+                  {payment.allocations.ancv > 0 && (
+                    <>
+                      ANCV :{' '}
+                      {money(
+                        payment.allocations.ancv
+                      )}{' '}
+                    </>
+                  )}
+
+                  {payment.allocations.connect > 0 && (
+                    <>
+                      ANCV Connect :{' '}
+                      {money(
+                        payment.allocations.connect
+                      )}{' '}
+                    </>
+                  )}
+
+                  {payment.allocations.autre > 0 && (
+                    <>
+                      Autre :{' '}
+                      {money(
+                        payment.allocations.autre
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          )}
 
           {!multipleDraft ? (
             <button
@@ -1438,9 +1465,9 @@ export default function Home() {
           )}
         </section>
 
-        {/* =================================================
+        {/* =========================
             RESULTATS
-        ================================================= */}
+        ========================= */}
 
         <section className="result">
 
@@ -1486,14 +1513,21 @@ export default function Home() {
 
           <div>
             <span>
-              ANCV
+              Espèces issues des ventes
             </span>
 
             <strong>
-              {money(
-                ancvTotal +
-                  multipleAncv
-              )}
+              {money(cashSales)}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              ANCV total
+            </span>
+
+            <strong>
+              {money(ancvTotal)}
             </strong>
           </div>
 
@@ -1503,9 +1537,7 @@ export default function Home() {
             </span>
 
             <strong>
-              {money(
-                paymentsTotal
-              )}
+              {money(paymentsTotal)}
             </strong>
           </div>
 
@@ -1523,9 +1555,7 @@ export default function Home() {
             </span>
 
             <strong>
-              {money(
-                difference
-              )}
+              {money(difference)}
             </strong>
           </div>
 
