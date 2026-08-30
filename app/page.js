@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
 
 /* =========================================================
@@ -40,7 +40,7 @@ const eventTypes = [
       ['Invitation', 0],
       ['PMR', 15],
     ],
-  },
+  ],
 ];
 
 /* =========================================================
@@ -55,9 +55,11 @@ const cashValues = [
 ];
 
 const billValues = [50, 20, 10, 5];
+
 const coinValues = [
-  2, 1, 0.5, 0.2,
-  0.1, 0.05, 0.02, 0.01
+  2, 1,
+  0.5, 0.2, 0.1,
+  0.05, 0.02, 0.01
 ];
 
 const ancvValues = [10, 20, 25, 50];
@@ -113,6 +115,7 @@ function createEventSale(event) {
       Math.random(),
 
     eventId: event.id,
+
     eventName: event.name,
 
     tickets: event.tickets,
@@ -143,8 +146,41 @@ function createEmptyMultiple() {
 
 export default function Home() {
 
+  /* =======================================================
+     AUTHENTIFICATION
+  ======================================================= */
+
+  const [session, setSession] =
+    useState(null);
+
+  const [userRole, setUserRole] =
+    useState(null);
+
+  const [authLoading, setAuthLoading] =
+    useState(true);
+
+  const [email, setEmail] =
+    useState('');
+
+  const [password, setPassword] =
+    useState('');
+
+  const [authError, setAuthError] =
+    useState('');
+
+  const [loggingIn, setLoggingIn] =
+    useState(false);
+
+  /* =======================================================
+     THÈME
+  ======================================================= */
+
   const [dark, setDark] =
     useState(false);
+
+  /* =======================================================
+     INFORMATIONS CAISSE
+  ======================================================= */
 
   const [eventName, setEventName] =
     useState('');
@@ -195,7 +231,9 @@ export default function Home() {
     useState([]);
 
   const [selectedEventId, setSelectedEventId] =
-    useState(eventTypes[0].id);
+    useState(
+      eventTypes[0].id
+    );
 
   /* =======================================================
      ANCV
@@ -253,6 +291,169 @@ export default function Home() {
     useState(false);
 
   /* =======================================================
+     AUTH — CHARGEMENT SESSION
+  ======================================================= */
+
+  useEffect(() => {
+
+    let mounted = true;
+
+    async function loadSession() {
+
+      const {
+        data: {
+          session
+        }
+      } =
+        await supabase.auth.getSession();
+
+      if (!mounted) return;
+
+      setSession(session);
+
+      if (session?.user) {
+
+        const {
+          data: profile,
+          error
+        } =
+          await supabase
+            .from('profiles')
+            .select('role')
+            .eq(
+              'id',
+              session.user.id
+            )
+            .single();
+
+        if (
+          !error &&
+          profile
+        ) {
+
+          setUserRole(
+            profile.role
+          );
+
+        } else {
+
+          setUserRole(null);
+
+        }
+
+      }
+
+      setAuthLoading(false);
+    }
+
+    loadSession();
+
+    const {
+      data: {
+        subscription
+      }
+    } =
+      supabase.auth.onAuthStateChange(
+        async (
+          _event,
+          session
+        ) => {
+
+          if (!mounted)
+            return;
+
+          setSession(
+            session
+          );
+
+          if (!session?.user) {
+
+            setUserRole(null);
+
+            return;
+          }
+
+          const {
+            data: profile
+          } =
+            await supabase
+              .from('profiles')
+              .select('role')
+              .eq(
+                'id',
+                session.user.id
+              )
+              .single();
+
+          if (!mounted)
+            return;
+
+          setUserRole(
+            profile?.role ||
+            null
+          );
+        }
+      );
+
+    return () => {
+
+      mounted = false;
+
+      subscription.unsubscribe();
+
+    };
+
+  }, []);
+
+  /* =======================================================
+     CONNEXION
+  ======================================================= */
+
+  async function handleLogin(e) {
+
+    e.preventDefault();
+
+    setAuthError('');
+
+    setLoggingIn(true);
+
+    const {
+      error
+    } =
+      await supabase.auth.signInWithPassword({
+        email:
+          email.trim(),
+
+        password
+      });
+
+    setLoggingIn(false);
+
+    if (error) {
+
+      setAuthError(
+        'Adresse e-mail ou mot de passe incorrect.'
+      );
+
+    }
+
+  }
+
+  /* =======================================================
+     DÉCONNEXION
+  ======================================================= */
+
+  async function handleLogout() {
+
+    await supabase.auth.signOut();
+
+    setSession(null);
+
+    setUserRole(null);
+
+  }
+
+  /* =======================================================
      CALCULS ESPÈCES
   ======================================================= */
 
@@ -260,10 +461,15 @@ export default function Home() {
     useMemo(
       () =>
         cashValues.reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             value *
-              opening[value],
+              opening[
+                value
+              ],
           0
         ),
       [opening]
@@ -273,10 +479,15 @@ export default function Home() {
     useMemo(
       () =>
         cashValues.reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             value *
-              closing[value],
+              closing[
+                value
+              ],
           0
         ),
       [closing]
@@ -286,10 +497,15 @@ export default function Home() {
     useMemo(
       () =>
         billValues.reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             value *
-              opening[value],
+              opening[
+                value
+              ],
           0
         ),
       [opening]
@@ -299,10 +515,15 @@ export default function Home() {
     useMemo(
       () =>
         coinValues.reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             value *
-              opening[value],
+              opening[
+                value
+              ],
           0
         ),
       [opening]
@@ -312,10 +533,15 @@ export default function Home() {
     useMemo(
       () =>
         billValues.reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             value *
-              closing[value],
+              closing[
+                value
+              ],
           0
         ),
       [closing]
@@ -325,10 +551,15 @@ export default function Home() {
     useMemo(
       () =>
         coinValues.reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             value *
-              closing[value],
+              closing[
+                value
+              ],
           0
         ),
       [closing]
@@ -345,30 +576,36 @@ export default function Home() {
   const eventTotals =
     useMemo(
       () =>
-        eventSales.map(event => {
+        eventSales.map(
+          event => {
 
-          const total =
-            event.tickets.reduce(
-              (
-                sum,
-                [name, price]
-              ) =>
-                sum +
-                price *
-                  Number(
-                    event
-                      .quantities[
+            const total =
+              event.tickets.reduce(
+                (
+                  sum,
+                  [
+                    name,
+                    price
+                  ]
+                ) =>
+                  sum +
+                  price *
+                    Number(
+                      event
+                        .quantities[
                         name
                       ] || 0
-                  ),
-              0
-            );
+                    ),
+                0
+              );
 
-          return {
-            ...event,
-            total
-          };
-        }),
+            return {
+              ...event,
+              total
+            };
+
+          }
+        ),
       [eventSales]
     );
 
@@ -380,7 +617,10 @@ export default function Home() {
     useMemo(
       () =>
         eventTotals.reduce(
-          (sum, event) =>
+          (
+            sum,
+            event
+          ) =>
             sum +
             event.total,
           0
@@ -396,10 +636,15 @@ export default function Home() {
     useMemo(
       () =>
         ancvValues.reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             value *
-              ancv[value],
+              ancv[
+                value
+              ],
           0
         ),
       [ancv]
@@ -413,12 +658,16 @@ export default function Home() {
     useMemo(
       () =>
         multiplePayments.reduce(
-          (sum, payment) =>
+          (
+            sum,
+            payment
+          ) =>
             sum +
             Number(
               payment
                 .allocations
-                .cash || 0
+                .cash ||
+                0
             ),
           0
         ),
@@ -429,12 +678,16 @@ export default function Home() {
     useMemo(
       () =>
         multiplePayments.reduce(
-          (sum, payment) =>
+          (
+            sum,
+            payment
+          ) =>
             sum +
             Number(
               payment
                 .allocations
-                .tpe || 0
+                .tpe ||
+                0
             ),
           0
         ),
@@ -445,12 +698,16 @@ export default function Home() {
     useMemo(
       () =>
         multiplePayments.reduce(
-          (sum, payment) =>
+          (
+            sum,
+            payment
+          ) =>
             sum +
             Number(
               payment
                 .allocations
-                .web || 0
+                .web ||
+                0
             ),
           0
         ),
@@ -461,12 +718,16 @@ export default function Home() {
     useMemo(
       () =>
         multiplePayments.reduce(
-          (sum, payment) =>
+          (
+            sum,
+            payment
+          ) =>
             sum +
             Number(
               payment
                 .allocations
-                .cheque || 0
+                .cheque ||
+                0
             ),
           0
         ),
@@ -477,12 +738,16 @@ export default function Home() {
     useMemo(
       () =>
         multiplePayments.reduce(
-          (sum, payment) =>
+          (
+            sum,
+            payment
+          ) =>
             sum +
             Number(
               payment
                 .allocations
-                .ancv || 0
+                .ancv ||
+                0
             ),
           0
         ),
@@ -493,12 +758,16 @@ export default function Home() {
     useMemo(
       () =>
         multiplePayments.reduce(
-          (sum, payment) =>
+          (
+            sum,
+            payment
+          ) =>
             sum +
             Number(
               payment
                 .allocations
-                .autre || 0
+                .autre ||
+                0
             ),
           0
         ),
@@ -527,7 +796,8 @@ export default function Home() {
     multipleAutre;
 
   const difference =
-    paymentsTotal - ca;
+    paymentsTotal -
+    ca;
 
   /* =======================================================
      PAIEMENT MULTIPLE
@@ -539,7 +809,10 @@ export default function Home() {
           multipleDraft
             .allocations
         ).reduce(
-          (sum, value) =>
+          (
+            sum,
+            value
+          ) =>
             sum +
             Number(
               value || 0
@@ -551,13 +824,14 @@ export default function Home() {
   const multipleIsValid =
     multipleDraft &&
     Number(
-      multipleDraft.amount ||
-        0
+      multipleDraft
+        .amount || 0
     ) > 0 &&
     Math.abs(
       multipleAllocated -
         Number(
-          multipleDraft.amount ||
+          multipleDraft
+            .amount ||
             0
         )
     ) < 0.005;
@@ -571,10 +845,14 @@ export default function Home() {
     key,
     value
   ) => {
-    setter(prev => ({
-      ...prev,
-      [key]: value
-    }));
+
+    setter(
+      prev => ({
+        ...prev,
+        [key]: value
+      })
+    );
+
   };
 
   function addEvent() {
@@ -586,7 +864,8 @@ export default function Home() {
           selectedEventId
       );
 
-    if (!event) return;
+    if (!event)
+      return;
 
     const alreadyExists =
       eventSales.some(
@@ -607,9 +886,12 @@ export default function Home() {
     setEventSales(
       prev => [
         ...prev,
-        createEventSale(event)
+        createEventSale(
+          event
+        )
       ]
     );
+
   }
 
   function removeEvent(id) {
@@ -621,6 +903,7 @@ export default function Home() {
             event.id !== id
         )
     );
+
   }
 
   function updateTicketQuantity(
@@ -631,46 +914,61 @@ export default function Home() {
 
     setEventSales(
       prev =>
-        prev.map(event => {
+        prev.map(
+          event => {
 
-          if (
-            event.id !==
-            eventId
-          ) {
-            return event;
-          }
+            if (
+              event.id !==
+              eventId
+            ) {
 
-          return {
-            ...event,
+              return event;
 
-            quantities: {
-              ...event.quantities,
-
-              [ticketName]:
-                value
             }
-          };
-        })
+
+            return {
+
+              ...event,
+
+              quantities: {
+
+                ...event
+                  .quantities,
+
+                [ticketName]:
+                  value
+
+              }
+
+            };
+
+          }
+        )
     );
+
   }
 
   function reset() {
 
     setOpening(
       Object.fromEntries(
-        cashValues.map(v => [
-          v,
-          0
-        ])
+        cashValues.map(
+          v => [
+            v,
+            0
+          ]
+        )
       )
     );
 
     setClosing(
       Object.fromEntries(
-        cashValues.map(v => [
-          v,
-          0
-        ])
+        cashValues.map(
+          v => [
+            v,
+            0
+          ]
+        )
       )
     );
 
@@ -682,10 +980,12 @@ export default function Home() {
 
     setAncv(
       Object.fromEntries(
-        ancvValues.map(v => [
-          v,
-          0
-        ])
+        ancvValues.map(
+          v => [
+            v,
+            0
+          ]
+        )
       )
     );
 
@@ -700,7 +1000,9 @@ export default function Home() {
       false
     );
 
-    setMultipleDraft(null);
+    setMultipleDraft(
+      null
+    );
 
     setMultiplePayments([]);
 
@@ -711,6 +1013,7 @@ export default function Home() {
     setClosed(false);
 
     setSaving(false);
+
   }
 
   /* =======================================================
@@ -719,11 +1022,13 @@ export default function Home() {
 
   function startMultiple() {
 
-    if (multipleDraft) return;
+    if (multipleDraft)
+      return;
 
     setMultipleDraft(
       createEmptyMultiple()
     );
+
   }
 
   function updateMultipleAmount(
@@ -736,6 +1041,7 @@ export default function Home() {
         amount: value
       })
     );
+
   }
 
   function updateMultipleAllocation(
@@ -748,11 +1054,18 @@ export default function Home() {
         ...prev,
 
         allocations: {
-          ...prev.allocations,
-          [type]: value
+
+          ...prev
+            .allocations,
+
+          [type]:
+            value
+
         }
+
       })
     );
+
   }
 
   function validateMultiple() {
@@ -762,8 +1075,8 @@ export default function Home() {
 
     const amount =
       Number(
-        multipleDraft.amount ||
-          0
+        multipleDraft
+          .amount || 0
       );
 
     const allocated =
@@ -771,7 +1084,10 @@ export default function Home() {
         multipleDraft
           .allocations
       ).reduce(
-        (sum, value) =>
+        (
+          sum,
+          value
+        ) =>
           sum +
           Number(
             value || 0
@@ -811,6 +1127,7 @@ export default function Home() {
         ...prev,
 
         {
+
           id:
             Date.now() +
             Math.random(),
@@ -821,11 +1138,16 @@ export default function Home() {
             ...multipleDraft
               .allocations
           }
+
         }
+
       ]
     );
 
-    setMultipleDraft(null);
+    setMultipleDraft(
+      null
+    );
+
   }
 
   function editMultiple(id) {
@@ -836,15 +1158,19 @@ export default function Home() {
           p.id === id
       );
 
-    if (!payment) return;
+    if (!payment)
+      return;
 
     setMultipleDraft({
+
       amount:
         payment.amount,
 
       allocations: {
-        ...payment.allocations
+        ...payment
+          .allocations
       }
+
     });
 
     setMultiplePayments(
@@ -854,6 +1180,7 @@ export default function Home() {
             p.id !== id
         )
     );
+
   }
 
   function removeMultiple(id) {
@@ -865,6 +1192,7 @@ export default function Home() {
             p.id !== id
         )
     );
+
   }
 
   /* =======================================================
@@ -931,6 +1259,7 @@ export default function Home() {
 
         total:
           ca
+
       },
 
       opening_data: {
@@ -940,6 +1269,7 @@ export default function Home() {
 
         total:
           openingCash
+
       },
 
       closing_data: {
@@ -958,6 +1288,7 @@ export default function Home() {
 
         cash_sales:
           cashSales
+
       },
 
       payments_data: {
@@ -978,6 +1309,7 @@ export default function Home() {
 
           autre:
             payments.autre
+
         },
 
         ancv_by_value:
@@ -1009,7 +1341,9 @@ export default function Home() {
           autre:
             payments.autre +
             multipleAutre
+
         }
+
       },
 
       multiple_payments:
@@ -1022,9 +1356,12 @@ export default function Home() {
         paymentsTotal,
 
       difference
+
     };
 
-    const { error } =
+    const {
+      error
+    } =
       await supabase
         .from('caisses')
         .insert(
@@ -1048,10 +1385,236 @@ export default function Home() {
     }
 
     setClosed(true);
+
   }
 
   /* =======================================================
-     AFFICHAGE
+     CHARGEMENT AUTH
+  ======================================================= */
+
+  if (authLoading) {
+
+    return (
+
+      <main
+        className={
+          dark
+            ? 'dark'
+            : ''
+        }
+      >
+
+        <div className="wrap">
+
+          <section className="card">
+
+            <h1>
+              Chargement...
+            </h1>
+
+          </section>
+
+        </div>
+
+      </main>
+
+    );
+
+  }
+
+  /* =======================================================
+     CONNEXION
+  ======================================================= */
+
+  if (!session) {
+
+    return (
+
+      <main
+        className={
+          dark
+            ? 'dark'
+            : ''
+        }
+      >
+
+        <div className="wrap">
+
+          <header>
+
+            <div>
+
+              <div className="eyebrow">
+                BILLETTERIE ASSOCIATIVE
+              </div>
+
+              <h1>
+                Connexion
+              </h1>
+
+              <p>
+                Connectez-vous pour accéder à la caisse.
+              </p>
+
+            </div>
+
+            <button
+              className="theme"
+              onClick={() =>
+                setDark(
+                  !dark
+                )
+              }
+              aria-label="Changer de thème"
+            >
+              {dark
+                ? '☀️'
+                : '🌙'}
+            </button>
+
+          </header>
+
+          <section className="card loginCard">
+
+            <h2>
+              Accès à la caisse
+            </h2>
+
+            <form
+              onSubmit={
+                handleLogin
+              }
+            >
+
+              <label>
+
+                Adresse e-mail
+
+                <input
+                  type="email"
+                  value={
+                    email
+                  }
+                  onChange={e =>
+                    setEmail(
+                      e.target
+                        .value
+                    )
+                  }
+                  placeholder="exemple@association.fr"
+                  autoComplete="email"
+                  required
+                />
+
+              </label>
+
+              <label>
+
+                Mot de passe
+
+                <input
+                  type="password"
+                  value={
+                    password
+                  }
+                  onChange={e =>
+                    setPassword(
+                      e.target
+                        .value
+                    )
+                  }
+                  placeholder="Mot de passe"
+                  autoComplete="current-password"
+                  required
+                />
+
+              </label>
+
+              {authError && (
+
+                <div className="info bad">
+
+                  {authError}
+
+                </div>
+
+              )}
+
+              <button
+                type="submit"
+                className="primary"
+                disabled={
+                  loggingIn
+                }
+              >
+
+                {loggingIn
+                  ? '⏳ Connexion...'
+                  : 'Se connecter'}
+
+              </button>
+
+            </form>
+
+          </section>
+
+        </div>
+
+      </main>
+
+    );
+
+  }
+
+  /* =======================================================
+     UTILISATEUR CONNECTÉ SANS RÔLE
+  ======================================================= */
+
+  if (!userRole) {
+
+    return (
+
+      <main
+        className={
+          dark
+            ? 'dark'
+            : ''
+        }
+      >
+
+        <div className="wrap">
+
+          <section className="card">
+
+            <h1>
+              Accès refusé
+            </h1>
+
+            <p>
+              Votre compte n'est pas encore associé à un rôle dans l'application.
+            </p>
+
+            <button
+              className="primary"
+              onClick={
+                handleLogout
+              }
+            >
+              Se déconnecter
+            </button>
+
+          </section>
+
+        </div>
+
+      </main>
+
+    );
+
+  }
+
+  /* =======================================================
+     APPLICATION
   ======================================================= */
 
   return (
@@ -1088,19 +1651,44 @@ export default function Home() {
 
           </div>
 
-          <button
-            className="theme"
-            onClick={() =>
-              setDark(
-                !dark
-              )
-            }
-            aria-label="Changer de thème"
-          >
-            {dark
-              ? '☀️'
-              : '🌙'}
-          </button>
+          <div className="headerActions">
+
+            <span className="userRole">
+
+              {userRole ===
+              'admin'
+                ? 'Administrateur'
+                : userRole ===
+                    'responsable'
+                  ? 'Responsable'
+                  : 'Bénévole'}
+
+            </span>
+
+            <button
+              type="button"
+              onClick={
+                handleLogout
+              }
+            >
+              Déconnexion
+            </button>
+
+            <button
+              className="theme"
+              onClick={() =>
+                setDark(
+                  !dark
+                )
+              }
+              aria-label="Changer de thème"
+            >
+              {dark
+                ? '☀️'
+                : '🌙'}
+            </button>
+
+          </div>
 
         </header>
 
@@ -1872,6 +2460,7 @@ export default function Home() {
               <div className="paymentSummary">
 
                 <div>
+
                   <span>
                     CB TPE
                   </span>
@@ -1881,9 +2470,11 @@ export default function Home() {
                       payments.tpe
                     )}
                   </strong>
+
                 </div>
 
                 <div>
+
                   <span>
                     CB Web
                   </span>
@@ -1893,9 +2484,11 @@ export default function Home() {
                       payments.web
                     )}
                   </strong>
+
                 </div>
 
                 <div>
+
                   <span>
                     Chèques
                   </span>
@@ -1905,9 +2498,11 @@ export default function Home() {
                       payments.cheque
                     )}
                   </strong>
+
                 </div>
 
                 <div>
+
                   <span>
                     Autre
                   </span>
@@ -1917,6 +2512,7 @@ export default function Home() {
                       payments.autre
                     )}
                   </strong>
+
                 </div>
 
               </div>
@@ -2550,5 +3146,6 @@ export default function Home() {
       </div>
 
     </main>
+
   );
 }
