@@ -54,6 +54,12 @@ const cashValues = [
   0.05, 0.02, 0.01
 ];
 
+const billValues = [50, 20, 10, 5];
+const coinValues = [
+  2, 1, 0.5, 0.2,
+  0.1, 0.05, 0.02, 0.01
+];
+
 const ancvValues = [10, 20, 25, 50];
 
 /* =========================================================
@@ -276,10 +282,36 @@ export default function Home() {
       [closing]
     );
 
+  const openingBills =
+    useMemo(
+      () =>
+        billValues.reduce(
+          (sum, value) =>
+            sum +
+            value *
+              opening[value],
+          0
+        ),
+      [opening]
+    );
+
+  const openingCoins =
+    useMemo(
+      () =>
+        coinValues.reduce(
+          (sum, value) =>
+            sum +
+            value *
+              opening[value],
+          0
+        ),
+      [opening]
+    );
+
   const cashBills =
     useMemo(
       () =>
-        [50, 20, 10, 5].reduce(
+        billValues.reduce(
           (sum, value) =>
             sum +
             value *
@@ -292,16 +324,7 @@ export default function Home() {
   const cashCoins =
     useMemo(
       () =>
-        [
-          2,
-          1,
-          0.5,
-          0.2,
-          0.1,
-          0.05,
-          0.02,
-          0.01
-        ].reduce(
+        coinValues.reduce(
           (sum, value) =>
             sum +
             value *
@@ -316,7 +339,7 @@ export default function Home() {
     openingCash;
 
   /* =======================================================
-     CALCUL DU CA PAR ÉVÈNEMENT
+     CA PAR ÉVÈNEMENT
   ======================================================= */
 
   const eventTotals =
@@ -573,9 +596,11 @@ export default function Home() {
       );
 
     if (alreadyExists) {
+
       alert(
         'Cet évènement est déjà ajouté à la caisse.'
       );
+
       return;
     }
 
@@ -1152,58 +1177,154 @@ export default function Home() {
             Fond de caisse
           </h3>
 
-          <div className="cashgrid">
+          <div className="cashColumns">
 
-            {cashValues.map(
-              value => (
+            {/* BILLETS */}
 
-                <div
-                  className="cashrow"
-                  key={
-                    'opening' +
-                    value
-                  }
-                >
+            <div className="cashPanel">
 
-                  <span>
-                    {money(value)}
-                  </span>
+              <h3>
+                💶 Billets
+              </h3>
 
-                  <NumberField
-                    value={
-                      opening[
+              {billValues.map(
+                value => (
+
+                  <div
+                    className="cashrow"
+                    key={
+                      'opening-bill-' +
+                      value
+                    }
+                  >
+
+                    <span>
+                      {money(
                         value
-                      ]
-                    }
-                    onChange={x =>
-                      setCount(
-                        setOpening,
-                        value,
-                        x
-                      )
-                    }
-                  />
+                      )}
+                    </span>
 
-                  <strong>
-                    {money(
-                      value *
+                    <NumberField
+                      value={
                         opening[
                           value
                         ]
-                    )}
-                  </strong>
+                      }
+                      onChange={x =>
+                        setCount(
+                          setOpening,
+                          value,
+                          x
+                        )
+                      }
+                    />
 
-                </div>
+                    <strong>
+                      {money(
+                        value *
+                          opening[
+                            value
+                          ]
+                      )}
+                    </strong>
 
-              )
-            )}
+                  </div>
+
+                )
+              )}
+
+              <div className="totalline">
+
+                <span>
+                  Total billets
+                </span>
+
+                <strong>
+                  {money(
+                    openingBills
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
+
+            {/* MONNAIE */}
+
+            <div className="cashPanel">
+
+              <h3>
+                🪙 Monnaie
+              </h3>
+
+              {coinValues.map(
+                value => (
+
+                  <div
+                    className="cashrow"
+                    key={
+                      'opening-coin-' +
+                      value
+                    }
+                  >
+
+                    <span>
+                      {money(
+                        value
+                      )}
+                    </span>
+
+                    <NumberField
+                      value={
+                        opening[
+                          value
+                        ]
+                      }
+                      onChange={x =>
+                        setCount(
+                          setOpening,
+                          value,
+                          x
+                        )
+                      }
+                    />
+
+                    <strong>
+                      {money(
+                        value *
+                          opening[
+                            value
+                          ]
+                      )}
+                    </strong>
+
+                  </div>
+
+                )
+              )}
+
+              <div className="totalline">
+
+                <span>
+                  Total monnaie
+                </span>
+
+                <strong>
+                  {money(
+                    openingCoins
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
 
           </div>
 
-          <div className="totalline">
+          <div className="caBox">
 
             <span>
-              Fond de caisse initial
+              FOND DE CAISSE INITIAL
             </span>
 
             <strong>
@@ -1429,7 +1550,7 @@ export default function Home() {
         </section>
 
         {/* =================================================
-            3. FERMETURE ESPÈCES
+            3. FERMETURE ESPECES
         ================================================= */}
 
         <section className="card">
@@ -1442,58 +1563,154 @@ export default function Home() {
             Compte les espèces présentes dans la caisse.
           </p>
 
-          <div className="cashgrid">
+          <div className="cashColumns">
 
-            {cashValues.map(
-              value => (
+            {/* BILLETS */}
 
-                <div
-                  className="cashrow"
-                  key={
-                    'closing' +
-                    value
-                  }
-                >
+            <div className="cashPanel">
 
-                  <span>
-                    {money(value)}
-                  </span>
+              <h3>
+                💶 Billets
+              </h3>
 
-                  <NumberField
-                    value={
-                      closing[
+              {billValues.map(
+                value => (
+
+                  <div
+                    className="cashrow"
+                    key={
+                      'closing-bill-' +
+                      value
+                    }
+                  >
+
+                    <span>
+                      {money(
                         value
-                      ]
-                    }
-                    onChange={x =>
-                      setCount(
-                        setClosing,
-                        value,
-                        x
-                      )
-                    }
-                  />
+                      )}
+                    </span>
 
-                  <strong>
-                    {money(
-                      value *
+                    <NumberField
+                      value={
                         closing[
                           value
                         ]
-                    )}
-                  </strong>
+                      }
+                      onChange={x =>
+                        setCount(
+                          setClosing,
+                          value,
+                          x
+                        )
+                      }
+                    />
 
-                </div>
+                    <strong>
+                      {money(
+                        value *
+                          closing[
+                            value
+                          ]
+                      )}
+                    </strong>
 
-              )
-            )}
+                  </div>
+
+                )
+              )}
+
+              <div className="totalline">
+
+                <span>
+                  Total billets
+                </span>
+
+                <strong>
+                  {money(
+                    cashBills
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
+
+            {/* MONNAIE */}
+
+            <div className="cashPanel">
+
+              <h3>
+                🪙 Monnaie
+              </h3>
+
+              {coinValues.map(
+                value => (
+
+                  <div
+                    className="cashrow"
+                    key={
+                      'closing-coin-' +
+                      value
+                    }
+                  >
+
+                    <span>
+                      {money(
+                        value
+                      )}
+                    </span>
+
+                    <NumberField
+                      value={
+                        closing[
+                          value
+                        ]
+                      }
+                      onChange={x =>
+                        setCount(
+                          setClosing,
+                          value,
+                          x
+                        )
+                      }
+                    />
+
+                    <strong>
+                      {money(
+                        value *
+                          closing[
+                            value
+                          ]
+                      )}
+                    </strong>
+
+                  </div>
+
+                )
+              )}
+
+              <div className="totalline">
+
+                <span>
+                  Total monnaie
+                </span>
+
+                <strong>
+                  {money(
+                    cashCoins
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
 
           </div>
 
-          <div className="totalline">
+          <div className="caBox">
 
             <span>
-              Espèces en caisse
+              SOMME TOTALE ESPÈCES
             </span>
 
             <strong>
@@ -1737,7 +1954,9 @@ export default function Home() {
                 >
 
                   <span>
-                    {money(value)}
+                    {money(
+                      value
+                    )}
                   </span>
 
                   <NumberField
