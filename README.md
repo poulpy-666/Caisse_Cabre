@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎟️ Caisse Billetterie
 
-## Getting Started
+Application web simple et intuitive destinée à la gestion et à la clôture des caisses d'une billetterie associative.
 
-First, run the development server:
+L'objectif est de permettre aux bénévoles de saisir rapidement les éléments d'une caisse, de contrôler les différents moyens de paiement et d'obtenir automatiquement une synthèse comptable.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Version actuelle
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**V1.5.0 — Version figée**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Cette version constitue la base stable du projet avant l'ajout du système de sauvegarde et d'historique.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ✨ Fonctionnalités
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🟢 Ouverture de caisse
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Nom de la manifestation
+- Date
+- Saisie du fond de caisse
+- Comptage par billet et pièce
+- Calcul automatique du fond de caisse initial
 
-## Deploy on Vercel
+### 🎟️ Billetterie
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Tarifs actuellement configurés :
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Tarif | Prix |
+|---|---:|
+| Tarif plein | 20 € |
+| Moins de 12 ans | 12 € |
+| Moins de 3 ans | 0 € |
+| Invitation | 0 € |
+| PMR | 20 € |
+
+Le nombre de billets vendus est saisi pour chaque catégorie.
+
+L'application calcule automatiquement le :
+
+**CA billetterie**
+
+---
+
+## 💶 Gestion des espèces
+
+Lors de la fermeture, le bénévole saisit le nombre de billets et pièces présents dans la caisse.
+
+Coupures disponibles :
+
+### Billets
+
+- 50 €
+- 20 €
+- 10 €
+- 5 €
+
+### Pièces
+
+- 2 €
+- 1 €
+- 0,50 €
+- 0,20 €
+- 0,10 €
+- 0,05 €
+- 0,02 €
+- 0,01 €
+
+L'application calcule automatiquement :
+
+- Somme billets
+- Somme monnaie
+- Somme totale espèces
+- Espèces issues des ventes
+- Différence avec le fond de caisse initial
+
+---
+
+## 💳 Moyens de paiement
+
+Les différents moyens de paiement sont séparés afin de faciliter le rapprochement avec les données de la billetterie.
+
+### Moyens disponibles
+
+- CB Guichet — TPE
+- CB Web
+- Chèques
+- Chèques-Vacances ANCV
+- Chèques-Vacances Connect
+- Autre
+
+Les moyens de paiement peuvent être validés avant la clôture afin d'éviter les modifications accidentelles.
+
+---
+
+## 🎫 Chèques-Vacances ANCV
+
+Les chèques-vacances ANCV peuvent être comptabilisés par valeur.
+
+Valeurs disponibles :
+
+- 10 €
+- 20 €
+- 25 €
+- 50 €
+
+Le total ANCV est calculé automatiquement.
+
+---
+
+# 🔀 Paiements multiples
+
+Cette fonctionnalité permet de gérer une vente réglée avec plusieurs moyens de paiement.
+
+### Exemple
+
+Une vente de **40 €** peut être réglée :
+
+- 20 € en espèces
+- 20 € en ANCV
+
+Le paiement multiple doit être **validé** avant d'être intégré aux calculs.
+
+L'application vérifie automatiquement que :
+
+> Montant de la transaction = somme des moyens de paiement
+
+Exemple :
+
+```text
+Transaction       40,00 €
+
+Espèces           20,00 €
+ANCV              20,00 €
+
+Total réparti     40,00 €
+
+✓ Répartition correcte
