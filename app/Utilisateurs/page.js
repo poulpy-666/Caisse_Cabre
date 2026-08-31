@@ -10,6 +10,21 @@ const roleLabel = {
   benevole: 'Bénévole'
 };
 
+const roleOptions = [
+  {
+    value: 'benevole',
+    label: 'Bénévole'
+  },
+  {
+    value: 'responsable',
+    label: 'Responsable'
+  },
+  {
+    value: 'admin',
+    label: 'Administrateur'
+  }
+];
+
 export default function Utilisateurs() {
 
   const [session, setSession] = useState(null);
@@ -21,6 +36,12 @@ export default function Utilisateurs() {
   const [loading, setLoading] = useState(false);
 
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const [editingId, setEditingId] = useState(null);
+  const [editingRole, setEditingRole] = useState('');
+
+  const [savingId, setSavingId] = useState(null);
 
   /* =========================================================
      AUTHENTIFICATION
@@ -81,7 +102,9 @@ export default function Utilisateurs() {
         setSession(session);
 
         if (!session?.user) {
+
           setUserRole(null);
+
           return;
         }
 
@@ -98,6 +121,7 @@ export default function Utilisateurs() {
         setUserRole(
           profile?.role || null
         );
+
       }
     );
 
@@ -130,13 +154,16 @@ export default function Utilisateurs() {
 
     setLoading(true);
     setError('');
+    setSuccess('');
 
     const {
       data,
       error
     } = await supabase
       .from('profiles')
-      .select('id, name, role, created_at')
+      .select(
+        'id, name, role, created_at'
+      )
       .order(
         'created_at',
         {
@@ -160,6 +187,78 @@ export default function Utilisateurs() {
     setUsers(data || []);
 
     setLoading(false);
+  }
+
+  /* =========================================================
+     MODIFICATION RÔLE
+  ========================================================= */
+
+  function startEditing(user) {
+
+    setError('');
+    setSuccess('');
+
+    setEditingId(user.id);
+    setEditingRole(
+      user.role || 'benevole'
+    );
+  }
+
+  function cancelEditing() {
+
+    setEditingId(null);
+    setEditingRole('');
+
+  }
+
+  async function saveRole(userId) {
+
+    if (!editingRole) return;
+
+    setError('');
+    setSuccess('');
+
+    setSavingId(userId);
+
+    const {
+      error
+    } = await supabase
+      .from('profiles')
+      .update({
+        role: editingRole
+      })
+      .eq('id', userId);
+
+    setSavingId(null);
+
+    if (error) {
+
+      console.error(error);
+
+      setError(
+        `Impossible de modifier le rôle : ${error.message}`
+      );
+
+      return;
+    }
+
+    setUsers(prev =>
+      prev.map(user =>
+        user.id === userId
+          ? {
+              ...user,
+              role: editingRole
+            }
+          : user
+      )
+    );
+
+    setEditingId(null);
+    setEditingRole('');
+
+    setSuccess(
+      'Le rôle a été modifié avec succès.'
+    );
   }
 
   /* =========================================================
@@ -302,7 +401,9 @@ export default function Utilisateurs() {
 
       <div className="wrap">
 
-        {/* HEADER */}
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
         <header>
 
@@ -346,7 +447,29 @@ export default function Utilisateurs() {
 
         </header>
 
-        {/* UTILISATEURS */}
+        {/* =================================================
+            MESSAGES
+        ================================================= */}
+
+        {error && (
+
+          <div className="info bad">
+            {error}
+          </div>
+
+        )}
+
+        {success && (
+
+          <div className="info">
+            ✓ {success}
+          </div>
+
+        )}
+
+        {/* =================================================
+            UTILISATEURS
+        ================================================= */}
 
         <section className="card">
 
@@ -384,16 +507,7 @@ export default function Utilisateurs() {
 
           </div>
 
-          {error && (
-
-            <div className="info bad">
-              {error}
-            </div>
-
-          )}
-
           {!loading &&
-            !error &&
             users.length === 0 && (
 
               <div className="info">
@@ -426,6 +540,14 @@ export default function Utilisateurs() {
                     session.user.id ===
                     user.id;
 
+                  const isEditing =
+                    editingId ===
+                    user.id;
+
+                  const isSaving =
+                    savingId ===
+                    user.id;
+
                   return (
 
                     <div
@@ -435,16 +557,14 @@ export default function Utilisateurs() {
                       }
                     >
 
+                      {/* NOM */}
+
                       <div>
 
                         <strong>
-                          {user.name || 'Nom non renseigné'}
+                          {user.name ||
+                            'Nom non renseigné'}
                         </strong>
-
-                        <small>
-                          ID :{' '}
-                          {user.id}
-                        </small>
 
                         {isCurrentUser && (
 
@@ -454,7 +574,14 @@ export default function Utilisateurs() {
 
                         )}
 
+                        <small>
+                          ID :{' '}
+                          {user.id}
+                        </small>
+
                       </div>
+
+                      {/* RÔLE */}
 
                       <div>
 
@@ -462,13 +589,56 @@ export default function Utilisateurs() {
                           Rôle
                         </span>
 
-                        <strong>
-                          {roleLabel[
-                            role
-                          ] || role}
-                        </strong>
+                        {!isEditing ? (
+
+                          <strong>
+                            {roleLabel[
+                              role
+                            ] || role}
+                          </strong>
+
+                        ) : (
+
+                          <select
+                            value={
+                              editingRole
+                            }
+                            onChange={e =>
+                              setEditingRole(
+                                e.target.value
+                              )
+                            }
+                            disabled={
+                              isSaving
+                            }
+                          >
+
+                            {roleOptions.map(
+                              option => (
+
+                                <option
+                                  key={
+                                    option.value
+                                  }
+                                  value={
+                                    option.value
+                                  }
+                                >
+                                  {
+                                    option.label
+                                  }
+                                </option>
+
+                              )
+                            )}
+
+                          </select>
+
+                        )}
 
                       </div>
+
+                      {/* DATE */}
 
                       <div>
 
@@ -479,6 +649,67 @@ export default function Utilisateurs() {
                         <strong>
                           {createdAt}
                         </strong>
+
+                      </div>
+
+                      {/* ACTION */}
+
+                      <div>
+
+                        {!isEditing ? (
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              startEditing(
+                                user
+                              )
+                            }
+                          >
+                            ✏️ Modifier
+                          </button>
+
+                        ) : (
+
+                          <div
+                            className="actions"
+                            style={{
+                              marginTop: 0
+                            }}
+                          >
+
+                            <button
+                              type="button"
+                              className="primary"
+                              onClick={() =>
+                                saveRole(
+                                  user.id
+                                )
+                              }
+                              disabled={
+                                isSaving
+                              }
+                            >
+                              {isSaving
+                                ? '⏳'
+                                : '✓ Enregistrer'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={
+                                cancelEditing
+                              }
+                              disabled={
+                                isSaving
+                              }
+                            >
+                              Annuler
+                            </button>
+
+                          </div>
+
+                        )}
 
                       </div>
 
@@ -495,23 +726,53 @@ export default function Utilisateurs() {
 
         </section>
 
-        {/* INFORMATION */}
+        {/* =================================================
+            INFORMATIONS
+        ================================================= */}
 
         <section className="card">
 
           <h2>
-            Gestion des rôles
+            Rôles disponibles
           </h2>
 
-          <div className="info">
+          <div className="paymentSummary">
 
-            <strong>
-              Cette première version est en lecture seule.
-            </strong>
+            <div>
 
-            <br />
+              <span>
+                Bénévole
+              </span>
 
-            La modification des rôles sera ajoutée à l'étape suivante.
+              <strong>
+                Accès à la caisse uniquement
+              </strong>
+
+            </div>
+
+            <div>
+
+              <span>
+                Responsable
+              </span>
+
+              <strong>
+                Caisse + historique
+              </strong>
+
+            </div>
+
+            <div>
+
+              <span>
+                Administrateur
+              </span>
+
+              <strong>
+                Accès complet
+              </strong>
+
+            </div>
 
           </div>
 
