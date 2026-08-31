@@ -504,7 +504,7 @@ export default function Historique() {
 
   return (
 
-    <main>
+    <main className={dark ? 'dark' : ''}>
 
       <div className="wrap">
 
