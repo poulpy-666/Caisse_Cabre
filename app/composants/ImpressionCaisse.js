@@ -4,33 +4,32 @@ export default function ImpressionCaisse({
   eventName,
   responsible,
   date,
-  eventTotals,
 
-  billValues,
-  coinValues,
-  opening,
-  closing,
+  eventTotals = [],
 
-  openingCash,
-  openingBills,
-  openingCoins,
+  billValues = [],
+  coinValues = [],
 
-  closingCash,
-  cashBills,
-  cashCoins,
-  cashSales,
-  cashDifference,
+  opening = {},
+  closing = {},
 
-  payments,
-  ancv,
-  ancvValues,
-  ancvTotal,
-  ancvDirectTotal,
+  openingCash = 0,
+  closingCash = 0,
 
-  multiplePayments,
-  paymentsTotal,
-  ca,
-  difference,
+  cashSales = 0,
+  cashDifference = 0,
+
+  payments = {},
+
+  ancv = {},
+  ancvValues = [],
+  ancvTotal = 0,
+
+  multiplePayments = [],
+
+  paymentsTotal = 0,
+  ca = 0,
+  difference = 0,
 
   money
 }) {
@@ -97,7 +96,7 @@ export default function ImpressionCaisse({
           EN-TÊTE
       ================================================= */}
 
-      <div className="printHeader">
+      <header className="printHeader">
 
         <div>
 
@@ -119,8 +118,7 @@ export default function ImpressionCaisse({
             </span>
 
             <strong>
-              {eventName ||
-                '—'}
+              {eventName || '—'}
             </strong>
           </div>
 
@@ -130,8 +128,7 @@ export default function ImpressionCaisse({
             </span>
 
             <strong>
-              {date ||
-                '—'}
+              {date || '—'}
             </strong>
           </div>
 
@@ -141,14 +138,13 @@ export default function ImpressionCaisse({
             </span>
 
             <strong>
-              {responsible ||
-                '—'}
+              {responsible || '—'}
             </strong>
           </div>
 
         </div>
 
-      </div>
+      </header>
 
 
       {/* =================================================
@@ -161,128 +157,221 @@ export default function ImpressionCaisse({
           1. Billetterie
         </h2>
 
-        {eventTotals.map(
-          event => (
+        {eventTotals.length === 0 ? (
 
-            <div
-              className="printEvent"
-              key={event.id}
-            >
+          <p>
+            Aucun événement enregistré.
+          </p>
 
-              <h3>
-                {event.eventName}
-              </h3>
+        ) : (
 
-              <table>
+          eventTotals.map(
+            (
+              event,
+              eventIndex
+            ) => {
 
-                <thead>
+              const tickets =
+                Array.isArray(
+                  event.tickets
+                )
+                  ? event.tickets
+                  : [];
 
-                  <tr>
+              return (
 
-                    <th>
-                      Tarif
-                    </th>
+                <div
+                  className="printEvent"
+                  key={
+                    event.id ||
+                    event.eventId ||
+                    eventIndex
+                  }
+                >
 
-                    <th className="right">
-                      Quantité
-                    </th>
+                  <h3>
+                    {event.eventName ||
+                      'Événement'}
+                  </h3>
 
-                    <th className="right">
-                      Prix
-                    </th>
+                  <table>
 
-                    <th className="right">
-                      Total
-                    </th>
+                    <thead>
 
-                  </tr>
+                      <tr>
 
-                </thead>
+                        <th>
+                          Tarif
+                        </th>
 
-                <tbody>
+                        <th className="right">
+                          Qté
+                        </th>
 
-                  {event.tickets.map(
-                    ticket => {
+                        <th className="right">
+                          Prix
+                        </th>
 
-                      const quantity =
-                        Number(
-                          event
-                            .quantities[
-                              ticket.name
-                            ] || 0
-                        );
+                        <th className="right">
+                          Total
+                        </th>
 
-                      const total =
-                        quantity *
-                        Number(
-                          ticket.price
-                        );
+                      </tr>
 
-                      return (
+                    </thead>
 
-                        <tr
-                          key={
-                            ticket.id
+                    <tbody>
+
+                      {tickets.map(
+                        (
+                          ticket,
+                          ticketIndex
+                        ) => {
+
+                          let name =
+                            'Tarif';
+
+                          let price =
+                            0;
+
+                          let quantity =
+                            0;
+
+                          let total =
+                            0;
+
+                          if (
+                            Array.isArray(
+                              ticket
+                            )
+                          ) {
+
+                            name =
+                              ticket[0];
+
+                            price =
+                              Number(
+                                ticket[1]
+                              ) || 0;
+
+                            quantity =
+                              Number(
+                                event
+                                  .quantities?.[
+                                    name
+                                  ] || 0
+                              );
+
+                            total =
+                              quantity *
+                              price;
+
+                          } else {
+
+                            name =
+                              ticket?.name ||
+                              'Tarif';
+
+                            price =
+                              Number(
+                                ticket?.price ||
+                                0
+                              );
+
+                            quantity =
+                              Number(
+                                ticket?.quantity ??
+                                event
+                                  .quantities?.[
+                                    name
+                                  ] ??
+                                0
+                              );
+
+                            total =
+                              Number(
+                                ticket?.total ??
+                                (
+                                  quantity *
+                                  price
+                                )
+                              );
+
                           }
+
+                          return (
+
+                            <tr
+                              key={
+                                ticket?.id ||
+                                name ||
+                                ticketIndex
+                              }
+                            >
+
+                              <td>
+                                {name}
+                              </td>
+
+                              <td className="right">
+                                {quantity}
+                              </td>
+
+                              <td className="right">
+                                {money(
+                                  price
+                                )}
+                              </td>
+
+                              <td className="right">
+                                {money(
+                                  total
+                                )}
+                              </td>
+
+                            </tr>
+
+                          );
+
+                        }
+                      )}
+
+                    </tbody>
+
+                    <tfoot>
+
+                      <tr>
+
+                        <td
+                          colSpan="3"
+                          className="right"
                         >
+                          CA événement
+                        </td>
 
-                          <td>
-                            {ticket.name}
-                          </td>
+                        <td className="right">
 
-                          <td className="right">
-                            {quantity}
-                          </td>
-
-                          <td className="right">
+                          <strong>
                             {money(
-                              ticket.price
+                              event.total
                             )}
-                          </td>
+                          </strong>
 
-                          <td className="right">
-                            {money(
-                              total
-                            )}
-                          </td>
+                        </td>
 
-                        </tr>
+                      </tr>
 
-                      );
+                    </tfoot>
 
-                    }
-                  )}
+                  </table>
 
-                </tbody>
+                </div>
 
-                <tfoot>
+              );
 
-                  <tr>
-
-                    <td
-                      colSpan="3"
-                      className="right"
-                    >
-                      CA événement
-                    </td>
-
-                    <td className="right">
-                      <strong>
-                        {money(
-                          event.total
-                        )}
-                      </strong>
-                    </td>
-
-                  </tr>
-
-                </tfoot>
-
-              </table>
-
-            </div>
-
+            }
           )
+
         )}
 
         <div className="printTotalBox">
@@ -301,7 +390,7 @@ export default function ImpressionCaisse({
 
 
       {/* =================================================
-          2. FOND DE CAISSE
+          2. FOND DE CAISSE INITIAL
       ================================================= */}
 
       <section className="printSection">
@@ -311,8 +400,6 @@ export default function ImpressionCaisse({
         </h2>
 
         <div className="printColumns">
-
-          {/* BILLETS */}
 
           <div>
 
@@ -325,17 +412,19 @@ export default function ImpressionCaisse({
               <thead>
 
                 <tr>
+
                   <th>
                     Valeur
                   </th>
 
                   <th className="right">
-                    Quantité
+                    Qté
                   </th>
 
                   <th className="right">
                     Total
                   </th>
+
                 </tr>
 
               </thead>
@@ -343,36 +432,42 @@ export default function ImpressionCaisse({
               <tbody>
 
                 {billValues.map(
-                  value => (
+                  value => {
 
-                    <tr
-                      key={
-                        'opening-print-bill-' +
-                        value
-                      }
-                    >
+                    const quantity =
+                      Number(
+                        opening[value] ||
+                        0
+                      );
 
-                      <td>
-                        {money(value)}
-                      </td>
+                    return (
 
-                      <td className="right">
-                        {opening[value] || 0}
-                      </td>
+                      <tr
+                        key={
+                          `opening-bill-${value}`
+                        }
+                      >
 
-                      <td className="right">
-                        {money(
-                          value *
-                          (
-                            opening[value] ||
-                            0
-                          )
-                        )}
-                      </td>
+                        <td>
+                          {money(value)}
+                        </td>
 
-                    </tr>
+                        <td className="right">
+                          {quantity}
+                        </td>
 
-                  )
+                        <td className="right">
+                          {money(
+                            value *
+                            quantity
+                          )}
+                        </td>
+
+                      </tr>
+
+                    );
+
+                  }
                 )}
 
               </tbody>
@@ -381,12 +476,11 @@ export default function ImpressionCaisse({
 
           </div>
 
-          {/* MONNAIE */}
 
           <div>
 
             <h3>
-              Monnaie
+              Pièces
             </h3>
 
             <table>
@@ -394,17 +488,19 @@ export default function ImpressionCaisse({
               <thead>
 
                 <tr>
+
                   <th>
                     Valeur
                   </th>
 
                   <th className="right">
-                    Quantité
+                    Qté
                   </th>
 
                   <th className="right">
                     Total
                   </th>
+
                 </tr>
 
               </thead>
@@ -412,36 +508,42 @@ export default function ImpressionCaisse({
               <tbody>
 
                 {coinValues.map(
-                  value => (
+                  value => {
 
-                    <tr
-                      key={
-                        'opening-print-coin-' +
-                        value
-                      }
-                    >
+                    const quantity =
+                      Number(
+                        opening[value] ||
+                        0
+                      );
 
-                      <td>
-                        {money(value)}
-                      </td>
+                    return (
 
-                      <td className="right">
-                        {opening[value] || 0}
-                      </td>
+                      <tr
+                        key={
+                          `opening-coin-${value}`
+                        }
+                      >
 
-                      <td className="right">
-                        {money(
-                          value *
-                          (
-                            opening[value] ||
-                            0
-                          )
-                        )}
-                      </td>
+                        <td>
+                          {money(value)}
+                        </td>
 
-                    </tr>
+                        <td className="right">
+                          {quantity}
+                        </td>
 
-                  )
+                        <td className="right">
+                          {money(
+                            value *
+                            quantity
+                          )}
+                        </td>
+
+                      </tr>
+
+                    );
+
+                  }
                 )}
 
               </tbody>
@@ -468,7 +570,7 @@ export default function ImpressionCaisse({
 
 
       {/* =================================================
-          3. COMPTAGE DE FERMETURE
+          3. COMPTAGE FERMETURE
       ================================================= */}
 
       <section className="printSection">
@@ -478,8 +580,6 @@ export default function ImpressionCaisse({
         </h2>
 
         <div className="printColumns">
-
-          {/* BILLETS */}
 
           <div>
 
@@ -492,17 +592,19 @@ export default function ImpressionCaisse({
               <thead>
 
                 <tr>
+
                   <th>
                     Valeur
                   </th>
 
                   <th className="right">
-                    Quantité
+                    Qté
                   </th>
 
                   <th className="right">
                     Total
                   </th>
+
                 </tr>
 
               </thead>
@@ -510,36 +612,42 @@ export default function ImpressionCaisse({
               <tbody>
 
                 {billValues.map(
-                  value => (
+                  value => {
 
-                    <tr
-                      key={
-                        'closing-print-bill-' +
-                        value
-                      }
-                    >
+                    const quantity =
+                      Number(
+                        closing[value] ||
+                        0
+                      );
 
-                      <td>
-                        {money(value)}
-                      </td>
+                    return (
 
-                      <td className="right">
-                        {closing[value] || 0}
-                      </td>
+                      <tr
+                        key={
+                          `closing-bill-${value}`
+                        }
+                      >
 
-                      <td className="right">
-                        {money(
-                          value *
-                          (
-                            closing[value] ||
-                            0
-                          )
-                        )}
-                      </td>
+                        <td>
+                          {money(value)}
+                        </td>
 
-                    </tr>
+                        <td className="right">
+                          {quantity}
+                        </td>
 
-                  )
+                        <td className="right">
+                          {money(
+                            value *
+                            quantity
+                          )}
+                        </td>
+
+                      </tr>
+
+                    );
+
+                  }
                 )}
 
               </tbody>
@@ -548,12 +656,11 @@ export default function ImpressionCaisse({
 
           </div>
 
-          {/* MONNAIE */}
 
           <div>
 
             <h3>
-              Monnaie
+              Pièces
             </h3>
 
             <table>
@@ -561,17 +668,19 @@ export default function ImpressionCaisse({
               <thead>
 
                 <tr>
+
                   <th>
                     Valeur
                   </th>
 
                   <th className="right">
-                    Quantité
+                    Qté
                   </th>
 
                   <th className="right">
                     Total
                   </th>
+
                 </tr>
 
               </thead>
@@ -579,36 +688,42 @@ export default function ImpressionCaisse({
               <tbody>
 
                 {coinValues.map(
-                  value => (
+                  value => {
 
-                    <tr
-                      key={
-                        'closing-print-coin-' +
-                        value
-                      }
-                    >
+                    const quantity =
+                      Number(
+                        closing[value] ||
+                        0
+                      );
 
-                      <td>
-                        {money(value)}
-                      </td>
+                    return (
 
-                      <td className="right">
-                        {closing[value] || 0}
-                      </td>
+                      <tr
+                        key={
+                          `closing-coin-${value}`
+                        }
+                      >
 
-                      <td className="right">
-                        {money(
-                          value *
-                          (
-                            closing[value] ||
-                            0
-                          )
-                        )}
-                      </td>
+                        <td>
+                          {money(value)}
+                        </td>
 
-                    </tr>
+                        <td className="right">
+                          {quantity}
+                        </td>
 
-                  )
+                        <td className="right">
+                          {money(
+                            value *
+                            quantity
+                          )}
+                        </td>
+
+                      </tr>
+
+                    );
+
+                  }
                 )}
 
               </tbody>
@@ -681,12 +796,14 @@ export default function ImpressionCaisse({
               </td>
 
               <td className="right">
+
                 <strong>
                   {money(
                     openingCash +
                     cashSales
                   )}
                 </strong>
+
               </td>
 
             </tr>
@@ -705,7 +822,9 @@ export default function ImpressionCaisse({
 
             <tr
               className={
-                cashDifferenceValue === 0
+                Math.abs(
+                  cashDifferenceValue
+                ) < 0.005
                   ? 'successRow'
                   : 'errorRow'
               }
@@ -737,7 +856,7 @@ export default function ImpressionCaisse({
 
 
       {/* =================================================
-          5. AUTRES MOYENS DE PAIEMENT
+          5. MOYENS DE PAIEMENT
       ================================================= */}
 
       <section className="printSection">
@@ -836,9 +955,17 @@ export default function ImpressionCaisse({
 
         </table>
 
-        {/* ANCV DETAIL */}
 
-        {ancvDirectTotal > 0 && (
+        {/* =================================================
+            ANCV
+        ================================================= */}
+
+        {ancvValues.some(
+          value =>
+            Number(
+              ancv[value] || 0
+            ) > 0
+        ) && (
 
           <div className="printSubsection">
 
@@ -857,7 +984,7 @@ export default function ImpressionCaisse({
                   </th>
 
                   <th className="right">
-                    Quantité
+                    Qté
                   </th>
 
                   <th className="right">
@@ -880,7 +1007,7 @@ export default function ImpressionCaisse({
                       );
 
                     if (
-                      quantity === 0
+                      quantity <= 0
                     ) {
                       return null;
                     }
@@ -889,8 +1016,7 @@ export default function ImpressionCaisse({
 
                       <tr
                         key={
-                          'print-ancv-' +
-                          value
+                          `ancv-${value}`
                         }
                       >
 
@@ -924,7 +1050,10 @@ export default function ImpressionCaisse({
 
         )}
 
-        {/* PAIEMENTS MULTIPLES */}
+
+        {/* =================================================
+            PAIEMENTS MULTIPLES
+        ================================================= */}
 
         {multiplePayments.length > 0 && (
 
@@ -962,102 +1091,122 @@ export default function ImpressionCaisse({
                   (
                     payment,
                     index
-                  ) => (
+                  ) => {
 
-                    <tr
-                      key={
-                        payment.id ||
-                        index
-                      }
-                    >
+                    const allocations =
+                      payment?.allocations ||
+                      {};
 
-                      <td>
-                        {index + 1}
-                      </td>
+                    const parts = [];
 
-                      <td>
+                    if (
+                      Number(
+                        allocations.cash
+                      ) > 0
+                    ) {
+                      parts.push(
+                        `Espèces ${money(
+                          allocations.cash
+                        )}`
+                      );
+                    }
 
-                        {payment.allocations?.cash > 0 && (
-                          <>
-                            Espèces :{' '}
+                    if (
+                      Number(
+                        allocations.tpe
+                      ) > 0
+                    ) {
+                      parts.push(
+                        `TPE ${money(
+                          allocations.tpe
+                        )}`
+                      );
+                    }
+
+                    if (
+                      Number(
+                        allocations.web
+                      ) > 0
+                    ) {
+                      parts.push(
+                        `CB Web ${money(
+                          allocations.web
+                        )}`
+                      );
+                    }
+
+                    if (
+                      Number(
+                        allocations.cheque
+                      ) > 0
+                    ) {
+                      parts.push(
+                        `Chèque ${money(
+                          allocations.cheque
+                        )}`
+                      );
+                    }
+
+                    if (
+                      Number(
+                        allocations.ancv
+                      ) > 0
+                    ) {
+                      parts.push(
+                        `ANCV ${money(
+                          allocations.ancv
+                        )}`
+                      );
+                    }
+
+                    if (
+                      Number(
+                        allocations.autre
+                      ) > 0
+                    ) {
+                      parts.push(
+                        `Autre ${money(
+                          allocations.autre
+                        )}`
+                      );
+                    }
+
+                    return (
+
+                      <tr
+                        key={
+                          payment?.id ||
+                          index
+                        }
+                      >
+
+                        <td>
+                          {index + 1}
+                        </td>
+
+                        <td>
+                          {parts.length > 0
+                            ? parts.join(
+                                ' — '
+                              )
+                            : '—'}
+                        </td>
+
+                        <td className="right">
+
+                          <strong>
                             {money(
-                              payment
-                                .allocations
-                                .cash
-                            )}{' '}
-                          </>
-                        )}
-
-                        {payment.allocations?.tpe > 0 && (
-                          <>
-                            TPE :{' '}
-                            {money(
-                              payment
-                                .allocations
-                                .tpe
-                            )}{' '}
-                          </>
-                        )}
-
-                        {payment.allocations?.web > 0 && (
-                          <>
-                            CB Web :{' '}
-                            {money(
-                              payment
-                                .allocations
-                                .web
-                            )}{' '}
-                          </>
-                        )}
-
-                        {payment.allocations?.cheque > 0 && (
-                          <>
-                            Chèque :{' '}
-                            {money(
-                              payment
-                                .allocations
-                                .cheque
-                            )}{' '}
-                          </>
-                        )}
-
-                        {payment.allocations?.ancv > 0 && (
-                          <>
-                            ANCV :{' '}
-                            {money(
-                              payment
-                                .allocations
-                                .ancv
-                            )}{' '}
-                          </>
-                        )}
-
-                        {payment.allocations?.autre > 0 && (
-                          <>
-                            Autre :{' '}
-                            {money(
-                              payment
-                                .allocations
-                                .autre
+                              payment?.amount
                             )}
-                          </>
-                        )}
+                          </strong>
 
-                      </td>
+                        </td>
 
-                      <td className="right">
+                      </tr>
 
-                        <strong>
-                          {money(
-                            payment.amount
-                          )}
-                        </strong>
+                    );
 
-                      </td>
-
-                    </tr>
-
-                  )
+                  }
                 )}
 
               </tbody>
@@ -1104,11 +1253,13 @@ export default function ImpressionCaisse({
               </td>
 
               <td className="right">
+
                 <strong>
                   {money(
                     paymentsTotal
                   )}
                 </strong>
+
               </td>
 
             </tr>
@@ -1120,11 +1271,13 @@ export default function ImpressionCaisse({
               </td>
 
               <td className="right">
+
                 <strong>
                   {money(
                     difference
                   )}
                 </strong>
+
               </td>
 
             </tr>
@@ -1194,6 +1347,7 @@ export default function ImpressionCaisse({
 
       </section>
 
+
       <footer className="printFooter">
 
         Document de clôture de caisse —{' '}
@@ -1203,5 +1357,6 @@ export default function ImpressionCaisse({
       </footer>
 
     </div>
+
   );
 }
