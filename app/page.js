@@ -1665,15 +1665,25 @@ export default function Home() {
   </span>
 
   {(userRole === 'admin' ||
-    userRole === 'responsable') && (
+  userRole === 'responsable') && (
 
-    <Link href="/historique">
-      <button type="button">
-        📋 Historique
-      </button>
-    </Link>
+  <Link href="/historique">
+    <button type="button">
+      📋 Historique
+    </button>
+  </Link>
 
-  )}
+)}
+
+{userRole === 'admin' && (
+
+  <Link href="/utilisateurs">
+    <button type="button">
+      👥 Utilisateurs
+    </button>
+  </Link>
+
+)}
 
   <button
     type="button"
