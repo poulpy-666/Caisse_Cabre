@@ -6,6 +6,7 @@ import { supabase } from './lib/supabase';
 import Header from './composants/Header';
 import OuvertureCaisse from './composants/OuvertureCaisse';
 import Billetterie from './composants/Billetterie';
+import FermetureEspeces from './composants/FermetureEspeces';
 
 /* =========================================================
    OUTILS
@@ -1830,175 +1831,20 @@ export default function Home() {
             3. FERMETURE — ESPÈCES
         ================================================= */}
 
-        <section className="card">
-
-          <h2>
-            3. Fermeture — espèces
-          </h2>
-
-          <p className="muted">
-            Compte les espèces présentes dans la caisse.
-          </p>
-
-          <div className="cashColumns">
-
-            {/* BILLETS */}
-
-            <div className="cashPanel">
-
-              <h3>
-                💶 Billets
-              </h3>
-
-              {billValues.map(
-                value => (
-
-                  <div
-                    className="cashrow"
-                    key={
-                      'closing-bill-' +
-                      value
-                    }
-                  >
-
-                    <span>
-                      {money(value)}
-                    </span>
-
-                    <NumberField
-                      value={
-                        closing[value]
-                      }
-                      onChange={x =>
-                        setCount(
-                          setClosing,
-                          value,
-                          x
-                        )
-                      }
-                    />
-
-                    <strong>
-                      {money(
-                        value *
-                        closing[value]
-                      )}
-                    </strong>
-
-                  </div>
-
-                )
-              )}
-
-              <div className="totalline">
-
-                <span>
-                  Total billets
-                </span>
-
-                <strong>
-                  {money(cashBills)}
-                </strong>
-
-              </div>
-
-            </div>
-
-            {/* MONNAIE */}
-
-            <div className="cashPanel">
-
-              <h3>
-                🪙 Monnaie
-              </h3>
-
-              {coinValues.map(
-                value => (
-
-                  <div
-                    className="cashrow"
-                    key={
-                      'closing-coin-' +
-                      value
-                    }
-                  >
-
-                    <span>
-                      {money(value)}
-                    </span>
-
-                    <NumberField
-                      value={
-                        closing[value]
-                      }
-                      onChange={x =>
-                        setCount(
-                          setClosing,
-                          value,
-                          x
-                        )
-                      }
-                    />
-
-                    <strong>
-                      {money(
-                        value *
-                        closing[value]
-                      )}
-                    </strong>
-
-                  </div>
-
-                )
-              )}
-
-              <div className="totalline">
-
-                <span>
-                  Total monnaie
-                </span>
-
-                <strong>
-                  {money(cashCoins)}
-                </strong>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <div className="caBox">
-
-            <span>
-              SOMME TOTALE ESPÈCES
-            </span>
-
-            <strong>
-              {money(closingCash)}
-            </strong>
-
-          </div>
-
-          <div className="info">
-
-            Fond initial :{' '}
-
-            <strong>
-              {money(openingCash)}
-            </strong>
-
-            {' — '}
-
-            Espèces issues des ventes :{' '}
-
-            <strong>
-              {money(cashSales)}
-            </strong>
-
-          </div>
-
-        </section>
+        <FermetureEspeces
+  closing={closing}
+  setClosing={setClosing}
+  billValues={billValues}
+  coinValues={coinValues}
+  cashBills={cashBills}
+  cashCoins={cashCoins}
+  closingCash={closingCash}
+  cashSales={cashSales}
+  openingCash={openingCash}
+  money={money}
+  NumberField={NumberField}
+  setCount={setCount}
+/>
 
         {/* =================================================
             4. MOYENS DE PAIEMENT
