@@ -928,43 +928,6 @@ select:focus {
 }
 
 /* =========================================================
-   IMPRESSION
-========================================================= */
-
-@media print {
-
-  body,
-  .dark {
-    background: white;
-    color: black;
-  }
-
-  .theme,
-  .actions button:not(:last-child),
-  .headerActions {
-    display: none;
-  }
-
-  .card,
-  .result {
-    break-inside: avoid;
-    border: 1px solid #ccc;
-  }
-
-  .dark .card,
-  .dark .result {
-    background: white;
-    color: black;
-  }
-
-  .dark input,
-  .dark select {
-    color: black;
-    background: white;
-  }
-
-}
-/* =========================================================
    GESTION DES UTILISATEURS
 ========================================================= */
 
@@ -1614,8 +1577,6 @@ select:focus {
 .dark .finalStatusBox.warning {
   background: #443821;
 }
-
-
 /* =========================================================
    IMPRESSION
 ========================================================= */
@@ -1626,6 +1587,10 @@ select:focus {
 
 @media print {
 
+  /* -------------------------------------------------------
+     PAGE
+  ------------------------------------------------------- */
+
   @page {
     size: A4;
     margin: 12mm;
@@ -1633,46 +1598,111 @@ select:focus {
 
   html,
   body {
+    width: 100%;
+    min-height: 100%;
     margin: 0 !important;
     padding: 0 !important;
-    background: #fff !important;
+
+    background: white !important;
+    color: black !important;
   }
 
-  /*
-   * On masque l'application normale
-   */
-  main > .wrap > *:not(.printOnly) {
+  body {
+    min-width: 0 !important;
+  }
+
+  /* -------------------------------------------------------
+     STRUCTURE DE L'APPLICATION
+  ------------------------------------------------------- */
+
+  main {
+    display: block !important;
+
+    width: 100% !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
+  }
+
+  .wrap {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
+  }
+
+  /* -------------------------------------------------------
+     ON CACHE L'APPLICATION
+  ------------------------------------------------------- */
+
+  .wrap > header,
+  .wrap > .card,
+  .wrap > .result {
     display: none !important;
   }
 
-  /*
-   * On affiche uniquement le document d'impression
-   */
-  .printOnly {
+  /* -------------------------------------------------------
+     DOCUMENT D'IMPRESSION
+  ------------------------------------------------------- */
+
+  .wrap > .printOnly {
     display: block !important;
+
     width: 100% !important;
+    max-width: none !important;
+
     margin: 0 !important;
     padding: 0 !important;
+
+    background: white !important;
+    color: black !important;
+
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   .printSheet {
     display: block !important;
-    width: 100%;
-    background: #fff;
-    color: #111;
-    font-family: Arial, Helvetica, sans-serif;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
+    color: black !important;
+
+    font-family:
+      Arial,
+      Helvetica,
+      sans-serif !important;
+
     font-size: 10pt;
     line-height: 1.35;
+
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      EN-TÊTE
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printHeader {
-    display: flex;
+    display: flex !important;
+
     justify-content: space-between;
     align-items: flex-start;
+
     gap: 20px;
 
     padding-bottom: 10px;
@@ -1684,14 +1714,19 @@ select:focus {
   .printEyebrow {
     font-size: 8pt;
     font-weight: 700;
+
     letter-spacing: 1px;
+
     margin-bottom: 4px;
   }
 
   .printHeader h1 {
     margin: 0;
+
     font-size: 21pt;
     line-height: 1.1;
+
+    color: black !important;
   }
 
   .printHeaderInfo {
@@ -1700,12 +1735,19 @@ select:focus {
 
   .printHeaderInfo div {
     display: flex;
+
     justify-content: space-between;
+
     gap: 12px;
 
     padding: 3px 0;
 
     border-bottom: 1px solid #ccc;
+  }
+
+  .printHeaderInfo span,
+  .printHeaderInfo strong {
+    color: black !important;
   }
 
   .printHeaderInfo span {
@@ -1716,12 +1758,20 @@ select:focus {
     text-align: right;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      SECTIONS
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printSection {
-    margin-bottom: 16px;
+    display: block !important;
+
+    width: 100%;
+
+    margin: 0 0 16px;
+
+    color: black !important;
+
+    background: white !important;
   }
 
   .printSection h2 {
@@ -1731,16 +1781,25 @@ select:focus {
 
     font-size: 13pt;
 
+    color: black !important;
+
     border-bottom: 1px solid #777;
   }
 
   .printSection h3 {
     margin: 7px 0 4px;
+
     font-size: 10.5pt;
+
+    color: black !important;
   }
 
   .printEvent {
     margin-bottom: 9px;
+
+    color: black !important;
+
+    background: white !important;
   }
 
   .printEvent h3 {
@@ -1748,31 +1807,45 @@ select:focus {
 
     padding: 5px 7px;
 
-    background: #eee;
+    background: #eee !important;
+
+    color: black !important;
+
     border: 1px solid #ccc;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      TABLEAUX
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printSheet table {
     width: 100%;
+
     border-collapse: collapse;
+
+    color: black !important;
+
+    background: white !important;
   }
 
   .printSheet th,
   .printSheet td {
     padding: 3px 6px;
 
+    color: black !important;
+
+    background: transparent;
+
     border-bottom: 1px solid #ddd;
 
     text-align: left;
+
     vertical-align: top;
   }
 
   .printSheet th {
-    background: #f2f2f2;
+    background: #f2f2f2 !important;
+
     font-weight: 700;
   }
 
@@ -1782,30 +1855,41 @@ select:focus {
 
   .printSheet tfoot td {
     border-top: 1px solid #555;
+
     border-bottom: 0;
   }
 
-  /* =======================================================
-     DEUX COLONNES
-  ======================================================= */
+  /* -------------------------------------------------------
+     COLONNES
+  ------------------------------------------------------- */
 
   .printColumns {
-    display: grid;
+    display: grid !important;
+
     grid-template-columns: 1fr 1fr;
+
     gap: 15px;
+
+    width: 100%;
   }
 
-  /* =======================================================
-     TOTALS
-  ======================================================= */
+  /* -------------------------------------------------------
+     TOTAUX
+  ------------------------------------------------------- */
 
   .printTotalBox {
-    display: flex;
+    display: flex !important;
+
     justify-content: space-between;
     align-items: center;
 
     margin-top: 7px;
+
     padding: 7px 9px;
+
+    background: white !important;
+
+    color: black !important;
 
     border: 1.5px solid #111;
 
@@ -1814,18 +1898,24 @@ select:focus {
 
   .printTotalBox strong {
     font-size: 12pt;
+
+    color: black !important;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      CONTRÔLES
-  ======================================================= */
+  ------------------------------------------------------- */
+
+  .printControlTable {
+    width: 100%;
+  }
 
   .printControlTable td {
     padding: 5px 7px;
   }
 
   .printControlTable .highlight td {
-    background: #eee;
+    background: #eee !important;
 
     border-top: 1px solid #555;
     border-bottom: 1px solid #555;
@@ -1836,19 +1926,23 @@ select:focus {
     font-weight: 700;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      SOUS-SECTIONS
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printSubsection {
+    display: block !important;
+
     margin-top: 9px;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      RÉCAPITULATIF
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printFinalTable {
+    width: 100%;
+
     font-size: 11pt;
   }
 
@@ -1858,24 +1952,31 @@ select:focus {
 
   .printFinalTable .finalDifference td {
     font-size: 12pt;
+
     font-weight: 700;
 
     border-top: 2px solid #111;
     border-bottom: 2px solid #111;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      STATUT
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printStatus {
-    display: flex;
+    display: flex !important;
+
     flex-direction: column;
 
     gap: 2px;
 
     margin-top: 9px;
+
     padding: 9px;
+
+    background: white !important;
+
+    color: black !important;
 
     border: 2px solid #111;
 
@@ -1884,10 +1985,14 @@ select:focus {
 
   .printStatus strong {
     font-size: 12pt;
+
+    color: black !important;
   }
 
   .printStatus span {
     font-size: 9pt;
+
+    color: black !important;
   }
 
   .printStatusBad {
@@ -1898,17 +2003,26 @@ select:focus {
     border-style: dashed;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      SIGNATURE
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printSignature {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1.5fr;
+    display: grid !important;
+
+    grid-template-columns:
+      1fr
+      1fr
+      1.5fr;
 
     gap: 18px;
 
     margin-top: 20px;
+
+    color: black !important;
+
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .signatureLine {
@@ -1928,31 +2042,32 @@ select:focus {
     border: 1px solid #aaa;
   }
 
-  /* =======================================================
+  /* -------------------------------------------------------
      PIED DE PAGE
-  ======================================================= */
+  ------------------------------------------------------- */
 
   .printFooter {
     margin-top: 15px;
+
     padding-top: 5px;
 
     border-top: 1px solid #aaa;
+
+    color: black !important;
 
     text-align: center;
 
     font-size: 8pt;
   }
 
-  /* =======================================================
-     ÉVITER LES COUPURES
-  ======================================================= */
+  /* -------------------------------------------------------
+     COUPURES DE PAGE
+  ------------------------------------------------------- */
 
-  .printSection,
   .printEvent,
   .printSubsection,
   .printTotalBox,
   .printStatus,
-  .printSignature,
   table,
   tr {
     break-inside: avoid;
