@@ -1,7 +1,16 @@
 'use client';
 
+const paymentTypes = [
+  ['cash', 'Espèces'],
+  ['tpe', 'CB Guichet — TPE'],
+  ['web', 'CB Web'],
+  ['cheque', 'Chèque'],
+  ['ancv', 'ANCV'],
+  ['autre', 'Autre']
+];
+
 export default function PaiementsMultiples({
-  multiplePayments,
+  multiplePayments = [],
   multipleDraft,
   multipleAllocated,
   multipleIsValid,
@@ -33,15 +42,12 @@ export default function PaiementsMultiples({
       ================================================= */}
 
       {multiplePayments.map(
-        (
-          payment,
-          index
-        ) => (
+        (payment, index) => (
 
           <div
             className="multiple"
             key={
-              payment.id
+              payment.id || index
             }
           >
 
@@ -87,73 +93,36 @@ export default function PaiementsMultiples({
 
             <div className="info">
 
-              {payment.allocations?.cash > 0 && (
-                <>
-                  Espèces :{' '}
-                  {money(
-                    payment.allocations.cash
-                  )}
-                  {' — '}
-                </>
-              )}
+              {paymentTypes.map(
+                ([type, label], index) => {
 
-              {payment.allocations?.tpe > 0 && (
-                <>
-                  TPE :{' '}
-                  {money(
-                    payment.allocations.tpe
-                  )}
-                  {' — '}
-                </>
-              )}
+                  const amount =
+                    Number(
+                      payment
+                        .allocations?.[
+                          type
+                        ] || 0
+                    );
 
-              {payment.allocations?.web > 0 && (
-                <>
-                  CB Web :{' '}
-                  {money(
-                    payment.allocations.web
-                  )}
-                  {' — '}
-                </>
-              )}
+                  if (amount <= 0) {
+                    return null;
+                  }
 
-              {payment.allocations?.cheque > 0 && (
-                <>
-                  Chèque :{' '}
-                  {money(
-                    payment.allocations.cheque
-                  )}
-                  {' — '}
-                </>
-              )}
+                  return (
+                    <span key={type}>
 
-              {payment.allocations?.ancv > 0 && (
-                <>
-                  ANCV :{' '}
-                  {money(
-                    payment.allocations.ancv
-                  )}
-                  {' — '}
-                </>
-              )}
+                      {index > 0 && (
+                        <> — </>
+                      )}
 
-              {payment.allocations?.connect > 0 && (
-                <>
-                  ANCV Connect :{' '}
-                  {money(
-                    payment.allocations.connect
-                  )}
-                  {' — '}
-                </>
-              )}
+                      {label}:{' '}
 
-              {payment.allocations?.autre > 0 && (
-                <>
-                  Autre :{' '}
-                  {money(
-                    payment.allocations.autre
-                  )}
-                </>
+                      {money(amount)}
+
+                    </span>
+                  );
+
+                }
               )}
 
             </div>
@@ -191,9 +160,7 @@ export default function PaiementsMultiples({
             <button
               type="button"
               onClick={() =>
-                setMultipleDraft(
-                  null
-                )
+                setMultipleDraft(null)
               }
             >
               Annuler
@@ -223,25 +190,11 @@ export default function PaiementsMultiples({
 
           <div className="paymentgrid">
 
-            {[
-  ['cash', 'Espèces'],
-  ['tpe', 'CB Guichet — TPE'],
-  ['web', 'CB Web'],
-  ['cheque', 'Chèque'],
-  ['ancv', 'ANCV'],
-  ['autre', 'Autre']
-].map(
-              (
-                [
-                  type,
-                  label
-                ]
-              ) => (
+            {paymentTypes.map(
+              ([type, label]) => (
 
                 <label
-                  key={
-                    type
-                  }
+                  key={type}
                 >
 
                   {label}
@@ -250,7 +203,7 @@ export default function PaiementsMultiples({
                     step="0.01"
                     value={
                       multipleDraft
-                        .allocations[
+                        .allocations?.[
                           type
                         ] || 0
                     }
@@ -306,10 +259,11 @@ export default function PaiementsMultiples({
             <strong>
               {money(
                 Number(
-                  multipleDraft.amount ||
-                  0
+                  multipleDraft.amount || 0
                 ) -
-                multipleAllocated
+                Number(
+                  multipleAllocated || 0
+                )
               )}
             </strong>
 
@@ -359,8 +313,7 @@ export default function PaiementsMultiples({
                 ) =>
                   sum +
                   Number(
-                    payment.amount ||
-                    0
+                    payment.amount || 0
                   ),
                 0
               )
