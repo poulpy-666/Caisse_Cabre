@@ -444,9 +444,21 @@ export default function Utilisateurs() {
 
           <div className="historyHeader">
 
-            <h2>
-              Utilisateurs
-            </h2>
+            <div>
+
+              <h2>
+                Utilisateurs
+              </h2>
+
+              <p className="muted">
+                {users.length}{' '}
+                utilisateur
+                {users.length > 1
+                  ? 's'
+                  : ''}
+              </p>
+
+            </div>
 
             <button
               type="button"
@@ -499,26 +511,40 @@ export default function Utilisateurs() {
 
                   <div className="userInfo">
 
-                    <strong>
-                      {user.name ||
-                        'Sans nom'}
-                    </strong>
+                    <div className="userAvatar">
+                      {(
+                        user.name ||
+                        user.email ||
+                        '?'
+                      )
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
 
-                    <span>
-                      {user.email ||
-                        'E-mail inconnu'}
-                    </span>
+                    <div className="userIdentity">
 
-                    <small>
-                      Créé le{' '}
-                      {user.created_at
-                        ? new Date(
-                            user.created_at
-                          ).toLocaleDateString(
-                            'fr-FR'
-                          )
-                        : '—'}
-                    </small>
+                      <strong>
+                        {user.name ||
+                          'Sans nom'}
+                      </strong>
+
+                      <span>
+                        {user.email ||
+                          'E-mail inconnu'}
+                      </span>
+
+                      <small>
+                        Créé le{' '}
+                        {user.created_at
+                          ? new Date(
+                              user.created_at
+                            ).toLocaleDateString(
+                              'fr-FR'
+                            )
+                          : '—'}
+                      </small>
+
+                    </div>
 
                   </div>
 
@@ -537,8 +563,7 @@ export default function Utilisateurs() {
                         onChange={e => {
 
                           const value =
-                            e.target
-                              .value;
+                            e.target.value;
 
                           setUsers(
                             prev =>
@@ -559,8 +584,7 @@ export default function Utilisateurs() {
                         onBlur={e =>
                           changeName(
                             user.id,
-                            e.target
-                              .value
+                            e.target.value
                           )
                         }
                       />
@@ -583,8 +607,7 @@ export default function Utilisateurs() {
                         onChange={e =>
                           changeRole(
                             user.id,
-                            e.target
-                              .value
+                            e.target.value
                           )
                         }
                       >
@@ -633,42 +656,76 @@ export default function Utilisateurs() {
         <section className="card">
 
           <h2>
-            Rôles
+            Les rôles
           </h2>
 
-          <div className="info">
+          <div className="roleCards">
 
-            <strong>
-              Administrateur
-            </strong>
+            <div className="roleCard adminRole">
 
-            <br />
+              <div className="roleIcon">
+                👑
+              </div>
 
-            Accès complet, notamment à la gestion des utilisateurs et à l'historique.
+              <div>
 
-          </div>
+                <strong>
+                  Administrateur
+                </strong>
 
-          <div className="info">
+                <p>
+                  Accès complet à l'application,
+                  y compris la gestion des utilisateurs
+                  et l'historique des caisses.
+                </p>
 
-            <strong>
-              Responsable
-            </strong>
+              </div>
 
-            <br />
+            </div>
 
-            Peut utiliser la caisse et consulter l'historique, mais ne peut pas gérer les utilisateurs.
+            <div className="roleCard responsableRole">
 
-          </div>
+              <div className="roleIcon">
+                🧑‍💼
+              </div>
 
-          <div className="info">
+              <div>
 
-            <strong>
-              Bénévole
-            </strong>
+                <strong>
+                  Responsable
+                </strong>
 
-            <br />
+                <p>
+                  Peut utiliser la caisse et consulter
+                  l'historique, mais ne peut pas gérer
+                  les utilisateurs.
+                </p>
 
-            Peut utiliser la caisse, sans accès à l'historique ni à la gestion des utilisateurs.
+              </div>
+
+            </div>
+
+            <div className="roleCard benevoleRole">
+
+              <div className="roleIcon">
+                🙋
+              </div>
+
+              <div>
+
+                <strong>
+                  Bénévole
+                </strong>
+
+                <p>
+                  Peut utiliser la caisse sans accès
+                  à l'historique ni à la gestion
+                  des utilisateurs.
+                </p>
+
+              </div>
+
+            </div>
 
           </div>
 
