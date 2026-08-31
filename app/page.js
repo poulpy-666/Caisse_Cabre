@@ -1677,7 +1677,7 @@ export default function Home() {
 
 {userRole === 'admin' && (
 
-  <Link href="/utilisateurs">
+  <Link href="/Utilisateurs">
     <button type="button">
       👥 Utilisateurs
     </button>
