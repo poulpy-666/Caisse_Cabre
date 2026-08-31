@@ -42,7 +42,7 @@ export default function Header({
 
         {userRole === 'admin' && (
 
-          <Link href="/Utilisateur">
+          <Link href="/Utilisateurs">
 
             <button type="button">
               👥 Utilisateurs
