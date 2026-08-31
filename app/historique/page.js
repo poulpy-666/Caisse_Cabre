@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
@@ -20,6 +20,15 @@ export default function Historique() {
 
   const [caisses, setCaisses] = useState([]);
   const [error, setError] = useState('');
+
+  /* =========================================================
+     FILTRES
+  ========================================================= */
+
+  const [search, setSearch] = useState('');
+  const [responsibleFilter, setResponsibleFilter] = useState('');
+  const [dateStart, setDateStart] = useState('');
+  const [dateEnd, setDateEnd] = useState('');
 
   /* =========================================================
      AUTHENTIFICATION
@@ -178,6 +187,7 @@ export default function Historique() {
       );
 
       setCaisses([]);
+
       setLoading(false);
 
       return;
@@ -205,6 +215,177 @@ export default function Historique() {
     setUserRole(null);
 
   }
+
+  /* =========================================================
+     RESPONSABLES DISPONIBLES
+  ========================================================= */
+
+  const responsibleOptions = useMemo(() => {
+
+    const names = caisses
+      .map(caisse =>
+        caisse.responsible?.trim()
+      )
+      .filter(Boolean);
+
+    return [...new Set(names)]
+      .sort(
+        (a, b) =>
+          a.localeCompare(
+            b,
+            'fr'
+          )
+      );
+
+  }, [caisses]);
+
+  /* =========================================================
+     CAISSES FILTRÉES
+  ========================================================= */
+
+  const filteredCaisses = useMemo(() => {
+
+    const searchValue =
+      search
+        .trim()
+        .toLowerCase();
+
+    return caisses.filter(
+      caisse => {
+
+        /* RECHERCHE */
+
+        if (
+          searchValue &&
+          !(
+            caisse.event_name
+              ?.toLowerCase()
+              .includes(searchValue)
+          )
+        ) {
+          return false;
+        }
+
+        /* RESPONSABLE */
+
+        if (
+          responsibleFilter &&
+          (
+            caisse.responsible
+              ?.trim() ||
+            ''
+          ) !== responsibleFilter
+        ) {
+          return false;
+        }
+
+        /* DATE DEBUT */
+
+        if (
+          dateStart &&
+          caisse.date < dateStart
+        ) {
+          return false;
+        }
+
+        /* DATE FIN */
+
+        if (
+          dateEnd &&
+          caisse.date > dateEnd
+        ) {
+          return false;
+        }
+
+        return true;
+      }
+    );
+
+  }, [
+    caisses,
+    search,
+    responsibleFilter,
+    dateStart,
+    dateEnd
+  ]);
+
+  /* =========================================================
+     STATISTIQUES
+  ========================================================= */
+
+  const statistics = useMemo(() => {
+
+    const count =
+      filteredCaisses.length;
+
+    const totalCa =
+      filteredCaisses.reduce(
+        (sum, caisse) =>
+          sum +
+          Number(
+            caisse.total_ca || 0
+          ),
+        0
+      );
+
+    const totalEncaisse =
+      filteredCaisses.reduce(
+        (sum, caisse) =>
+          sum +
+          Number(
+            caisse.total_encaisse || 0
+          ),
+        0
+      );
+
+    const totalDifference =
+      filteredCaisses.reduce(
+        (sum, caisse) =>
+          sum +
+          Number(
+            caisse.difference || 0
+          ),
+        0
+      );
+
+    const withDifference =
+      filteredCaisses.filter(
+        caisse =>
+          Math.abs(
+            Number(
+              caisse.difference || 0
+            )
+          ) >= 0.005
+      ).length;
+
+    return {
+      count,
+      totalCa,
+      totalEncaisse,
+      totalDifference,
+      withDifference
+    };
+
+  }, [filteredCaisses]);
+
+  /* =========================================================
+     RESET FILTRES
+  ========================================================= */
+
+  function resetFilters() {
+
+    setSearch('');
+    setResponsibleFilter('');
+    setDateStart('');
+    setDateEnd('');
+
+  }
+
+  const filtersActive =
+    search.trim() !== '' ||
+    responsibleFilter !== '' ||
+    dateStart !== '' ||
+    dateEnd !== '';
 
   /* =========================================================
      CHARGEMENT
@@ -325,6 +506,10 @@ export default function Historique() {
 
       <div className="wrap">
 
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
         <header>
 
           <div>
@@ -338,7 +523,7 @@ export default function Historique() {
             </h1>
 
             <p>
-              Retrouvez les clôtures enregistrées.
+              Retrouvez et analysez les clôtures enregistrées.
             </p>
 
           </div>
@@ -369,6 +554,98 @@ export default function Historique() {
 
         </header>
 
+        {/* =================================================
+            STATISTIQUES
+        ================================================= */}
+
+        <section className="result">
+
+          <div>
+
+            <span>
+              Caisses
+            </span>
+
+            <strong>
+              {statistics.count}
+            </strong>
+
+          </div>
+
+          <div>
+
+            <span>
+              CA total
+            </span>
+
+            <strong>
+              {money(
+                statistics.totalCa
+              )}
+            </strong>
+
+          </div>
+
+          <div>
+
+            <span>
+              Total encaissé
+            </span>
+
+            <strong>
+              {money(
+                statistics.totalEncaisse
+              )}
+            </strong>
+
+          </div>
+
+          <div
+            className={
+              Math.abs(
+                statistics.totalDifference
+              ) < 0.005
+                ? 'ok'
+                : 'bad'
+            }
+          >
+
+            <span>
+              Écart cumulé
+            </span>
+
+            <strong>
+              {money(
+                statistics.totalDifference
+              )}
+            </strong>
+
+          </div>
+
+          <div
+            className={
+              statistics.withDifference === 0
+                ? 'ok'
+                : 'bad'
+            }
+          >
+
+            <span>
+              Caisses avec écart
+            </span>
+
+            <strong>
+              {statistics.withDifference}
+            </strong>
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            FILTRES
+        ================================================= */}
+
         <section className="card">
 
           <div className="historyHeader">
@@ -376,34 +653,167 @@ export default function Historique() {
             <div>
 
               <h2>
-                Caisses clôturées
+                Recherche et filtres
               </h2>
 
-              {!loading &&
-                !error && (
-                  <p className="muted">
-                    {caisses.length}{' '}
-                    caisse
-                    {caisses.length > 1
-                      ? 's'
-                      : ''}{' '}
-                    enregistrée
-                    {caisses.length > 1
-                      ? 's'
-                      : ''}
-                  </p>
-                )}
+              <p className="muted">
+
+                {filtersActive
+                  ? `${filteredCaisses.length} résultat${
+                      filteredCaisses.length > 1
+                        ? 's'
+                        : ''
+                    } sur ${caisses.length}`
+                  : `${caisses.length} caisse${
+                      caisses.length > 1
+                        ? 's'
+                        : ''
+                    } enregistrée${
+                      caisses.length > 1
+                        ? 's'
+                        : ''
+                    }`}
+
+              </p>
 
             </div>
+
+            {filtersActive && (
+
+              <button
+                type="button"
+                onClick={
+                  resetFilters
+                }
+              >
+                ✕ Réinitialiser
+              </button>
+
+            )}
+
+          </div>
+
+          <div className="paymentgrid">
+
+            {/* RECHERCHE */}
+
+            <label>
+
+              Manifestation
+
+              <input
+                type="text"
+                value={search}
+                onChange={e =>
+                  setSearch(
+                    e.target.value
+                  )
+                }
+                placeholder="Rechercher une manifestation..."
+              />
+
+            </label>
+
+            {/* RESPONSABLE */}
+
+            <label>
+
+              Responsable
+
+              <select
+                value={
+                  responsibleFilter
+                }
+                onChange={e =>
+                  setResponsibleFilter(
+                    e.target.value
+                  )
+                }
+              >
+
+                <option value="">
+                  Tous les responsables
+                </option>
+
+                {responsibleOptions.map(
+                  name => (
+
+                    <option
+                      key={name}
+                      value={name}
+                    >
+                      {name}
+                    </option>
+
+                  )
+                )}
+
+              </select>
+
+            </label>
+
+            {/* DATE DEBUT */}
+
+            <label>
+
+              Du
+
+              <input
+                type="date"
+                value={dateStart}
+                onChange={e =>
+                  setDateStart(
+                    e.target.value
+                  )
+                }
+              />
+
+            </label>
+
+            {/* DATE FIN */}
+
+            <label>
+
+              Au
+
+              <input
+                type="date"
+                value={dateEnd}
+                onChange={e =>
+                  setDateEnd(
+                    e.target.value
+                  )
+                }
+              />
+
+            </label>
+
+          </div>
+
+        </section>
+
+        {/* =================================================
+            LISTE
+        ================================================= */}
+
+        <section className="card">
+
+          <div className="historyHeader">
+
+            <h2>
+              Caisses clôturées
+            </h2>
 
             <button
               type="button"
               onClick={loadCaisses}
               disabled={loading}
             >
+
               {loading
                 ? '⏳ Chargement...'
                 : '↻ Actualiser'}
+
             </button>
 
           </div>
@@ -419,9 +829,7 @@ export default function Historique() {
           {error && (
 
             <div className="info bad">
-
               {error}
-
             </div>
 
           )}
@@ -434,13 +842,29 @@ export default function Historique() {
 
                 Aucune caisse clôturée pour le moment.
 
+              </div>
+
+            )}
+
+          {!loading &&
+            !error &&
+            caisses.length > 0 &&
+            filteredCaisses.length === 0 && (
+
+              <div className="info">
+
+                Aucune caisse ne correspond aux filtres sélectionnés.
+
                 <br />
 
-                <small>
-                  Si une caisse existe dans Supabase,
-                  vérifie les politiques RLS de la table
-                  <strong> caisses</strong>.
-                </small>
+                <button
+                  type="button"
+                  onClick={
+                    resetFilters
+                  }
+                >
+                  Réinitialiser les filtres
+                </button>
 
               </div>
 
@@ -448,11 +872,11 @@ export default function Historique() {
 
           {!loading &&
             !error &&
-            caisses.length > 0 && (
+            filteredCaisses.length > 0 && (
 
               <div className="history">
 
-                {caisses.map(
+                {filteredCaisses.map(
                   caisse => {
 
                     const difference =
@@ -469,7 +893,9 @@ export default function Historique() {
 
                       <Link
                         href={`/historique/${caisse.id}`}
-                        key={caisse.id}
+                        key={
+                          caisse.id
+                        }
                         className="historyItem"
                       >
 
@@ -484,11 +910,17 @@ export default function Historique() {
                             {caisse.date}
                           </span>
 
-                          {caisse.responsible && (
+                          {caisse.responsible ? (
 
                             <small>
                               Responsable :{' '}
                               {caisse.responsible}
+                            </small>
+
+                          ) : (
+
+                            <small>
+                              Responsable non renseigné
                             </small>
 
                           )}
