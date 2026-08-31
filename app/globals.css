@@ -1577,14 +1577,6 @@ select:focus {
 .dark .finalStatusBox.warning {
   background: #443821;
 }
-/* =========================================================
-   IMPRESSION
-========================================================= */
-
-
-
-@media print {
-
   /* -------------------------------------------------------
      PAGE
   ------------------------------------------------------- */
@@ -2060,44 +2052,23 @@ select:focus {
 
 }
 /* =========================================================
-   IMPRESSION HISTORIQUE
+   IMPRESSION CAISSE
 ========================================================= */
 
-.historiquePrint {
+/* Par défaut : invisible à l'écran */
+.printOnly {
   display: none;
 }
 
+/* =========================================================
+   IMPRESSION
+========================================================= */
+
 @media print {
 
-  .historiquePrint {
-    display: block !important;
-
-    width: 100% !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    background: white !important;
-    color: black !important;
-  }
-
-  .historiquePrint .printSheet {
-    display: block !important;
-
-    width: 100% !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    background: white !important;
-    color: black !important;
-  }
-
-  /* On cache uniquement l'affichage normal
-     de la page historique */
-
-  body > main > .wrap {
-    display: none !important;
+  @page {
+    size: A4;
+    margin: 12mm;
   }
 
   html,
@@ -2105,7 +2076,440 @@ select:focus {
     margin: 0 !important;
     padding: 0 !important;
 
+    width: 100% !important;
+
     background: white !important;
+    color: black !important;
+  }
+
+  body {
+    min-width: 0 !important;
+  }
+
+  /* -------------------------------------------------------
+     ON CACHE UNIQUEMENT L'INTERFACE NORMALE
+  ------------------------------------------------------- */
+
+  body * {
+    visibility: hidden;
+  }
+
+  /* -------------------------------------------------------
+     DOCUMENT À IMPRIMER
+  ------------------------------------------------------- */
+
+  .printOnly,
+  .printOnly * {
+    visibility: visible !important;
+  }
+
+  .printOnly {
+    display: block !important;
+
+    position: absolute !important;
+
+    left: 0 !important;
+    top: 0 !important;
+
+    width: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
+    color: black !important;
+  }
+
+  /* -------------------------------------------------------
+     FEUILLE
+  ------------------------------------------------------- */
+
+  .printSheet {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
+    color: black !important;
+
+    font-family: Arial, Helvetica, sans-serif !important;
+
+    font-size: 10pt;
+    line-height: 1.35;
+  }
+
+  /* =======================================================
+     EN-TÊTE
+  ======================================================= */
+
+  .printHeader {
+    display: flex !important;
+
+    justify-content: space-between;
+    align-items: flex-start;
+
+    gap: 20px;
+
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+
+    border-bottom: 2px solid #111;
+  }
+
+  .printEyebrow {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .printHeader h1 {
+    margin: 0;
+
+    font-size: 21pt;
+    line-height: 1.1;
+
+    color: black !important;
+  }
+
+  .printHeaderInfo {
+    min-width: 210px;
+  }
+
+  .printHeaderInfo div {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 3px 0;
+
+    border-bottom: 1px solid #ccc;
+  }
+
+  .printHeaderInfo span,
+  .printHeaderInfo strong {
+    color: black !important;
+  }
+
+  .printHeaderInfo span {
+    font-weight: 600;
+  }
+
+  .printHeaderInfo strong {
+    text-align: right;
+  }
+
+  /* =======================================================
+     SECTIONS
+  ======================================================= */
+
+  .printSection {
+    display: block !important;
+
+    width: 100%;
+
+    margin: 0 0 16px;
+
+    background: white !important;
+    color: black !important;
+  }
+
+  .printSection h2 {
+    margin: 0 0 7px;
+
+    padding-bottom: 4px;
+
+    font-size: 13pt;
+
+    color: black !important;
+
+    border-bottom: 1px solid #777;
+  }
+
+  .printSection h3 {
+    margin: 7px 0 4px;
+
+    font-size: 10.5pt;
+
+    color: black !important;
+  }
+
+  .printEvent {
+    margin-bottom: 9px;
+
+    background: white !important;
+    color: black !important;
+  }
+
+  .printEvent h3 {
+    margin: 0;
+
+    padding: 5px 7px;
+
+    background: #eee !important;
+    color: black !important;
+
+    border: 1px solid #ccc;
+  }
+
+  /* =======================================================
+     TABLEAUX
+  ======================================================= */
+
+  .printSheet table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    background: white !important;
+    color: black !important;
+  }
+
+  .printSheet th,
+  .printSheet td {
+    padding: 3px 6px;
+
+    background: transparent !important;
+    color: black !important;
+
+    border-bottom: 1px solid #ddd;
+
+    text-align: left;
+
+    vertical-align: top;
+  }
+
+  .printSheet th {
+    background: #f2f2f2 !important;
+    font-weight: 700;
+  }
+
+  .printSheet .right {
+    text-align: right;
+  }
+
+  .printSheet tfoot td {
+    border-top: 1px solid #555;
+    border-bottom: 0;
+  }
+
+  /* =======================================================
+     COLONNES
+  ======================================================= */
+
+  .printColumns {
+    display: grid !important;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 15px;
+
+    width: 100%;
+  }
+
+  /* =======================================================
+     TOTAUX
+  ======================================================= */
+
+  .printTotalBox {
+    display: flex !important;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-top: 7px;
+
+    padding: 7px 9px;
+
+    background: white !important;
+    color: black !important;
+
+    border: 1.5px solid #111;
+
+    font-weight: 700;
+  }
+
+  .printTotalBox strong {
+    font-size: 12pt;
+    color: black !important;
+  }
+
+  /* =======================================================
+     CONTRÔLE
+  ======================================================= */
+
+  .printControlTable {
+    width: 100%;
+  }
+
+  .printControlTable td {
+    padding: 5px 7px;
+  }
+
+  .printControlTable .highlight td {
+    background: #eee !important;
+
+    border-top: 1px solid #555;
+    border-bottom: 1px solid #555;
+  }
+
+  .printControlTable .successRow td,
+  .printControlTable .errorRow td {
+    font-weight: 700;
+  }
+
+  /* =======================================================
+     SOUS-SECTIONS
+  ======================================================= */
+
+  .printSubsection {
+    display: block !important;
+
+    margin-top: 9px;
+  }
+
+  /* =======================================================
+     RÉCAPITULATIF
+  ======================================================= */
+
+  .printFinalTable {
+    width: 100%;
+
+    font-size: 11pt;
+  }
+
+  .printFinalTable td {
+    padding: 6px 8px;
+  }
+
+  .printFinalTable .finalDifference td {
+    font-size: 12pt;
+
+    font-weight: 700;
+
+    border-top: 2px solid #111;
+    border-bottom: 2px solid #111;
+  }
+
+  /* =======================================================
+     STATUT
+  ======================================================= */
+
+  .printStatus {
+    display: flex !important;
+
+    flex-direction: column;
+
+    gap: 2px;
+
+    margin-top: 9px;
+
+    padding: 9px;
+
+    background: white !important;
+    color: black !important;
+
+    border: 2px solid #111;
+
+    text-align: center;
+  }
+
+  .printStatus strong {
+    font-size: 12pt;
+    color: black !important;
+  }
+
+  .printStatus span {
+    font-size: 9pt;
+    color: black !important;
+  }
+
+  .printStatusBad {
+    border-style: double;
+  }
+
+  .printStatusWarning {
+    border-style: dashed;
+  }
+
+  /* =======================================================
+     SIGNATURE
+  ======================================================= */
+
+  .printSignature {
+    display: grid !important;
+
+    grid-template-columns:
+      1fr
+      1fr
+      1.5fr;
+
+    gap: 18px;
+
+    margin-top: 20px;
+
+    background: white !important;
+    color: black !important;
+
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .signatureLine {
+    min-height: 23px;
+
+    margin-top: 15px;
+
+    border-bottom: 1px solid #111;
+  }
+
+  .signatureSpace,
+  .observationsSpace {
+    height: 50px;
+
+    margin-top: 7px;
+
+    border: 1px solid #aaa;
+  }
+
+  /* =======================================================
+     PIED DE PAGE
+  ======================================================= */
+
+  .printFooter {
+    margin-top: 15px;
+
+    padding-top: 5px;
+
+    border-top: 1px solid #aaa;
+
+    color: black !important;
+
+    text-align: center;
+
+    font-size: 8pt;
+  }
+
+  /* =======================================================
+     COUPURES
+  ======================================================= */
+
+  .printSection,
+  .printEvent,
+  .printSubsection,
+  .printTotalBox,
+  .printStatus,
+  .printSignature,
+  table,
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
 }
