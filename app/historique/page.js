@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
+import Header from '../composants/Header';
 
 const money = n =>
   new Intl.NumberFormat('fr-FR', {
@@ -14,6 +15,7 @@ export default function Historique() {
 
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [dark, setDark] = useState(false);
 
   const [authLoading, setAuthLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -510,49 +512,12 @@ export default function Historique() {
             HEADER
         ================================================= */}
 
-        <header>
-
-          <div>
-
-            <div className="eyebrow">
-              BILLETTERIE ASSOCIATIVE
-            </div>
-
-            <h1>
-              Historique des caisses
-            </h1>
-
-            <p>
-              Retrouvez et analysez les clôtures enregistrées.
-            </p>
-
-          </div>
-
-          <div className="headerActions">
-
-            <span className="userRole">
-
-              {userRole === 'admin'
-                ? 'Administrateur'
-                : 'Responsable'}
-
-            </span>
-
-            <Link href="/">
-              <button>
-                ← Nouvelle caisse
-              </button>
-            </Link>
-
-            <button
-              onClick={handleLogout}
-            >
-              Déconnexion
-            </button>
-
-          </div>
-
-        </header>
+        <Header
+  userRole={userRole}
+  dark={dark}
+  setDark={setDark}
+  onLogout={handleLogout}
+/>
 
         {/* =================================================
             STATISTIQUES
