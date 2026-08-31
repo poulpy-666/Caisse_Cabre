@@ -1616,39 +1616,12 @@ export default function Home() {
 
         <div className="wrap">
 
-          <header>
-
-            <div>
-
-              <div className="eyebrow">
-                BILLETTERIE ASSOCIATIVE
-              </div>
-
-              <h1>
-                Connexion
-              </h1>
-
-              <p>
-                Connectez-vous pour accéder à la caisse.
-              </p>
-
-            </div>
-
-            <button
-              className="theme"
-              onClick={() =>
-                setDark(
-                  !dark
-                )
-              }
-              aria-label="Changer de thème"
-            >
-              {dark
-                ? '☀️'
-                : '🌙'}
-            </button>
-
-          </header>
+          <Header
+  userRole={userRole}
+  dark={dark}
+  setDark={setDark}
+  onLogout={handleLogout}
+/>
 
           <section className="card loginCard">
 
