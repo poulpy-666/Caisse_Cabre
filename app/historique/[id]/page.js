@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
-import ImpressionCaisse from '../../../composants/ImpressionCaisse';
+import ImpressionCaisse from '@/app/composants/ImpressionCaisse';
 
 const money = n =>
   new Intl.NumberFormat('fr-FR', {
