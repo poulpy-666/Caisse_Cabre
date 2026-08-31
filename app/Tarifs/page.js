@@ -14,6 +14,7 @@ export default function Tarifs() {
 
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [openEventId, setOpenEventId] = useState(null);
 
   const [authLoading, setAuthLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -254,6 +255,7 @@ export default function Tarifs() {
 
     setNewEventName('');
     setShowNewEvent(false);
+    setOpenEventId(data.id);
 
     setSaving(false);
   }
@@ -991,11 +993,61 @@ export default function Tarifs() {
               {events.map(event => (
 
                 <div
-                  className="card"
-                  key={
-                    event.id
-                  }
-                >
+  className="card eventCard"
+  key={event.id}
+>
+
+  {/* EN-TÊTE CLIQUABLE */}
+
+  <div
+    className="eventHeader"
+    onClick={() =>
+      setOpenEventId(
+        openEventId === event.id
+          ? null
+          : event.id
+      )
+    }
+  >
+
+    <div>
+
+      <h2>
+        {event.name}
+      </h2>
+
+      <span className="muted">
+        {(event.tarifs || []).length}{' '}
+        tarif
+        {(event.tarifs || []).length > 1
+          ? 's'
+          : ''}
+      </span>
+
+    </div>
+
+    <strong className="eventChevron">
+      {openEventId === event.id
+        ? '⌃'
+        : '⌄'}
+    </strong>
+
+  </div>
+
+  {/* CONTENU */}
+
+  {openEventId === event.id && (
+
+    <div className="eventContent">
+
+      {/* ton contenu actuel de modification
+          de l'événement et des tarifs ici */}
+
+    </div>
+
+  )}
+
+</div>
 
                   {/* ===========================
                       EN-TÊTE ÉVÉNEMENT
