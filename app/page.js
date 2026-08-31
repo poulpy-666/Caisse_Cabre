@@ -10,6 +10,7 @@ import FermetureEspeces from './composants/FermetureEspeces';
 import MoyensPaiement from './composants/MoyensPaiement';
 import PaiementsMultiples from './composants/PaiementsMultiples';
 import ResultatsCaisse from './composants/ResultatsCaisse';
+import ImpressionCaisse from './composants/ImpressionCaisse';
 
 /* =========================================================
    OUTILS
@@ -1909,6 +1910,40 @@ export default function Home() {
   closed={closed}
   closeCash={closeCash}
   reset={reset}
+  money={money}
+/>
+     <ImpressionCaisse
+  eventName={eventName}
+  responsible={responsible}
+  date={date}
+  eventTotals={eventTotals}
+
+  billValues={billValues}
+  coinValues={coinValues}
+  opening={opening}
+  closing={closing}
+
+  openingCash={openingCash}
+  openingBills={openingBills}
+  openingCoins={openingCoins}
+
+  closingCash={closingCash}
+  cashBills={cashBills}
+  cashCoins={cashCoins}
+  cashSales={cashSales}
+  cashDifference={cashDifference}
+
+  payments={payments}
+  ancv={ancv}
+  ancvValues={ancvValues}
+  ancvTotal={ancvTotal}
+  ancvDirectTotal={ancvDirectTotal}
+
+  multiplePayments={multiplePayments}
+  paymentsTotal={paymentsTotal}
+  ca={ca}
+  difference={difference}
+
   money={money}
 />
       </div>
