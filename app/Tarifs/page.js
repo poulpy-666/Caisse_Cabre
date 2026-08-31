@@ -814,7 +814,7 @@ export default function Tarifs() {
 
   return (
 
-    <main  className={dark ? 'dark' : ''}>>
+    <main  className={dark ? 'dark' : ''}>
 
       <div className="wrap">
 
