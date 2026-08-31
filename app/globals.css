@@ -1,51 +1,550 @@
-*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f3f5f7;color:#17202a}body{min-width:320px}.dark{min-height:100vh;background:#1b1e22;color:#eee}.wrap{max-width:900px;margin:auto;padding:24px 16px 50px}header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;opacity:.65}h1{font-size:32px;margin:4px 0}header p,.muted{color:#68717c}.dark header p,.dark .muted{color:#aeb6c0}.theme{min-width:48px;height:48px;border-radius:14px;border:1px solid #d6dbe1;background:white;font-size:20px}.dark .theme{background:#292e34;border-color:#424952}.card,.result{background:white;border:1px solid #dfe4e9;border-radius:18px;padding:20px;margin:14px 0}.dark .card,.dark .result{background:#252a30;border-color:#3c434b}h2{font-size:19px;margin:0 0 16px}h3{font-size:15px;margin:22px 0 10px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{display:grid;gap:7px;font-size:13px;font-weight:650}input{width:100%;height:44px;border:1px solid #cfd6dd;border-radius:10px;padding:8px 10px;font:inherit;background:white;color:inherit}.dark input{background:#191c20;color:#eee;border-color:#49515a}.num{text-align:right}.cashgrid{display:grid;gap:6px}.cashrow{display:grid;grid-template-columns:90px 110px 1fr;gap:10px;align-items:center;padding:4px 0}.cashrow strong{text-align:right}.ticketgrid{display:grid;gap:8px}.ticket{display:grid;grid-template-columns:1fr 110px 100px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid #e5e8eb}.dark .ticket{border-color:#3b4148}.ticket div{display:flex;flex-direction:column;gap:2px}.ticket span{font-size:13px;color:#68717c}.ticket b{text-align:right}.caBox{margin-top:18px;padding:16px;border-radius:13px;background:#eef2f5;display:flex;justify-content:space-between;font-size:18px}.dark .caBox{background:#30363d}.caBox strong{font-size:25px}.totalline{display:flex;justify-content:space-between;border-top:1px solid #e1e5e8;margin-top:12px;padding-top:13px;font-size:17px}.dark .totalline{border-color:#3d444b}.info{margin-top:12px;padding:11px 13px;border-radius:10px;background:#f0f3f5;font-size:13px}.dark .info{background:#30363d}.paymentgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.result{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:stretch}.result>div:not(.actions):not(.closed){padding:15px;border-radius:12px;background:#f1f3f5;display:flex;flex-direction:column;gap:5px}.dark .result>div:not(.actions):not(.closed){background:#30363d}.result span{font-size:13px;opacity:.75}.result strong{font-size:23px}.ok{border:1px solid #55a86b}.bad{border:1px solid #d06464}.actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;margin-top:5px}.actions button,.theme{cursor:pointer;border:1px solid #ccd3da;background:white;color:inherit;border-radius:11px;padding:11px 15px;font-weight:700}.dark .actions button{background:#2b3036;border-color:#48505a}.actions .primary{background:#202830;color:white;border-color:#202830}.closed{grid-column:1/-1;padding:12px;text-align:center;border-radius:10px;background:#e9f6ec}.dark .closed{background:#23372a}@media(max-width:650px){.grid2,.paymentgrid,.result{grid-template-columns:1fr}.cashrow{grid-template-columns:70px 95px 1fr}.ticket{grid-template-columns:1fr 90px 80px}.wrap{padding:18px 12px 40px}h1{font-size:28px}}@media print{body,.dark{background:white;color:black}.theme,.actions button:not(:last-child){display:none}.card,.result{break-inside:avoid;border:1px solid #ccc}.dark .card,.dark .result{background:white;color:black}.dark input{color:black;background:white}}
-.cashColumns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f4f5f7;
+  color: #20252b;
+}
+
+body {
+  min-width: 320px;
+}
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.dark {
+  min-height: 100vh;
+  background: #191c20;
+  color: #eeeeee;
+}
+
+.wrap {
+  max-width: 900px;
+  margin: auto;
+  padding: 24px 16px 50px;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header {
+  display: flex;
+  justify-content: space-between;
   gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 22px;
 }
 
-.cashPanel {
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  border-radius: 12px;
-  padding: 16px;
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
 }
 
-.cashPanel h3 {
-  margin-top: 0;
+h1 {
+  font-size: 32px;
+  line-height: 1.15;
+  margin: 5px 0 7px;
+  letter-spacing: -0.02em;
 }
 
-@media (max-width: 700px) {
-  .cashColumns {
-    grid-template-columns: 1fr;
-  }
-}
-.cashColumns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+header p,
+.muted {
+  color: #6b737d;
 }
 
-.cashPanel {
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  border-radius: 12px;
-  padding: 16px;
+.dark header p,
+.dark .muted {
+  color: #aeb6c0;
 }
 
-.cashPanel h3 {
-  margin-top: 0;
-}
+/* =========================================================
+   HEADER ACTIONS
+========================================================= */
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .userRole {
-  font-size: 0.9rem;
+  font-size: 13px;
+  color: #6b737d;
+  padding-right: 4px;
+}
+
+.dark .userRole {
+  color: #aeb6c0;
+}
+
+/* =========================================================
+   BOUTONS
+========================================================= */
+
+button {
+  border: 1px solid #d5d9de;
+  background: #ffffff;
+  color: #343a40;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #f6f7f8;
+  border-color: #c4c9cf;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: 2px solid #9aa3ad;
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Bouton principal */
+
+button.primary {
+  background: #3b4652;
+  border-color: #3b4652;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #303a45;
+  border-color: #303a45;
+}
+
+/* Bouton danger */
+
+button.danger {
+  background: transparent;
+  border-color: #dfc3c3;
+  color: #a34b4b;
+}
+
+button.danger:hover:not(:disabled) {
+  background: #fbf2f2;
+  border-color: #d6aaaa;
+}
+
+/* Bouton thème */
+
+button.theme {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 18px;
+}
+
+.dark button {
+  background: #252a30;
+  color: #eeeeee;
+  border-color: #414850;
+}
+
+.dark button:hover:not(:disabled) {
+  background: #2d333a;
+  border-color: #515963;
+}
+
+.dark button.primary {
+  background: #e6e9ec;
+  color: #20252b;
+  border-color: #e6e9ec;
+}
+
+.dark button.primary:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+/* =========================================================
+   CARTES
+========================================================= */
+
+.card,
+.result {
+  background: #ffffff;
+  border: 1px solid #e0e3e7;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 14px 0;
+}
+
+.dark .card,
+.dark .result {
+  background: #252a30;
+  border-color: #3b424a;
+}
+
+h2 {
+  font-size: 19px;
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 15px;
+  margin: 22px 0 10px;
+}
+
+/* =========================================================
+   FORMULAIRES
+========================================================= */
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  height: 43px;
+  border: 1px solid #d1d6dc;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #ffffff;
+  color: inherit;
+  outline: none;
+}
+
+input:hover,
+select:hover {
+  border-color: #bcc3ca;
+}
+
+input:focus,
+select:focus {
+  border-color: #8d97a2;
+  box-shadow: 0 0 0 2px rgba(120, 130, 140, 0.12);
+}
+
+.dark input,
+.dark select {
+  background: #1b1f23;
+  color: #eeeeee;
+  border-color: #464e57;
+}
+
+.dark input:focus,
+.dark select:focus {
+  border-color: #6d7782;
+  box-shadow: 0 0 0 2px rgba(150, 160, 170, 0.1);
+}
+
+.num {
+  text-align: right;
+}
+
+/* =========================================================
+   FOND DE CAISSE
+========================================================= */
+
+.cashColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cashPanel {
+  border: 1px solid #e0e3e7;
+  border-radius: 11px;
+  padding: 15px;
+  background: #fafbfc;
+}
+
+.dark .cashPanel {
+  background: #20252a;
+  border-color: #3b424a;
+}
+
+.cashPanel h3 {
+  margin-top: 0;
+}
+
+.cashgrid {
+  display: grid;
+  gap: 6px;
+}
+
+.cashrow {
+  display: grid;
+  grid-template-columns: 90px 110px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.cashrow strong {
+  text-align: right;
+}
+
+/* =========================================================
+   BILLETTERIE
+========================================================= */
+
+.ticketgrid {
+  display: grid;
+  gap: 8px;
+}
+
+.ticket {
+  display: grid;
+  grid-template-columns: 1fr 110px 100px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid #e7e9ec;
+}
+
+.dark .ticket {
+  border-color: #3b4148;
+}
+
+.ticket div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ticket span {
+  font-size: 13px;
+  color: #707983;
+}
+
+.ticket b {
+  text-align: right;
+}
+
+/* =========================================================
+   BLOCS TOTAL
+========================================================= */
+
+.caBox {
+  margin-top: 18px;
+  padding: 15px;
+  border-radius: 11px;
+  background: #f0f2f4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+}
+
+.dark .caBox {
+  background: #30363d;
+}
+
+.caBox strong {
+  font-size: 23px;
+}
+
+.totalline {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #e1e4e7;
+  margin-top: 12px;
+  padding-top: 12px;
+  font-size: 16px;
+}
+
+.dark .totalline {
+  border-color: #3d444b;
+}
+
+/* =========================================================
+   INFOS / ALERTES
+========================================================= */
+
+.info {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #f1f3f5;
+  font-size: 13px;
+}
+
+.dark .info {
+  background: #30363d;
+}
+
+.info.bad {
+  border: 1px solid #d9a7a7;
+  background: #fcf5f5;
+  color: #914545;
+}
+
+.dark .info.bad {
+  background: #392727;
+  border-color: #714444;
+  color: #e3aaaa;
+}
+
+/* =========================================================
+   MOYENS DE PAIEMENT
+========================================================= */
+
+.paymentgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.paymentSummary {
+  display: grid;
+  gap: 5px;
+}
+
+.paymentSummary > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e7e9ec;
+}
+
+.dark .paymentSummary > div {
+  border-color: #3b4148;
+}
+
+/* =========================================================
+   PAIEMENTS MULTIPLES
+========================================================= */
+
+.multiple {
+  margin-top: 12px;
+  padding: 15px;
+  border: 1px solid #e0e3e7;
+  border-radius: 11px;
+  background: #fafbfc;
+}
+
+.dark .multiple {
+  background: #20252a;
+  border-color: #3b424a;
+}
+
+.multipleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.multipleHeader button {
+  padding: 6px 9px;
+  font-size: 13px;
+}
+
+/* =========================================================
+   RESULTATS
+========================================================= */
+
+.result {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.result > div:not(.actions):not(.closed) {
+  padding: 14px;
+  border-radius: 10px;
+  background: #f2f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dark .result > div:not(.actions):not(.closed) {
+  background: #30363d;
+}
+
+.result span {
+  font-size: 13px;
   opacity: 0.75;
 }
+
+.result strong {
+  font-size: 21px;
+}
+
+/* =========================================================
+   ÉTATS OK / ERREUR
+========================================================= */
+
+.ok {
+  border: 1px solid #91c49c;
+}
+
+.bad {
+  border: 1px solid #d9a1a1;
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+/* =========================================================
+   CONNEXION
+========================================================= */
 
 .loginCard {
   max-width: 500px;
@@ -63,7 +562,112 @@
   width: 100%;
 }
 
+/* =========================================================
+   FERMETURE
+========================================================= */
+
+.closed {
+  grid-column: 1 / -1;
+  padding: 11px;
+  text-align: center;
+  border-radius: 9px;
+  background: #eaf5ec;
+  color: #315c39;
+}
+
+.dark .closed {
+  background: #23372a;
+  color: #b8d7bd;
+}
+
+/* =========================================================
+   HISTORIQUE
+========================================================= */
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.historyHeader h2 {
+  margin: 0;
+}
+
+.history {
+  display: grid;
+  gap: 7px;
+}
+
+.historyItem {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1fr 30px;
+  gap: 14px;
+  align-items: center;
+  padding: 13px;
+  border: 1px solid #e1e4e7;
+  border-radius: 10px;
+  background: #fafbfc;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.05s ease;
+}
+
+.historyItem:hover {
+  background: #f3f5f6;
+  border-color: #cbd1d7;
+}
+
+.historyItem:active {
+  transform: translateY(1px);
+}
+
+.dark .historyItem {
+  background: #20252a;
+  border-color: #3b424a;
+}
+
+.dark .historyItem:hover {
+  background: #292f35;
+  border-color: #4b535c;
+}
+
+.historyItem > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.historyItem span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.historyItem small {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.historyArrow {
+  font-size: 20px;
+  opacity: 0.45;
+  text-align: center;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
 @media (max-width: 700px) {
+
+  .grid2,
+  .paymentgrid,
+  .result,
   .cashColumns {
     grid-template-columns: 1fr;
   }
@@ -76,5 +680,68 @@
   .userRole {
     width: 100%;
     text-align: right;
+  }
+
+  .cashrow {
+    grid-template-columns: 70px 95px 1fr;
+  }
+
+  .ticket {
+    grid-template-columns: 1fr 90px 80px;
+  }
+
+  .historyItem {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .historyArrow {
+    display: none;
+  }
+
+  .wrap {
+    padding: 18px 12px 40px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+}
+
+/* =========================================================
+   IMPRESSION
+========================================================= */
+
+@media print {
+
+  body,
+  .dark {
+    background: white;
+    color: black;
+  }
+
+  .theme,
+  .headerActions button,
+  .actions button {
+    display: none;
+  }
+
+  .card,
+  .result {
+    break-inside: avoid;
+    border: 1px solid #ccc;
+  }
+
+  .dark .card,
+  .dark .result,
+  .dark .cashPanel,
+  .dark .multiple {
+    background: white;
+    color: black;
+  }
+
+  .dark input,
+  .dark select {
+    color: black;
+    background: white;
   }
 }
