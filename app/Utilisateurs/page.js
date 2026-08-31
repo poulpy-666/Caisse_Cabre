@@ -4,42 +4,16 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
 
-const roleLabel = {
-  admin: 'Administrateur',
-  responsable: 'Responsable',
-  benevole: 'Bénévole'
-};
-
-const roleOptions = [
-  {
-    value: 'benevole',
-    label: 'Bénévole'
-  },
-  {
-    value: 'responsable',
-    label: 'Responsable'
-  },
-  {
-    value: 'admin',
-    label: 'Administrateur'
-  }
-];
-
 export default function Utilisateurs() {
 
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null);
 
-  const [users, setUsers] = useState([]);
-
   const [authLoading, setAuthLoading] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const [editingId, setEditingId] = useState(null);
-  const [editingRole, setEditingRole] = useState('');
 
   const [savingId, setSavingId] = useState(null);
 
@@ -102,9 +76,7 @@ export default function Utilisateurs() {
         setSession(session);
 
         if (!session?.user) {
-
           setUserRole(null);
-
           return;
         }
 
@@ -121,7 +93,6 @@ export default function Utilisateurs() {
         setUserRole(
           profile?.role || null
         );
-
       }
     );
 
@@ -142,11 +113,13 @@ export default function Utilisateurs() {
   useEffect(() => {
 
     if (
-      session &&
-      userRole === 'admin'
+      !session ||
+      userRole !== 'admin'
     ) {
-      loadUsers();
+      return;
     }
+
+    loadUsers();
 
   }, [session, userRole]);
 
@@ -154,26 +127,20 @@ export default function Utilisateurs() {
 
     setLoading(true);
     setError('');
-    setSuccess('');
 
     const {
       data,
       error
-    } = await supabase
-      .from('profiles')
-      .select(
-        'id, name, role, created_at'
-      )
-      .order(
-        'created_at',
-        {
-          ascending: true
-        }
-      );
+    } = await supabase.rpc(
+      'get_users_for_admin'
+    );
 
     if (error) {
 
-      console.error(error);
+      console.error(
+        'Erreur chargement utilisateurs:',
+        error
+      );
 
       setError(
         'Impossible de charger les utilisateurs.'
@@ -185,80 +152,119 @@ export default function Utilisateurs() {
     }
 
     setUsers(data || []);
-
     setLoading(false);
   }
 
   /* =========================================================
-     MODIFICATION RÔLE
+     MODIFICATION DU RÔLE
   ========================================================= */
 
-  function startEditing(user) {
+  async function changeRole(
+    userId,
+    newRole
+  ) {
 
-    setError('');
-    setSuccess('');
-
-    setEditingId(user.id);
-    setEditingRole(
-      user.role || 'benevole'
-    );
-  }
-
-  function cancelEditing() {
-
-    setEditingId(null);
-    setEditingRole('');
-
-  }
-
-  async function saveRole(userId) {
-
-    if (!editingRole) return;
-
-    setError('');
-    setSuccess('');
+    if (!newRole) return;
 
     setSavingId(userId);
+    setError('');
 
     const {
       error
     } = await supabase
       .from('profiles')
       .update({
-        role: editingRole
+        role: newRole
       })
-      .eq('id', userId);
-
-    setSavingId(null);
+      .eq(
+        'id',
+        userId
+      );
 
     if (error) {
 
-      console.error(error);
+      console.error(
+        'Erreur modification rôle:',
+        error
+      );
 
       setError(
-        `Impossible de modifier le rôle : ${error.message}`
+        'Impossible de modifier le rôle.'
       );
+
+      setSavingId(null);
 
       return;
     }
 
-    setUsers(prev =>
-      prev.map(user =>
-        user.id === userId
-          ? {
-              ...user,
-              role: editingRole
-            }
-          : user
-      )
+    setUsers(
+      prev =>
+        prev.map(user =>
+          user.id === userId
+            ? {
+                ...user,
+                role: newRole
+              }
+            : user
+        )
     );
 
-    setEditingId(null);
-    setEditingRole('');
+    setSavingId(null);
+  }
 
-    setSuccess(
-      'Le rôle a été modifié avec succès.'
+  /* =========================================================
+     MODIFICATION DU NOM
+  ========================================================= */
+
+  async function changeName(
+    userId,
+    name
+  ) {
+
+    setSavingId(userId);
+    setError('');
+
+    const {
+      error
+    } = await supabase
+      .from('profiles')
+      .update({
+        name: name.trim()
+      })
+      .eq(
+        'id',
+        userId
+      );
+
+    if (error) {
+
+      console.error(
+        'Erreur modification nom:',
+        error
+      );
+
+      setError(
+        'Impossible de modifier le nom.'
+      );
+
+      setSavingId(null);
+
+      return;
+    }
+
+    setUsers(
+      prev =>
+        prev.map(user =>
+          user.id === userId
+            ? {
+                ...user,
+                name: name.trim()
+              }
+            : user
+        )
     );
+
+    setSavingId(null);
   }
 
   /* =========================================================
@@ -281,7 +287,6 @@ export default function Utilisateurs() {
   if (authLoading) {
 
     return (
-
       <main>
 
         <div className="wrap">
@@ -297,9 +302,7 @@ export default function Utilisateurs() {
         </div>
 
       </main>
-
     );
-
   }
 
   /* =========================================================
@@ -309,7 +312,6 @@ export default function Utilisateurs() {
   if (!session) {
 
     return (
-
       <main>
 
         <div className="wrap">
@@ -335,19 +337,16 @@ export default function Utilisateurs() {
         </div>
 
       </main>
-
     );
-
   }
 
   /* =========================================================
-     PAS ADMIN
+     NON ADMIN
   ========================================================= */
 
   if (userRole !== 'admin') {
 
     return (
-
       <main>
 
         <div className="wrap">
@@ -386,9 +385,7 @@ export default function Utilisateurs() {
         </div>
 
       </main>
-
     );
-
   }
 
   /* =========================================================
@@ -400,10 +397,6 @@ export default function Utilisateurs() {
     <main>
 
       <div className="wrap">
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
 
         <header>
 
@@ -418,7 +411,7 @@ export default function Utilisateurs() {
             </h1>
 
             <p>
-              Gérez les comptes et leurs rôles.
+              Gérez les noms et les droits d'accès.
             </p>
 
           </div>
@@ -447,49 +440,13 @@ export default function Utilisateurs() {
 
         </header>
 
-        {/* =================================================
-            MESSAGES
-        ================================================= */}
-
-        {error && (
-
-          <div className="info bad">
-            {error}
-          </div>
-
-        )}
-
-        {success && (
-
-          <div className="info">
-            ✓ {success}
-          </div>
-
-        )}
-
-        {/* =================================================
-            UTILISATEURS
-        ================================================= */}
-
         <section className="card">
 
           <div className="historyHeader">
 
-            <div>
-
-              <h2>
-                Utilisateurs
-              </h2>
-
-              <p className="muted">
-                {users.length}{' '}
-                compte
-                {users.length > 1
-                  ? 's'
-                  : ''}
-              </p>
-
-            </div>
+            <h2>
+              Utilisateurs
+            </h2>
 
             <button
               type="button"
@@ -507,218 +464,165 @@ export default function Utilisateurs() {
 
           </div>
 
-          {!loading &&
-            users.length === 0 && (
+          {error && (
 
-              <div className="info">
-                Aucun utilisateur trouvé.
-              </div>
+            <div className="info bad">
+              {error}
+            </div>
 
-            )}
+          )}
 
-          {users.length > 0 && (
+          {loading ? (
 
-            <div className="history">
+            <div className="info">
+              Chargement des utilisateurs...
+            </div>
 
-              {users.map(
-                user => {
+          ) : users.length === 0 ? (
 
-                  const role =
-                    user.role ||
-                    'benevole';
+            <div className="info">
+              Aucun utilisateur trouvé.
+            </div>
 
-                  const createdAt =
-                    user.created_at
-                      ? new Date(
-                          user.created_at
-                        ).toLocaleDateString(
-                          'fr-FR'
-                        )
-                      : '—';
+          ) : (
 
-                  const isCurrentUser =
-                    session.user.id ===
-                    user.id;
+            <div className="usersList">
 
-                  const isEditing =
-                    editingId ===
-                    user.id;
+              {users.map(user => (
 
-                  const isSaving =
-                    savingId ===
-                    user.id;
+                <div
+                  className="userItem"
+                  key={
+                    user.id
+                  }
+                >
 
-                  return (
+                  <div className="userInfo">
 
-                    <div
-                      className="historyItem"
-                      key={
-                        user.id
-                      }
-                    >
+                    <strong>
+                      {user.name ||
+                        'Sans nom'}
+                    </strong>
 
-                      {/* NOM */}
+                    <span>
+                      {user.email ||
+                        'E-mail inconnu'}
+                    </span>
 
-                      <div>
+                    <small>
+                      Créé le{' '}
+                      {user.created_at
+                        ? new Date(
+                            user.created_at
+                          ).toLocaleDateString(
+                            'fr-FR'
+                          )
+                        : '—'}
+                    </small>
 
-                        <strong>
-                          {user.name ||
-                            'Nom non renseigné'}
-                        </strong>
+                  </div>
 
-                        {isCurrentUser && (
+                  <div className="userControls">
 
-                          <small>
-                            Vous
-                          </small>
+                    <label>
 
-                        )}
+                      Nom
 
-                        <small>
-                          ID :{' '}
-                          {user.id}
-                        </small>
+                      <input
+                        type="text"
+                        value={
+                          user.name ||
+                          ''
+                        }
+                        onChange={e => {
 
-                      </div>
+                          const value =
+                            e.target
+                              .value;
 
-                      {/* RÔLE */}
-
-                      <div>
-
-                        <span>
-                          Rôle
-                        </span>
-
-                        {!isEditing ? (
-
-                          <strong>
-                            {roleLabel[
-                              role
-                            ] || role}
-                          </strong>
-
-                        ) : (
-
-                          <select
-                            value={
-                              editingRole
-                            }
-                            onChange={e =>
-                              setEditingRole(
-                                e.target.value
-                              )
-                            }
-                            disabled={
-                              isSaving
-                            }
-                          >
-
-                            {roleOptions.map(
-                              option => (
-
-                                <option
-                                  key={
-                                    option.value
-                                  }
-                                  value={
-                                    option.value
-                                  }
-                                >
-                                  {
-                                    option.label
-                                  }
-                                </option>
-
-                              )
-                            )}
-
-                          </select>
-
-                        )}
-
-                      </div>
-
-                      {/* DATE */}
-
-                      <div>
-
-                        <span>
-                          Créé le
-                        </span>
-
-                        <strong>
-                          {createdAt}
-                        </strong>
-
-                      </div>
-
-                      {/* ACTION */}
-
-                      <div>
-
-                        {!isEditing ? (
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              startEditing(
-                                user
-                              )
-                            }
-                          >
-                            ✏️ Modifier
-                          </button>
-
-                        ) : (
-
-                          <div
-                            className="actions"
-                            style={{
-                              marginTop: 0
-                            }}
-                          >
-
-                            <button
-                              type="button"
-                              className="primary"
-                              onClick={() =>
-                                saveRole(
+                          setUsers(
+                            prev =>
+                              prev.map(
+                                item =>
+                                  item.id ===
                                   user.id
-                                )
-                              }
-                              disabled={
-                                isSaving
-                              }
-                            >
-                              {isSaving
-                                ? '⏳'
-                                : '✓ Enregistrer'}
-                            </button>
+                                    ? {
+                                        ...item,
+                                        name:
+                                          value
+                                      }
+                                    : item
+                              )
+                          );
 
-                            <button
-                              type="button"
-                              onClick={
-                                cancelEditing
-                              }
-                              disabled={
-                                isSaving
-                              }
-                            >
-                              Annuler
-                            </button>
+                        }}
+                        onBlur={e =>
+                          changeName(
+                            user.id,
+                            e.target
+                              .value
+                          )
+                        }
+                      />
 
-                          </div>
+                    </label>
 
-                        )}
+                    <label>
 
-                      </div>
+                      Rôle
 
-                    </div>
+                      <select
+                        value={
+                          user.role ||
+                          ''
+                        }
+                        disabled={
+                          savingId ===
+                          user.id
+                        }
+                        onChange={e =>
+                          changeRole(
+                            user.id,
+                            e.target
+                              .value
+                          )
+                        }
+                      >
 
-                  );
+                        <option value="">
+                          Aucun rôle
+                        </option>
 
-                }
-              )}
+                        <option value="admin">
+                          Administrateur
+                        </option>
+
+                        <option value="responsable">
+                          Responsable
+                        </option>
+
+                        <option value="benevole">
+                          Bénévole
+                        </option>
+
+                      </select>
+
+                    </label>
+
+                    {savingId ===
+                      user.id && (
+
+                      <span className="saving">
+                        ⏳ Enregistrement...
+                      </span>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              ))}
 
             </div>
 
@@ -726,53 +630,45 @@ export default function Utilisateurs() {
 
         </section>
 
-        {/* =================================================
-            INFORMATIONS
-        ================================================= */}
-
         <section className="card">
 
           <h2>
-            Rôles disponibles
+            Rôles
           </h2>
 
-          <div className="paymentSummary">
+          <div className="info">
 
-            <div>
+            <strong>
+              Administrateur
+            </strong>
 
-              <span>
-                Bénévole
-              </span>
+            <br />
 
-              <strong>
-                Accès à la caisse uniquement
-              </strong>
+            Accès complet, notamment à la gestion des utilisateurs et à l'historique.
 
-            </div>
+          </div>
 
-            <div>
+          <div className="info">
 
-              <span>
-                Responsable
-              </span>
+            <strong>
+              Responsable
+            </strong>
 
-              <strong>
-                Caisse + historique
-              </strong>
+            <br />
 
-            </div>
+            Peut utiliser la caisse et consulter l'historique, mais ne peut pas gérer les utilisateurs.
 
-            <div>
+          </div>
 
-              <span>
-                Administrateur
-              </span>
+          <div className="info">
 
-              <strong>
-                Accès complet
-              </strong>
+            <strong>
+              Bénévole
+            </strong>
 
-            </div>
+            <br />
+
+            Peut utiliser la caisse, sans accès à l'historique ni à la gestion des utilisateurs.
 
           </div>
 
