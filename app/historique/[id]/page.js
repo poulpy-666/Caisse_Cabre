@@ -1129,37 +1129,14 @@ export default function CaisseDetail() {
         </section>
 
             </div>
-
-      {/* =================================================
-          VERSION IMPRIMABLE
-      ================================================= */}
-
-      <div className="printOnly">
-
+      <div className="historiquePrint">
         <ImpressionCaisse
-          eventName={
-            caisse.event_name
-          }
+          eventName={caisse.event_name}
+          responsible={caisse.responsible}
+          date={caisse.date}
+          eventTotals={events}
 
-          responsible={
-            caisse.responsible
-          }
-
-          date={
-            caisse.date
-          }
-
-          eventTotals={
-            events
-          }
-
-          billValues={[
-            50,
-            20,
-            10,
-            5
-          ]}
-
+          billValues={[50, 20, 10, 5]}
           coinValues={[
             2,
             1,
@@ -1171,96 +1148,33 @@ export default function CaisseDetail() {
             0.01
           ]}
 
-          opening={
-            openingDenominations
-          }
-
-          closing={
-            closingDenominations
-          }
+          opening={openingDenominations}
+          closing={closingDenominations}
 
           openingCash={
             Number(opening.total) || 0
           }
 
           openingBills={
-            Object.entries(
-              openingDenominations
-            ).reduce(
-              (
-                sum,
-                [value, quantity]
-              ) => {
-
-                const numericValue =
-                  Number(value);
-
-                if (
-                  numericValue >= 5
-                ) {
-                  return (
-                    sum +
-                    numericValue *
-                    Number(quantity || 0)
-                  );
-                }
-
-                return sum;
-
-              },
-              0
-            )
+            Number(opening.total) || 0
           }
 
-          openingCoins={
-            Object.entries(
-              openingDenominations
-            ).reduce(
-              (
-                sum,
-                [value, quantity]
-              ) => {
-
-                const numericValue =
-                  Number(value);
-
-                if (
-                  numericValue < 5
-                ) {
-                  return (
-                    sum +
-                    numericValue *
-                    Number(quantity || 0)
-                  );
-                }
-
-                return sum;
-
-              },
-              0
-            )
-          }
+          openingCoins={0}
 
           closingCash={
             Number(closing.total) || 0
           }
 
           cashBills={
-            Number(
-              closing.bills_total
-            ) || 0
+            Number(closing.bills_total) || 0
           }
 
           cashCoins={
-            Number(
-              closing.coins_total
-            ) || 0
+            Number(closing.coins_total) || 0
           }
 
           cashSales={
-            Number(
-              closing.cash_sales
-            ) || 0
+            Number(closing.cash_sales) || 0
           }
 
           cashDifference={
@@ -1268,90 +1182,52 @@ export default function CaisseDetail() {
               Number(closing.total) || 0
             ) -
             (
-              (
-                Number(opening.total) || 0
-              ) +
-              (
-                Number(closing.cash_sales) || 0
-              )
+              (Number(opening.total) || 0) +
+              (Number(closing.cash_sales) || 0)
             )
           }
 
-          payments={
-            {
-              tpe:
-                Number(
-                  payments.simple?.tpe
-                ) || 0,
+          payments={{
+            tpe:
+              Number(payments.simple?.tpe) || 0,
 
-              web:
-                Number(
-                  payments.simple?.web
-                ) || 0,
+            web:
+              Number(payments.simple?.web) || 0,
 
-              cheque:
-                Number(
-                  payments.simple?.cheque
-                ) || 0,
+            cheque:
+              Number(payments.simple?.cheque) || 0,
 
-              autre:
-                Number(
-                  payments.simple?.autre
-                ) || 0
-            }
-          }
+            autre:
+              Number(payments.simple?.autre) || 0
+          }}
 
-          ancv={
-            ancvByValue
-          }
+          ancv={ancvByValue}
 
-          ancvValues={[
-            10,
-            20,
-            25,
-            50
-          ]}
+          ancvValues={[10, 20, 25, 50]}
 
           ancvTotal={
-            Number(
-              paymentTotals.ancv
-            ) || 0
+            Number(paymentTotals.ancv) || 0
           }
 
           ancvDirectTotal={
-            Number(
-              payments.simple?.ancv
-            ) || 0
+            Number(payments.simple?.ancv) || 0
           }
 
-          multiplePayments={
-            multiplePayments
-          }
+          multiplePayments={multiplePayments}
 
           paymentsTotal={
-            Number(
-              caisse.total_encaisse
-            ) || 0
+            Number(caisse.total_encaisse) || 0
           }
 
           ca={
-            Number(
-              caisse.total_ca
-            ) || 0
+            Number(caisse.total_ca) || 0
           }
 
-          difference={
-            difference
-          }
+          difference={difference}
 
-          money={
-            money
-          }
-
+          money={money}
         />
-
       </div>
-
     </main>
   );
 }
