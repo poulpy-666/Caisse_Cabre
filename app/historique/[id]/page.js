@@ -12,6 +12,7 @@ const money = n =>
   }).format(Number(n) || 0);
 
 export default function CaisseDetail() {
+
   const params = useParams();
   const id = params.id;
 
@@ -19,23 +20,34 @@ export default function CaisseDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  /* =========================================================
+     CHARGEMENT
+  ========================================================= */
+
   useEffect(() => {
+
     if (id) {
       loadCaisse();
     }
+
   }, [id]);
 
   async function loadCaisse() {
+
     setLoading(true);
     setError('');
 
-    const { data, error } = await supabase
+    const {
+      data,
+      error
+    } = await supabase
       .from('caisses')
       .select('*')
       .eq('id', id)
       .single();
 
     if (error) {
+
       console.error(error);
 
       setError(
@@ -43,6 +55,7 @@ export default function CaisseDetail() {
       );
 
       setLoading(false);
+
       return;
     }
 
@@ -55,8 +68,11 @@ export default function CaisseDetail() {
   ========================================================= */
 
   if (loading) {
+
     return (
+
       <main>
+
         <div className="wrap">
 
           <section className="card">
@@ -68,8 +84,11 @@ export default function CaisseDetail() {
           </section>
 
         </div>
+
       </main>
+
     );
+
   }
 
   /* =========================================================
@@ -77,8 +96,11 @@ export default function CaisseDetail() {
   ========================================================= */
 
   if (error || !caisse) {
+
     return (
+
       <main>
+
         <div className="wrap">
 
           <section className="card">
@@ -88,16 +110,21 @@ export default function CaisseDetail() {
             </div>
 
             <Link href="/historique">
+
               <button>
                 ← Retour à l'historique
               </button>
+
             </Link>
 
           </section>
 
         </div>
+
       </main>
+
     );
+
   }
 
   /* =========================================================
@@ -123,10 +150,18 @@ export default function CaisseDetail() {
     payments.ancv_by_value || {};
 
   const multiplePayments =
-    caisse.multiple_payments || [];
+    Array.isArray(
+      caisse.multiple_payments
+    )
+      ? caisse.multiple_payments
+      : [];
 
   const events =
-    caData.events || [];
+    Array.isArray(
+      caData.events
+    )
+      ? caData.events
+      : [];
 
   const openingDenominations =
     opening.denominations || {};
@@ -135,17 +170,24 @@ export default function CaisseDetail() {
     closing.denominations || {};
 
   const difference =
-    Number(caisse.difference) || 0;
+    Number(
+      caisse.difference
+    ) || 0;
 
   const differenceOk =
-    Math.abs(difference) < 0.005;
+    Math.abs(
+      difference
+    ) < 0.005;
 
   const totalMultiple =
     multiplePayments.reduce(
-      (sum, payment) =>
+      (
+        sum,
+        payment
+      ) =>
         sum +
         Number(
-          payment.amount || 0
+          payment?.amount || 0
         ),
       0
     );
@@ -155,6 +197,7 @@ export default function CaisseDetail() {
   ========================================================= */
 
   return (
+
     <main>
 
       <div className="wrap">
@@ -212,6 +255,7 @@ export default function CaisseDetail() {
 
         </header>
 
+
         {/* =================================================
             RESULTAT GLOBAL
         ================================================= */}
@@ -268,6 +312,7 @@ export default function CaisseDetail() {
 
         </section>
 
+
         {/* =================================================
             BILLETTERIE
         ================================================= */}
@@ -293,10 +338,17 @@ export default function CaisseDetail() {
           ) : (
 
             events.map(
-              (event, eventIndex) => {
+              (
+                event,
+                eventIndex
+              ) => {
 
                 const tickets =
-                  event.tickets || [];
+                  Array.isArray(
+                    event.tickets
+                  )
+                    ? event.tickets
+                    : [];
 
                 const quantities =
                   event.quantities || {};
@@ -307,6 +359,7 @@ export default function CaisseDetail() {
                   );
 
                 return (
+
                   <div
                     className="multiple"
                     key={
@@ -334,126 +387,106 @@ export default function CaisseDetail() {
                     <div className="paymentSummary">
 
                       {tickets.map(
-  (ticket, ticketIndex) => {
+                        (
+                          ticket,
+                          ticketIndex
+                        ) => {
 
-    /*
-     * Les anciennes caisses pouvaient contenir
-     * les tarifs sous forme de tableau :
-     *
-     * [name, price]
-     *
-     * Les nouvelles caisses utilisent maintenant
-     * des objets :
-     *
-     * {
-     *   id,
-     *   name,
-     *   price,
-     *   quantity,
-     *   total
-     * }
-     *
-     * On accepte les deux formats afin de conserver
-     * la compatibilité avec les anciennes caisses.
-     */
+                          /*
+                           * ANCIEN FORMAT
+                           *
+                           * Certains historiques peuvent
+                           * contenir :
+                           *
+                           * [
+                           *   ['Adulte', 10],
+                           *   ['Enfant', 5]
+                           * ]
+                           *
+                           * NOUVEAU FORMAT
+                           *
+                           * Les nouvelles caisses enregistrent :
+                           *
+                           * {
+                           *   id,
+                           *   name,
+                           *   price,
+                           *   quantity,
+                           *   total
+                           * }
+                           *
+                           * On accepte les deux formats.
+                           */
 
-    let name;
-    let price;
-    let quantity;
-    let total;
+                          let name;
+                          let price;
+                          let quantity;
+                          let total;
 
-    if (Array.isArray(ticket)) {
+                          if (
+                            Array.isArray(
+                              ticket
+                            )
+                          ) {
 
-      name = ticket[0];
-      price = ticket[1];
+                            name =
+                              ticket[0];
 
-      quantity =
-        Number(
-          quantities[name] || 0
-        );
+                            price =
+                              Number(
+                                ticket[1]
+                              ) || 0;
 
-      total =
-        quantity *
-        Number(price || 0);
+                            quantity =
+                              Number(
+                                quantities[
+                                  name
+                                ] || 0
+                              );
 
-    } else {
+                            total =
+                              quantity *
+                              price;
 
-      name =
-        ticket.name ||
-        'Tarif';
+                          } else {
 
-      price =
-        Number(
-          ticket.price || 0
-        );
+                            name =
+                              ticket?.name ||
+                              'Tarif';
 
-      quantity =
-        Number(
-          ticket.quantity ??
-          quantities[name] ??
-          0
-        );
+                            price =
+                              Number(
+                                ticket?.price ||
+                                0
+                              );
 
-      total =
-        Number(
-          ticket.total ??
-          (
-            quantity *
-            price
-          )
-        );
+                            quantity =
+                              Number(
+                                ticket?.quantity ??
+                                quantities[
+                                  name
+                                ] ??
+                                0
+                              );
 
-    }
+                            total =
+                              Number(
+                                ticket?.total ??
+                                (
+                                  quantity *
+                                  price
+                                )
+                              );
 
-    return (
+                          }
 
-      <div
-        key={
-          ticket.id ||
-          name ||
-          ticketIndex
-        }
-      >
+                          return (
 
-        <span>
-
-          {name}
-
-          {' — '}
-
-          {money(
-            price
-          )}
-
-        </span>
-
-        <strong>
-
-          {quantity}
-
-          {' × '}
-
-          {money(
-            price
-          )}
-
-          {' = '}
-
-          {money(
-            total
-          )}
-
-        </strong>
-
-      </div>
-
-    );
-
-  }
-)}
                             <div
                               key={
-                                name
+                                ticket?.id ||
+                                name ||
+                                ticketIndex
                               }
                             >
 
@@ -488,6 +521,7 @@ export default function CaisseDetail() {
                               </strong>
 
                             </div>
+
                           );
 
                         }
@@ -510,6 +544,7 @@ export default function CaisseDetail() {
                     </div>
 
                   </div>
+
                 );
 
               }
@@ -533,6 +568,7 @@ export default function CaisseDetail() {
 
         </section>
 
+
         {/* =================================================
             FOND DE CAISSE
         ================================================= */}
@@ -549,7 +585,10 @@ export default function CaisseDetail() {
               openingDenominations
             )
               .sort(
-                ([a], [b]) =>
+                (
+                  [a],
+                  [b]
+                ) =>
                   Number(b) -
                   Number(a)
               )
@@ -611,6 +650,7 @@ export default function CaisseDetail() {
 
         </section>
 
+
         {/* =================================================
             FERMETURE ESPÈCES
         ================================================= */}
@@ -627,7 +667,10 @@ export default function CaisseDetail() {
               closingDenominations
             )
               .sort(
-                ([a], [b]) =>
+                (
+                  [a],
+                  [b]
+                ) =>
                   Number(b) -
                   Number(a)
               )
@@ -721,6 +764,7 @@ export default function CaisseDetail() {
 
         </section>
 
+
         {/* =================================================
             MOYENS DE PAIEMENT
         ================================================= */}
@@ -805,6 +849,11 @@ export default function CaisseDetail() {
 
           </div>
 
+
+          {/* =================================================
+              DETAIL ANCV
+          ================================================= */}
+
           <h3>
             Détail des ANCV
           </h3>
@@ -825,7 +874,10 @@ export default function CaisseDetail() {
                 ancvByValue
               )
                 .sort(
-                  ([a], [b]) =>
+                  (
+                    [a],
+                    [b]
+                  ) =>
                     Number(a) -
                     Number(b)
                 )
@@ -889,6 +941,7 @@ export default function CaisseDetail() {
 
         </section>
 
+
         {/* =================================================
             PAIEMENTS MULTIPLES
         ================================================= */}
@@ -901,7 +954,8 @@ export default function CaisseDetail() {
 
           <p className="muted">
 
-            Détail des transactions réglées avec plusieurs moyens de paiement.
+            Détail des transactions réglées avec plusieurs
+            moyens de paiement.
 
           </p>
 
@@ -921,109 +975,104 @@ export default function CaisseDetail() {
                 (
                   payment,
                   index
-                ) => (
+                ) => {
 
-                  <div
-                    className="multiple"
-                    key={
-                      payment.id ||
-                      index
-                    }
-                  >
+                  const allocations =
+                    payment?.allocations || {};
 
-                    <div className="multipleHeader">
+                  return (
 
-                      <strong>
-                        Paiement multiple #
-                        {index + 1}
-                      </strong>
+                    <div
+                      className="multiple"
+                      key={
+                        payment?.id ||
+                        index
+                      }
+                    >
 
-                      <strong>
-                        {money(
-                          payment.amount
+                      <div className="multipleHeader">
+
+                        <strong>
+                          Paiement multiple #
+                          {index + 1}
+                        </strong>
+
+                        <strong>
+                          {money(
+                            payment?.amount
+                          )}
+                        </strong>
+
+                      </div>
+
+                      <div className="info">
+
+                        {allocations.cash > 0 && (
+                          <>
+                            Espèces :{' '}
+                            {money(
+                              allocations.cash
+                            )}
+                            {' — '}
+                          </>
                         )}
-                      </strong>
+
+                        {allocations.tpe > 0 && (
+                          <>
+                            TPE :{' '}
+                            {money(
+                              allocations.tpe
+                            )}
+                            {' — '}
+                          </>
+                        )}
+
+                        {allocations.web > 0 && (
+                          <>
+                            CB Web :{' '}
+                            {money(
+                              allocations.web
+                            )}
+                            {' — '}
+                          </>
+                        )}
+
+                        {allocations.cheque > 0 && (
+                          <>
+                            Chèque :{' '}
+                            {money(
+                              allocations.cheque
+                            )}
+                            {' — '}
+                          </>
+                        )}
+
+                        {allocations.ancv > 0 && (
+                          <>
+                            ANCV :{' '}
+                            {money(
+                              allocations.ancv
+                            )}
+                            {' — '}
+                          </>
+                        )}
+
+                        {allocations.autre > 0 && (
+                          <>
+                            Autre :{' '}
+                            {money(
+                              allocations.autre
+                            )}
+                          </>
+                        )}
+
+                      </div>
 
                     </div>
 
-                    <div className="info">
+                  );
 
-                      {payment.allocations?.cash > 0 && (
-                        <>
-                          Espèces :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .cash
-                          )}
-                          {' — '}
-                        </>
-                      )}
-
-                      {payment.allocations?.tpe > 0 && (
-                        <>
-                          TPE :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .tpe
-                          )}
-                          {' — '}
-                        </>
-                      )}
-
-                      {payment.allocations?.web > 0 && (
-                        <>
-                          CB Web :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .web
-                          )}
-                          {' — '}
-                        </>
-                      )}
-
-                      {payment.allocations?.cheque > 0 && (
-                        <>
-                          Chèque :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .cheque
-                          )}
-                          {' — '}
-                        </>
-                      )}
-
-                      {payment.allocations?.ancv > 0 && (
-                        <>
-                          ANCV :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .ancv
-                          )}
-                          {' — '}
-                        </>
-                      )}
-
-                      {payment.allocations?.autre > 0 && (
-                        <>
-                          Autre :{' '}
-                          {money(
-                            payment
-                              .allocations
-                              .autre
-                          )}
-                        </>
-                      )}
-
-                    </div>
-
-                  </div>
-
-                )
+                }
               )}
 
               <div className="totalline">
@@ -1045,6 +1094,7 @@ export default function CaisseDetail() {
           )}
 
         </section>
+
 
         {/* =================================================
             CONTRÔLE
@@ -1145,5 +1195,6 @@ export default function CaisseDetail() {
       </div>
 
     </main>
+
   );
 }
