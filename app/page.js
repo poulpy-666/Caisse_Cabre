@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
+import Link from 'next/link';
 
 /* =========================================================
    ÉVÈNEMENTS ET TARIFS
@@ -1653,43 +1654,47 @@ export default function Home() {
 
           <div className="headerActions">
 
-            <span className="userRole">
+           <span className="userRole">
 
-              {userRole ===
-              'admin'
-                ? 'Administrateur'
-                : userRole ===
-                    'responsable'
-                  ? 'Responsable'
-                  : 'Bénévole'}
+    {userRole === 'admin'
+      ? 'Administrateur'
+      : userRole === 'responsable'
+        ? 'Responsable'
+        : 'Bénévole'}
 
-            </span>
+  </span>
 
-            <button
-              type="button"
-              onClick={
-                handleLogout
-              }
-            >
-              Déconnexion
-            </button>
+  {(userRole === 'admin' ||
+    userRole === 'responsable') && (
 
-            <button
-              className="theme"
-              onClick={() =>
-                setDark(
-                  !dark
-                )
-              }
-              aria-label="Changer de thème"
-            >
-              {dark
-                ? '☀️'
-                : '🌙'}
-            </button>
+    <Link href="/historique">
+      <button type="button">
+        📋 Historique
+      </button>
+    </Link>
 
-          </div>
+  )}
 
+  <button
+    type="button"
+    onClick={handleLogout}
+  >
+    Déconnexion
+  </button>
+
+  <button
+    className="theme"
+    onClick={() =>
+      setDark(!dark)
+    }
+    aria-label="Changer de thème"
+  >
+    {dark
+      ? '☀️'
+      : '🌙'}
+  </button>
+
+</div>
         </header>
 
         {/* =================================================
