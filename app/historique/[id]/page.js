@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
+import ImpressionCaisse from '../../../composants/ImpressionCaisse';
 
 const money = n =>
   new Intl.NumberFormat('fr-FR', {
@@ -158,7 +159,7 @@ export default function CaisseDetail() {
 
     <main>
 
-      <div className="wrap">
+      <div className="wrap screenOnly">
 
         {/* =================================================
             HEADER
@@ -1127,9 +1128,230 @@ export default function CaisseDetail() {
 
         </section>
 
+            </div>
+
+      {/* =================================================
+          VERSION IMPRIMABLE
+      ================================================= */}
+
+      <div className="printOnly">
+
+        <ImpressionCaisse
+          eventName={
+            caisse.event_name
+          }
+
+          responsible={
+            caisse.responsible
+          }
+
+          date={
+            caisse.date
+          }
+
+          eventTotals={
+            events
+          }
+
+          billValues={[
+            50,
+            20,
+            10,
+            5
+          ]}
+
+          coinValues={[
+            2,
+            1,
+            0.5,
+            0.2,
+            0.1,
+            0.05,
+            0.02,
+            0.01
+          ]}
+
+          opening={
+            openingDenominations
+          }
+
+          closing={
+            closingDenominations
+          }
+
+          openingCash={
+            Number(opening.total) || 0
+          }
+
+          openingBills={
+            Object.entries(
+              openingDenominations
+            ).reduce(
+              (
+                sum,
+                [value, quantity]
+              ) => {
+
+                const numericValue =
+                  Number(value);
+
+                if (
+                  numericValue >= 5
+                ) {
+                  return (
+                    sum +
+                    numericValue *
+                    Number(quantity || 0)
+                  );
+                }
+
+                return sum;
+
+              },
+              0
+            )
+          }
+
+          openingCoins={
+            Object.entries(
+              openingDenominations
+            ).reduce(
+              (
+                sum,
+                [value, quantity]
+              ) => {
+
+                const numericValue =
+                  Number(value);
+
+                if (
+                  numericValue < 5
+                ) {
+                  return (
+                    sum +
+                    numericValue *
+                    Number(quantity || 0)
+                  );
+                }
+
+                return sum;
+
+              },
+              0
+            )
+          }
+
+          closingCash={
+            Number(closing.total) || 0
+          }
+
+          cashBills={
+            Number(
+              closing.bills_total
+            ) || 0
+          }
+
+          cashCoins={
+            Number(
+              closing.coins_total
+            ) || 0
+          }
+
+          cashSales={
+            Number(
+              closing.cash_sales
+            ) || 0
+          }
+
+          cashDifference={
+            (
+              Number(closing.total) || 0
+            ) -
+            (
+              (
+                Number(opening.total) || 0
+              ) +
+              (
+                Number(closing.cash_sales) || 0
+              )
+            )
+          }
+
+          payments={
+            {
+              tpe:
+                Number(
+                  payments.simple?.tpe
+                ) || 0,
+
+              web:
+                Number(
+                  payments.simple?.web
+                ) || 0,
+
+              cheque:
+                Number(
+                  payments.simple?.cheque
+                ) || 0,
+
+              autre:
+                Number(
+                  payments.simple?.autre
+                ) || 0
+            }
+          }
+
+          ancv={
+            ancvByValue
+          }
+
+          ancvValues={[
+            10,
+            20,
+            25,
+            50
+          ]}
+
+          ancvTotal={
+            Number(
+              paymentTotals.ancv
+            ) || 0
+          }
+
+          ancvDirectTotal={
+            Number(
+              payments.simple?.ancv
+            ) || 0
+          }
+
+          multiplePayments={
+            multiplePayments
+          }
+
+          paymentsTotal={
+            Number(
+              caisse.total_encaisse
+            ) || 0
+          }
+
+          ca={
+            Number(
+              caisse.total_ca
+            ) || 0
+          }
+
+          difference={
+            difference
+          }
+
+          money={
+            money
+          }
+
+        />
+
       </div>
 
     </main>
-
   );
 }
