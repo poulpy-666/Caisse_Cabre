@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -11,6 +12,51 @@ export default function Header({
 }) {
 
   const pathname = usePathname();
+
+  /* =================================================
+     CHARGEMENT DU THÈME
+  ================================================= */
+
+  useEffect(() => {
+
+    const savedTheme =
+      localStorage.getItem('caisse-theme');
+
+    if (savedTheme === 'dark') {
+      setDark(true);
+    }
+
+    if (savedTheme === 'light') {
+      setDark(false);
+    }
+
+  }, [setDark]);
+
+
+  /* =================================================
+     CHANGEMENT DU THÈME
+  ================================================= */
+
+  function toggleTheme() {
+
+    const newDark =
+      !dark;
+
+    setDark(newDark);
+
+    localStorage.setItem(
+      'caisse-theme',
+      newDark
+        ? 'dark'
+        : 'light'
+    );
+
+  }
+
+
+  /* =================================================
+     PAGE ACTUELLE
+  ================================================= */
 
   const isCaisse =
     pathname === '/';
@@ -27,7 +73,9 @@ export default function Header({
     pathname === '/Utilisateurs' ||
     pathname.startsWith('/Utilisateurs/');
 
+
   return (
+
     <header>
 
       {/* =================================================
@@ -41,6 +89,7 @@ export default function Header({
         </div>
 
         <h1>
+
           {isHistorique
             ? 'Historique des caisses'
             : isTarifs
@@ -48,9 +97,11 @@ export default function Header({
               : isUtilisateurs
                 ? 'Gestion des utilisateurs'
                 : 'Clôture de caisse'}
+
         </h1>
 
         <p>
+
           {isHistorique
             ? 'Retrouvez et analysez les clôtures enregistrées.'
             : isTarifs
@@ -58,6 +109,7 @@ export default function Header({
               : isUtilisateurs
                 ? 'Gérez les utilisateurs et leurs autorisations.'
                 : 'Ouverture → comptage → fermeture → contrôle.'}
+
         </p>
 
       </div>
@@ -80,9 +132,7 @@ export default function Header({
         </span>
 
 
-        {/* =================================================
-            CAISSE
-        ================================================= */}
+        {/* CAISSE */}
 
         {!isCaisse && (
 
@@ -97,10 +147,7 @@ export default function Header({
         )}
 
 
-        {/* =================================================
-            UTILISATEURS
-            ADMIN UNIQUEMENT
-        ================================================= */}
+        {/* UTILISATEURS */}
 
         {userRole === 'admin' &&
           !isUtilisateurs && (
@@ -116,10 +163,7 @@ export default function Header({
           )}
 
 
-        {/* =================================================
-            HISTORIQUE
-            ADMIN + RESPONSABLE
-        ================================================= */}
+        {/* HISTORIQUE */}
 
         {(userRole === 'admin' ||
           userRole === 'responsable') &&
@@ -136,10 +180,7 @@ export default function Header({
           )}
 
 
-        {/* =================================================
-            TARIFS
-            ADMIN + RESPONSABLE
-        ================================================= */}
+        {/* TARIFS */}
 
         {(userRole === 'admin' ||
           userRole === 'responsable') &&
@@ -156,9 +197,7 @@ export default function Header({
           )}
 
 
-        {/* =================================================
-            DÉCONNEXION
-        ================================================= */}
+        {/* DÉCONNEXION */}
 
         <button
           type="button"
@@ -168,25 +207,25 @@ export default function Header({
         </button>
 
 
-        {/* =================================================
-            THÈME
-        ================================================= */}
+        {/* THÈME */}
 
         <button
           type="button"
           className="theme"
-          onClick={() =>
-            setDark(!dark)
-          }
+          onClick={toggleTheme}
           aria-label="Changer de thème"
         >
+
           {dark
             ? '☀️'
             : '🌙'}
+
         </button>
 
       </div>
 
     </header>
+
   );
+
 }
