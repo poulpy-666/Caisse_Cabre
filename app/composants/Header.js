@@ -68,7 +68,7 @@ export default function Header({
         {(userRole === 'admin' ||
           userRole === 'responsable') && (
 
-          <Link href="/tarifs">
+          <Link href="/Tarifs">
 
             <button type="button">
               💶 Tarifs
