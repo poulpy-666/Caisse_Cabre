@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
+import Header from './composants/Header';
 
 const money = n =>
   new Intl.NumberFormat('fr-FR', {
