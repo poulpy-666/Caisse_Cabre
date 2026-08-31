@@ -12,6 +12,8 @@ const money = n =>
     currency: 'EUR'
   }).format(Number(n) || 0);
 
+const [dark, setDark] = useState(false);
+
 export default function CaisseDetail() {
 
   const params = useParams();
@@ -27,11 +29,18 @@ export default function CaisseDetail() {
 
   useEffect(() => {
 
-    if (id) {
-      loadCaisse();
-    }
+  const savedTheme =
+    localStorage.getItem('caisse-theme');
 
-  }, [id]);
+  if (savedTheme === 'dark') {
+    setDark(true);
+  }
+
+  if (savedTheme === 'light') {
+    setDark(false);
+  }
+
+}, []);
 
   async function loadCaisse() {
 
@@ -225,7 +234,7 @@ export default function CaisseDetail() {
 
   return (
 
-    <main>
+    <main className={dark ? 'dark' : ''}>
 
       <div className="wrap screenOnly">
 
