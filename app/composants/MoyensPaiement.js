@@ -221,7 +221,7 @@ export default function MoyensPaiement({
       <div className="totalline">
 
         <span>
-          ANCV directs
+          Total ANCV
         </span>
 
         <strong>
