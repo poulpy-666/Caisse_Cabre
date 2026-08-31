@@ -2,68 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
-import Link from 'next/link';
-
-/* =========================================================
-   ÉVÈNEMENTS ET TARIFS
-========================================================= */
-
-const eventTypes = [
-  {
-    id: 'visite',
-    name: 'Visite avant spectacle',
-    tickets: [
-      ['Tarif plein', 10],
-      ['Moins de 12 ans', 5],
-      ['Moins de 3 ans', 0],
-      ['Invitation', 0],
-      ['PMR', 10],
-    ],
-  },
-  {
-    id: 'spectacle',
-    name: 'Spectacle',
-    tickets: [
-      ['Tarif plein', 20],
-      ['Moins de 12 ans', 12],
-      ['Moins de 3 ans', 0],
-      ['Invitation', 0],
-      ['PMR', 20],
-    ],
-  },
-  {
-    id: 'atelier',
-    name: 'Atelier',
-    tickets: [
-      ['Tarif plein', 15],
-      ['Moins de 12 ans', 8],
-      ['Moins de 3 ans', 0],
-      ['Invitation', 0],
-      ['PMR', 15],
-    ],
-  },
-];
-
-/* =========================================================
-   ESPÈCES
-========================================================= */
-
-const cashValues = [
-  50, 20, 10, 5,
-  2, 1,
-  0.5, 0.2, 0.1,
-  0.05, 0.02, 0.01
-];
-
-const billValues = [50, 20, 10, 5];
-
-const coinValues = [
-  2, 1,
-  0.5, 0.2, 0.1,
-  0.05, 0.02, 0.01
-];
-
-const ancvValues = [10, 20, 25, 50];
 
 /* =========================================================
    OUTILS
@@ -73,7 +11,7 @@ const money = n =>
   new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR'
-  }).format(n || 0);
+  }).format(Number(n) || 0);
 
 function NumberField({
   value,
@@ -100,10 +38,10 @@ function NumberField({
   );
 }
 
-function createTicketQuantities(event) {
+function createTicketQuantities(tickets) {
   return Object.fromEntries(
-    event.tickets.map(([name]) => [
-      name,
+    tickets.map(ticket => [
+      ticket.name,
       0
     ])
   );
@@ -122,7 +60,9 @@ function createEventSale(event) {
     tickets: event.tickets,
 
     quantities:
-      createTicketQuantities(event)
+      createTicketQuantities(
+        event.tickets
+      )
   };
 }
 
@@ -140,6 +80,31 @@ function createEmptyMultiple() {
     }
   };
 }
+
+/* =========================================================
+   ESPÈCES
+========================================================= */
+
+const cashValues = [
+  50, 20, 10, 5,
+  2, 1,
+  0.5, 0.2, 0.1,
+  0.05, 0.02, 0.01
+];
+
+const billValues = [
+  50, 20, 10, 5
+];
+
+const coinValues = [
+  2, 1,
+  0.5, 0.2, 0.1,
+  0.05, 0.02, 0.01
+];
+
+const ancvValues = [
+  10, 20, 25, 50
+];
 
 /* =========================================================
    PAGE
@@ -197,6 +162,22 @@ export default function Home() {
     );
 
   /* =======================================================
+     ÉVÉNEMENTS / TARIFS SUPABASE
+  ======================================================= */
+
+  const [events, setEvents] =
+    useState([]);
+
+  const [eventsLoading, setEventsLoading] =
+    useState(false);
+
+  const [eventsError, setEventsError] =
+    useState('');
+
+  const [selectedEventId, setSelectedEventId] =
+    useState('');
+
+  /* =======================================================
      OUVERTURE
   ======================================================= */
 
@@ -230,11 +211,6 @@ export default function Home() {
 
   const [eventSales, setEventSales] =
     useState([]);
-
-  const [selectedEventId, setSelectedEventId] =
-    useState(
-      eventTypes[0].id
-    );
 
   /* =======================================================
      ANCV
@@ -327,6 +303,8 @@ export default function Home() {
             )
             .single();
 
+        if (!mounted) return;
+
         if (
           !error &&
           profile
@@ -407,6 +385,151 @@ export default function Home() {
   }, []);
 
   /* =======================================================
+     CHARGEMENT ÉVÉNEMENTS + TARIFS
+  ======================================================= */
+
+  useEffect(() => {
+
+    if (!session) {
+      return;
+    }
+
+    loadEvents();
+
+  }, [session]);
+
+  async function loadEvents() {
+
+    setEventsLoading(true);
+    setEventsError('');
+
+    const {
+      data: eventData,
+      error: eventError
+    } = await supabase
+      .from('events')
+      .select(
+        'id, name, active'
+      )
+      .eq(
+        'active',
+        true
+      )
+      .order(
+        'created_at',
+        {
+          ascending: true
+        }
+      );
+
+    if (eventError) {
+
+      console.error(
+        'Erreur chargement événements:',
+        eventError
+      );
+
+      setEventsError(
+        'Impossible de charger les événements.'
+      );
+
+      setEventsLoading(false);
+
+      return;
+    }
+
+    const {
+      data: tarifData,
+      error: tarifError
+    } = await supabase
+      .from('tarifs')
+      .select(
+        'id, event_id, name, price, active'
+      )
+      .eq(
+        'active',
+        true
+      )
+      .order(
+        'created_at',
+        {
+          ascending: true
+        }
+      );
+
+    if (tarifError) {
+
+      console.error(
+        'Erreur chargement tarifs:',
+        tarifError
+      );
+
+      setEventsError(
+        'Impossible de charger les tarifs.'
+      );
+
+      setEventsLoading(false);
+
+      return;
+    }
+
+    const formattedEvents =
+      (eventData || [])
+        .map(event => ({
+
+          id: event.id,
+
+          name: event.name,
+
+          active: event.active,
+
+          tickets:
+            (tarifData || [])
+              .filter(
+                tarif =>
+                  tarif.event_id ===
+                  event.id
+              )
+              .map(tarif => ({
+                id: tarif.id,
+                name: tarif.name,
+                price:
+                  Number(
+                    tarif.price
+                  ) || 0
+              }))
+
+        }))
+        .filter(
+          event =>
+            event.tickets.length > 0
+        );
+
+    setEvents(
+      formattedEvents
+    );
+
+    if (
+      formattedEvents.length > 0 &&
+      !selectedEventId
+    ) {
+
+      setSelectedEventId(
+        formattedEvents[0].id
+      );
+
+    } else if (
+      formattedEvents.length === 0
+    ) {
+
+      setSelectedEventId('');
+
+    }
+
+    setEventsLoading(false);
+  }
+
+  /* =======================================================
      CONNEXION
   ======================================================= */
 
@@ -453,8 +576,7 @@ export default function Home() {
     setUserRole(null);
 
   }
-
-  /* =======================================================
+     /* =======================================================
      CALCULS ESPÈCES
   ======================================================= */
 
@@ -468,9 +590,7 @@ export default function Home() {
           ) =>
             sum +
             value *
-              opening[
-                value
-              ],
+              opening[value],
           0
         ),
       [opening]
@@ -486,9 +606,7 @@ export default function Home() {
           ) =>
             sum +
             value *
-              closing[
-                value
-              ],
+              closing[value],
           0
         ),
       [closing]
@@ -504,9 +622,7 @@ export default function Home() {
           ) =>
             sum +
             value *
-              opening[
-                value
-              ],
+              opening[value],
           0
         ),
       [opening]
@@ -522,9 +638,7 @@ export default function Home() {
           ) =>
             sum +
             value *
-              opening[
-                value
-              ],
+              opening[value],
           0
         ),
       [opening]
@@ -540,9 +654,7 @@ export default function Home() {
           ) =>
             sum +
             value *
-              closing[
-                value
-              ],
+              closing[value],
           0
         ),
       [closing]
@@ -558,9 +670,7 @@ export default function Home() {
           ) =>
             sum +
             value *
-              closing[
-                value
-              ],
+              closing[value],
           0
         ),
       [closing]
@@ -584,17 +694,16 @@ export default function Home() {
               event.tickets.reduce(
                 (
                   sum,
-                  [
-                    name,
-                    price
-                  ]
+                  ticket
                 ) =>
                   sum +
-                  price *
+                  Number(
+                    ticket.price
+                  ) *
                     Number(
                       event
                         .quantities[
-                        name
+                        ticket.name
                       ] || 0
                     ),
                 0
@@ -643,9 +752,7 @@ export default function Home() {
           ) =>
             sum +
             value *
-              ancv[
-                value
-              ],
+              ancv[value],
           0
         ),
       [ancv]
@@ -856,12 +963,16 @@ export default function Home() {
 
   };
 
+  /* =======================================================
+     AJOUT D'UN ÉVÈNEMENT
+  ======================================================= */
+
   function addEvent() {
 
     const event =
-      eventTypes.find(
-        e =>
-          e.id ===
+      events.find(
+        item =>
+          item.id ===
           selectedEventId
       );
 
@@ -895,6 +1006,10 @@ export default function Home() {
 
   }
 
+  /* =======================================================
+     SUPPRESSION D'UN ÉVÈNEMENT
+  ======================================================= */
+
   function removeEvent(id) {
 
     setEventSales(
@@ -906,6 +1021,10 @@ export default function Home() {
     );
 
   }
+
+  /* =======================================================
+     MODIFICATION QUANTITÉ TICKET
+  ======================================================= */
 
   function updateTicketQuantity(
     eventId,
@@ -933,8 +1052,7 @@ export default function Home() {
 
               quantities: {
 
-                ...event
-                  .quantities,
+                ...event.quantities,
 
                 [ticketName]:
                   value
@@ -949,13 +1067,17 @@ export default function Home() {
 
   }
 
+  /* =======================================================
+     RESET
+  ======================================================= */
+
   function reset() {
 
     setOpening(
       Object.fromEntries(
         cashValues.map(
-          v => [
-            v,
+          value => [
+            value,
             0
           ]
         )
@@ -965,8 +1087,8 @@ export default function Home() {
     setClosing(
       Object.fromEntries(
         cashValues.map(
-          v => [
-            v,
+          value => [
+            value,
             0
           ]
         )
@@ -976,14 +1098,14 @@ export default function Home() {
     setEventSales([]);
 
     setSelectedEventId(
-      eventTypes[0].id
+      events[0]?.id || ''
     );
 
     setAncv(
       Object.fromEntries(
         ancvValues.map(
-          v => [
-            v,
+          value => [
+            value,
             0
           ]
         )
@@ -1056,8 +1178,7 @@ export default function Home() {
 
         allocations: {
 
-          ...prev
-            .allocations,
+          ...prev.allocations,
 
           [type]:
             value
@@ -1076,14 +1197,13 @@ export default function Home() {
 
     const amount =
       Number(
-        multipleDraft
-          .amount || 0
+        multipleDraft.amount ||
+        0
       );
 
     const allocated =
       Object.values(
-        multipleDraft
-          .allocations
+        multipleDraft.allocations
       ).reduce(
         (
           sum,
@@ -1108,7 +1228,7 @@ export default function Home() {
     if (
       Math.abs(
         amount -
-          allocated
+        allocated
       ) > 0.005
     ) {
 
@@ -1128,7 +1248,6 @@ export default function Home() {
         ...prev,
 
         {
-
           id:
             Date.now() +
             Math.random(),
@@ -1136,10 +1255,8 @@ export default function Home() {
           amount,
 
           allocations: {
-            ...multipleDraft
-              .allocations
+            ...multipleDraft.allocations
           }
-
         }
 
       ]
@@ -1155,8 +1272,9 @@ export default function Home() {
 
     const payment =
       multiplePayments.find(
-        p =>
-          p.id === id
+        payment =>
+          payment.id ===
+          id
       );
 
     if (!payment)
@@ -1168,8 +1286,7 @@ export default function Home() {
         payment.amount,
 
       allocations: {
-        ...payment
-          .allocations
+        ...payment.allocations
       }
 
     });
@@ -1177,8 +1294,9 @@ export default function Home() {
     setMultiplePayments(
       prev =>
         prev.filter(
-          p =>
-            p.id !== id
+          payment =>
+            payment.id !==
+            id
         )
     );
 
@@ -1189,14 +1307,14 @@ export default function Home() {
     setMultiplePayments(
       prev =>
         prev.filter(
-          p =>
-            p.id !== id
+          payment =>
+            payment.id !==
+            id
         )
     );
 
   }
-
-  /* =======================================================
+     /* =======================================================
      SAUVEGARDE
   ======================================================= */
 
@@ -1220,10 +1338,7 @@ export default function Home() {
       return;
     }
 
-    if (
-      eventSales.length ===
-      0
-    ) {
+    if (eventSales.length === 0) {
 
       alert(
         'Ajoute au moins un évènement à la billetterie.'
@@ -1243,6 +1358,64 @@ export default function Home() {
 
     setSaving(true);
 
+    /*
+     * On crée une copie des événements et tarifs utilisés
+     * au moment de la clôture.
+     *
+     * Ainsi, si les tarifs sont modifiés plus tard dans
+     * la page "Tarifs", les anciennes caisses resteront
+     * parfaitement fidèles aux tarifs réellement utilisés.
+     */
+
+    const savedEvents =
+      eventTotals.map(event => ({
+
+        eventId:
+          event.eventId,
+
+        eventName:
+          event.eventName,
+
+        tickets:
+          event.tickets.map(ticket => ({
+
+            id:
+              ticket.id,
+
+            name:
+              ticket.name,
+
+            price:
+              Number(
+                ticket.price
+              ) || 0,
+
+            quantity:
+              Number(
+                event.quantities[
+                  ticket.name
+                ] || 0
+              ),
+
+            total:
+              (
+                Number(
+                  ticket.price
+                ) || 0
+              ) *
+              Number(
+                event.quantities[
+                  ticket.name
+                ] || 0
+              )
+
+          })),
+
+        total:
+          event.total
+
+      }));
+
     const caisseData = {
 
       event_name:
@@ -1256,7 +1429,7 @@ export default function Home() {
       ca_data: {
 
         events:
-          eventTotals,
+          savedEvents,
 
         total:
           ca
@@ -1498,8 +1671,7 @@ export default function Home() {
                   }
                   onChange={e =>
                     setEmail(
-                      e.target
-                        .value
+                      e.target.value
                     )
                   }
                   placeholder="exemple@association.fr"
@@ -1520,8 +1692,7 @@ export default function Home() {
                   }
                   onChange={e =>
                     setPassword(
-                      e.target
-                        .value
+                      e.target.value
                     )
                   }
                   placeholder="Mot de passe"
@@ -1654,57 +1825,79 @@ export default function Home() {
 
           <div className="headerActions">
 
-           <span className="userRole">
+            <span className="userRole">
 
-    {userRole === 'admin'
-      ? 'Administrateur'
-      : userRole === 'responsable'
-        ? 'Responsable'
-        : 'Bénévole'}
+              {userRole === 'admin'
+                ? 'Administrateur'
+                : userRole === 'responsable'
+                  ? 'Responsable'
+                  : 'Bénévole'}
 
-  </span>
+            </span>
 
-  {(userRole === 'admin' ||
-  userRole === 'responsable') && (
+            {userRole === 'admin' && (
 
-  <Link href="/historique">
-    <button type="button">
-      📋 Historique
-    </button>
-  </Link>
+              <Link href="/Utilisateur">
+                <button
+                  type="button"
+                >
+                  👥 Utilisateurs
+                </button>
+              </Link>
 
-)}
+            )}
 
-{userRole === 'admin' && (
+            {(userRole === 'admin' ||
+              userRole === 'responsable') && (
 
-  <Link href="/Utilisateurs">
-    <button type="button">
-      👥 Utilisateurs
-    </button>
-  </Link>
+              <Link href="/historique">
+                <button
+                  type="button"
+                >
+                  📋 Historique
+                </button>
+              </Link>
 
-)}
+            )}
 
-  <button
-    type="button"
-    onClick={handleLogout}
-  >
-    Déconnexion
-  </button>
+            {(userRole === 'admin' ||
+              userRole === 'responsable') && (
 
-  <button
-    className="theme"
-    onClick={() =>
-      setDark(!dark)
-    }
-    aria-label="Changer de thème"
-  >
-    {dark
-      ? '☀️'
-      : '🌙'}
-  </button>
+              <Link href="/tarifs">
+                <button
+                  type="button"
+                >
+                  💶 Tarifs
+                </button>
+              </Link>
 
-</div>
+            )}
+
+            <button
+              type="button"
+              onClick={
+                handleLogout
+              }
+            >
+              Déconnexion
+            </button>
+
+            <button
+              className="theme"
+              onClick={() =>
+                setDark(
+                  !dark
+                )
+              }
+              aria-label="Changer de thème"
+            >
+              {dark
+                ? '☀️'
+                : '🌙'}
+            </button>
+
+          </div>
+
         </header>
 
         {/* =================================================
@@ -1729,8 +1922,7 @@ export default function Home() {
                 }
                 onChange={e =>
                   setEventName(
-                    e.target
-                      .value
+                    e.target.value
                   )
                 }
                 placeholder="Nom de la manifestation"
@@ -1748,8 +1940,7 @@ export default function Home() {
                 }
                 onChange={e =>
                   setResponsible(
-                    e.target
-                      .value
+                    e.target.value
                   )
                 }
                 placeholder="Nom du responsable"
@@ -1765,11 +1956,12 @@ export default function Home() {
 
             <input
               type="date"
-              value={date}
+              value={
+                date
+              }
               onChange={e =>
                 setDate(
-                  e.target
-                    .value
+                  e.target.value
                 )
               }
             />
@@ -1825,9 +2017,9 @@ export default function Home() {
                     <strong>
                       {money(
                         value *
-                          opening[
-                            value
-                          ]
+                        opening[
+                          value
+                        ]
                       )}
                     </strong>
 
@@ -1895,9 +2087,9 @@ export default function Home() {
                     <strong>
                       {money(
                         value *
-                          opening[
-                            value
-                          ]
+                        opening[
+                          value
+                        ]
                       )}
                     </strong>
 
@@ -1954,63 +2146,87 @@ export default function Home() {
             Ajoute les évènements concernés par la manifestation puis saisis les ventes.
           </p>
 
-          <div className="grid2">
+          {eventsError && (
 
-            <label>
+            <div className="info bad">
+              {eventsError}
+            </div>
 
-              Évènement
+          )}
 
-              <select
-                value={
-                  selectedEventId
-                }
-                onChange={e =>
-                  setSelectedEventId(
-                    e.target
-                      .value
-                  )
-                }
-              >
+          {eventsLoading ? (
 
-                {eventTypes.map(
-                  event => (
+            <div className="info">
+              ⏳ Chargement des événements et tarifs...
+            </div>
 
-                    <option
-                      key={
-                        event.id
-                      }
-                      value={
-                        event.id
-                      }
-                    >
-                      {event.name}
-                    </option>
+          ) : events.length === 0 ? (
 
-                  )
-                )}
+            <div className="info">
+              Aucun événement avec tarif actif n'est disponible.
+              <br />
+              Crée un événement et ses tarifs dans la page Tarifs.
+            </div>
 
-              </select>
+          ) : (
 
-            </label>
+            <div className="grid2">
 
-            <div>
+              <label>
 
-              <button
-                type="button"
-                className="primary"
-                onClick={
-                  addEvent
-                }
-              >
-                ＋ Ajouter l'évènement
-              </button>
+                Évènement
+
+                <select
+                  value={
+                    selectedEventId
+                  }
+                  onChange={e =>
+                    setSelectedEventId(
+                      e.target.value
+                    )
+                  }
+                >
+
+                  {events.map(
+                    event => (
+
+                      <option
+                        key={
+                          event.id
+                        }
+                        value={
+                          event.id
+                        }
+                      >
+                        {event.name}
+                      </option>
+
+                    )
+                  )}
+
+                </select>
+
+              </label>
+
+              <div>
+
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={
+                    addEvent
+                  }
+                >
+                  ＋ Ajouter l'évènement
+                </button>
+
+              </div>
 
             </div>
 
-          </div>
+          )}
 
-          {eventTotals.length ===
-          0 ? (
+          {eventTotals.length === 0 ? (
 
             <div className="info">
 
@@ -2038,7 +2254,6 @@ export default function Home() {
 
                     <button
                       type="button"
-                       className="danger"
                       onClick={() =>
                         removeEvent(
                           event.id
@@ -2053,29 +2268,24 @@ export default function Home() {
                   <div className="ticketgrid">
 
                     {event.tickets.map(
-                      (
-                        [
-                          name,
-                          price
-                        ]
-                      ) => (
+                      ticket => (
 
                         <div
                           className="ticket"
                           key={
-                            name
+                            ticket.id
                           }
                         >
 
                           <div>
 
                             <strong>
-                              {name}
+                              {ticket.name}
                             </strong>
 
                             <span>
                               {money(
-                                price
+                                ticket.price
                               )}
                             </span>
 
@@ -2085,14 +2295,13 @@ export default function Home() {
                             value={
                               event
                                 .quantities[
-                                name
-                              ] ||
-                              0
+                                  ticket.name
+                                ] || 0
                             }
                             onChange={x =>
                               updateTicketQuantity(
                                 event.id,
-                                name,
+                                ticket.name,
                                 x
                               )
                             }
@@ -2100,14 +2309,13 @@ export default function Home() {
 
                           <b>
                             {money(
-                              price *
-                                (
-                                  event
-                                    .quantities[
-                                    name
-                                  ] ||
-                                  0
-                                )
+                              ticket.price *
+                              (
+                                event
+                                  .quantities[
+                                    ticket.name
+                                  ] || 0
+                              )
                             )}
                           </b>
 
@@ -2152,9 +2360,8 @@ export default function Home() {
           </div>
 
         </section>
-
         {/* =================================================
-            3. FERMETURE ESPECES
+            3. FERMETURE — ESPÈCES
         ================================================= */}
 
         <section className="card">
@@ -2189,16 +2396,12 @@ export default function Home() {
                   >
 
                     <span>
-                      {money(
-                        value
-                      )}
+                      {money(value)}
                     </span>
 
                     <NumberField
                       value={
-                        closing[
-                          value
-                        ]
+                        closing[value]
                       }
                       onChange={x =>
                         setCount(
@@ -2212,9 +2415,7 @@ export default function Home() {
                     <strong>
                       {money(
                         value *
-                          closing[
-                            value
-                          ]
+                        closing[value]
                       )}
                     </strong>
 
@@ -2230,9 +2431,7 @@ export default function Home() {
                 </span>
 
                 <strong>
-                  {money(
-                    cashBills
-                  )}
+                  {money(cashBills)}
                 </strong>
 
               </div>
@@ -2259,16 +2458,12 @@ export default function Home() {
                   >
 
                     <span>
-                      {money(
-                        value
-                      )}
+                      {money(value)}
                     </span>
 
                     <NumberField
                       value={
-                        closing[
-                          value
-                        ]
+                        closing[value]
                       }
                       onChange={x =>
                         setCount(
@@ -2282,9 +2477,7 @@ export default function Home() {
                     <strong>
                       {money(
                         value *
-                          closing[
-                            value
-                          ]
+                        closing[value]
                       )}
                     </strong>
 
@@ -2300,9 +2493,7 @@ export default function Home() {
                 </span>
 
                 <strong>
-                  {money(
-                    cashCoins
-                  )}
+                  {money(cashCoins)}
                 </strong>
 
               </div>
@@ -2318,9 +2509,7 @@ export default function Home() {
             </span>
 
             <strong>
-              {money(
-                closingCash
-              )}
+              {money(closingCash)}
             </strong>
 
           </div>
@@ -2330,9 +2519,7 @@ export default function Home() {
             Fond initial :{' '}
 
             <strong>
-              {money(
-                openingCash
-              )}
+              {money(openingCash)}
             </strong>
 
             {' — '}
@@ -2340,9 +2527,7 @@ export default function Home() {
             Espèces issues des ventes :{' '}
 
             <strong>
-              {money(
-                cashSales
-              )}
+              {money(cashSales)}
             </strong>
 
           </div>
@@ -2566,16 +2751,12 @@ export default function Home() {
                 >
 
                   <span>
-                    {money(
-                      value
-                    )}
+                    {money(value)}
                   </span>
 
                   <NumberField
                     value={
-                      ancv[
-                        value
-                      ]
+                      ancv[value]
                     }
                     onChange={x =>
                       setCount(
@@ -2589,9 +2770,7 @@ export default function Home() {
                   <strong>
                     {money(
                       value *
-                        ancv[
-                          value
-                        ]
+                      ancv[value]
                     )}
                   </strong>
 
@@ -2694,9 +2873,7 @@ export default function Home() {
                     <>
                       Espèces :{' '}
                       {money(
-                        payment
-                          .allocations
-                          .cash
+                        payment.allocations.cash
                       )}{' '}
                     </>
                   )}
@@ -2705,9 +2882,7 @@ export default function Home() {
                     <>
                       TPE :{' '}
                       {money(
-                        payment
-                          .allocations
-                          .tpe
+                        payment.allocations.tpe
                       )}{' '}
                     </>
                   )}
@@ -2716,9 +2891,7 @@ export default function Home() {
                     <>
                       CB Web :{' '}
                       {money(
-                        payment
-                          .allocations
-                          .web
+                        payment.allocations.web
                       )}{' '}
                     </>
                   )}
@@ -2727,9 +2900,7 @@ export default function Home() {
                     <>
                       Chèque :{' '}
                       {money(
-                        payment
-                          .allocations
-                          .cheque
+                        payment.allocations.cheque
                       )}{' '}
                     </>
                   )}
@@ -2738,9 +2909,7 @@ export default function Home() {
                     <>
                       ANCV :{' '}
                       {money(
-                        payment
-                          .allocations
-                          .ancv
+                        payment.allocations.ancv
                       )}{' '}
                     </>
                   )}
@@ -2749,9 +2918,7 @@ export default function Home() {
                     <>
                       Autre :{' '}
                       {money(
-                        payment
-                          .allocations
-                          .autre
+                        payment.allocations.autre
                       )}
                     </>
                   )}
@@ -2820,30 +2987,12 @@ export default function Home() {
               <div className="paymentgrid">
 
                 {[
-                  [
-                    'cash',
-                    'Espèces'
-                  ],
-                  [
-                    'tpe',
-                    'CB Guichet — TPE'
-                  ],
-                  [
-                    'web',
-                    'CB Web'
-                  ],
-                  [
-                    'cheque',
-                    'Chèque'
-                  ],
-                  [
-                    'ancv',
-                    'ANCV'
-                  ],
-                  [
-                    'autre',
-                    'Autre'
-                  ]
+                  ['cash', 'Espèces'],
+                  ['tpe', 'CB Guichet — TPE'],
+                  ['web', 'CB Web'],
+                  ['cheque', 'Chèque'],
+                  ['ancv', 'ANCV'],
+                  ['autre', 'Autre']
                 ].map(
                   (
                     [
@@ -2853,9 +3002,7 @@ export default function Home() {
                   ) => (
 
                     <label
-                      key={
-                        type
-                      }
+                      key={type}
                     >
 
                       {label}
@@ -2865,8 +3012,8 @@ export default function Home() {
                         value={
                           multipleDraft
                             .allocations[
-                            type
-                          ]
+                              type
+                            ]
                         }
                         onChange={value =>
                           updateMultipleAllocation(
@@ -2934,8 +3081,7 @@ export default function Home() {
 
           )}
 
-          {multiplePayments.length >
-            0 && (
+          {multiplePayments.length > 0 && (
 
             <div className="totalline">
 
@@ -2953,7 +3099,7 @@ export default function Home() {
                       sum +
                       Number(
                         payment.amount ||
-                          0
+                        0
                       ),
                     0
                   )
@@ -3129,7 +3275,7 @@ export default function Home() {
                   window.print()
                 }
               >
-                Imprimer
+                🖨️ Imprimer
               </button>
 
             )}
@@ -3164,4 +3310,5 @@ export default function Home() {
     </main>
 
   );
+
 }
