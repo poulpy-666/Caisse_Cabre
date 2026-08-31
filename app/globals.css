@@ -745,3 +745,30 @@ select:focus {
     background: white;
   }
 }
+/* =========================================================
+   GESTION UTILISATEURS
+========================================================= */
+
+.historyItem > div:last-child {
+  align-items: flex-end;
+}
+
+.historyItem > div:last-child .actions {
+  justify-content: flex-end;
+}
+
+.historyItem select {
+  min-width: 160px;
+}
+
+@media (max-width: 700px) {
+
+  .historyItem > div:last-child {
+    align-items: flex-start;
+  }
+
+  .historyItem select {
+    min-width: 0;
+  }
+
+}
