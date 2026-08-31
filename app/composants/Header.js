@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header({
   userRole,
@@ -9,8 +10,29 @@ export default function Header({
   onLogout
 }) {
 
+  const pathname = usePathname();
+
+  const isCaisse =
+    pathname === '/';
+
+  const isHistorique =
+    pathname === '/historique' ||
+    pathname.startsWith('/historique/');
+
+  const isTarifs =
+    pathname === '/Tarifs' ||
+    pathname.startsWith('/Tarifs/');
+
+  const isUtilisateurs =
+    pathname === '/Utilisateurs' ||
+    pathname.startsWith('/Utilisateurs/');
+
   return (
     <header>
+
+      {/* =================================================
+          TITRE
+      ================================================= */}
 
       <div>
 
@@ -19,14 +41,31 @@ export default function Header({
         </div>
 
         <h1>
-          Clôture de caisse
+          {isHistorique
+            ? 'Historique des caisses'
+            : isTarifs
+              ? 'Gestion des tarifs'
+              : isUtilisateurs
+                ? 'Gestion des utilisateurs'
+                : 'Clôture de caisse'}
         </h1>
 
         <p>
-          Ouverture → comptage → fermeture → contrôle.
+          {isHistorique
+            ? 'Retrouvez et analysez les clôtures enregistrées.'
+            : isTarifs
+              ? 'Gérez les événements et les tarifs de billetterie.'
+              : isUtilisateurs
+                ? 'Gérez les utilisateurs et leurs autorisations.'
+                : 'Ouverture → comptage → fermeture → contrôle.'}
         </p>
 
       </div>
+
+
+      {/* =================================================
+          ACTIONS
+      ================================================= */}
 
       <div className="headerActions">
 
@@ -40,43 +79,86 @@ export default function Header({
 
         </span>
 
-        {userRole === 'admin' && (
 
-          <Link href="/Utilisateurs">
+        {/* =================================================
+            CAISSE
+        ================================================= */}
+
+        {!isCaisse && (
+
+          <Link href="/">
 
             <button type="button">
-              👥 Utilisateurs
+              🧾 Caisse
             </button>
 
           </Link>
 
         )}
+
+
+        {/* =================================================
+            UTILISATEURS
+            ADMIN UNIQUEMENT
+        ================================================= */}
+
+        {userRole === 'admin' &&
+          !isUtilisateurs && (
+
+            <Link href="/Utilisateurs">
+
+              <button type="button">
+                👥 Utilisateurs
+              </button>
+
+            </Link>
+
+          )}
+
+
+        {/* =================================================
+            HISTORIQUE
+            ADMIN + RESPONSABLE
+        ================================================= */}
 
         {(userRole === 'admin' ||
-          userRole === 'responsable') && (
+          userRole === 'responsable') &&
+          !isHistorique && (
 
-          <Link href="/historique">
+            <Link href="/historique">
 
-            <button type="button">
-              📋 Historique
-            </button>
+              <button type="button">
+                📋 Historique
+              </button>
 
-          </Link>
+            </Link>
 
-        )}
+          )}
+
+
+        {/* =================================================
+            TARIFS
+            ADMIN + RESPONSABLE
+        ================================================= */}
 
         {(userRole === 'admin' ||
-          userRole === 'responsable') && (
+          userRole === 'responsable') &&
+          !isTarifs && (
 
-          <Link href="/Tarifs">
+            <Link href="/Tarifs">
 
-            <button type="button">
-              💶 Tarifs
-            </button>
+              <button type="button">
+                💶 Tarifs
+              </button>
 
-          </Link>
+            </Link>
 
-        )}
+          )}
+
+
+        {/* =================================================
+            DÉCONNEXION
+        ================================================= */}
 
         <button
           type="button"
@@ -84,6 +166,11 @@ export default function Header({
         >
           Déconnexion
         </button>
+
+
+        {/* =================================================
+            THÈME
+        ================================================= */}
 
         <button
           type="button"
