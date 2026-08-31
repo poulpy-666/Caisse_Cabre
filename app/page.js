@@ -914,7 +914,10 @@ export default function Home() {
   const difference =
     paymentsTotal -
     ca;
-
+   const cashDifference =
+     closingCash -
+     (openingCash + cashSales);
+   
   /* =======================================================
      PAIEMENT MULTIPLE
   ======================================================= */
