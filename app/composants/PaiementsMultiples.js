@@ -224,14 +224,13 @@ export default function PaiementsMultiples({
           <div className="paymentgrid">
 
             {[
-              ['cash', 'Espèces'],
-              ['tpe', 'CB Guichet — TPE'],
-              ['web', 'CB Web'],
-              ['cheque', 'Chèque'],
-              ['ancv', 'ANCV'],
-              ['connect', 'ANCV Connect'],
-              ['autre', 'Autre']
-            ].map(
+  ['cash', 'Espèces'],
+  ['tpe', 'CB Guichet — TPE'],
+  ['web', 'CB Web'],
+  ['cheque', 'Chèque'],
+  ['ancv', 'ANCV'],
+  ['autre', 'Autre']
+].map(
               (
                 [
                   type,
