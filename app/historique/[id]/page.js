@@ -20,16 +20,10 @@ export default function CaisseDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  /* =========================================================
-     CHARGEMENT
-  ========================================================= */
-
   useEffect(() => {
-
     if (id) {
       loadCaisse();
     }
-
   }, [id]);
 
   async function loadCaisse() {
@@ -55,7 +49,6 @@ export default function CaisseDetail() {
       );
 
       setLoading(false);
-
       return;
     }
 
@@ -63,14 +56,9 @@ export default function CaisseDetail() {
     setLoading(false);
   }
 
-  /* =========================================================
-     CHARGEMENT
-  ========================================================= */
-
   if (loading) {
 
     return (
-
       <main>
 
         <div className="wrap">
@@ -86,19 +74,12 @@ export default function CaisseDetail() {
         </div>
 
       </main>
-
     );
-
   }
-
-  /* =========================================================
-     ERREUR
-  ========================================================= */
 
   if (error || !caisse) {
 
     return (
-
       <main>
 
         <div className="wrap">
@@ -122,14 +103,8 @@ export default function CaisseDetail() {
         </div>
 
       </main>
-
     );
-
   }
-
-  /* =========================================================
-     DONNÉES
-  ========================================================= */
 
   const caData =
     caisse.ca_data || {};
@@ -150,16 +125,12 @@ export default function CaisseDetail() {
     payments.ancv_by_value || {};
 
   const multiplePayments =
-    Array.isArray(
-      caisse.multiple_payments
-    )
+    Array.isArray(caisse.multiple_payments)
       ? caisse.multiple_payments
       : [];
 
   const events =
-    Array.isArray(
-      caData.events
-    )
+    Array.isArray(caData.events)
       ? caData.events
       : [];
 
@@ -170,31 +141,18 @@ export default function CaisseDetail() {
     closing.denominations || {};
 
   const difference =
-    Number(
-      caisse.difference
-    ) || 0;
+    Number(caisse.difference) || 0;
 
   const differenceOk =
-    Math.abs(
-      difference
-    ) < 0.005;
+    Math.abs(difference) < 0.005;
 
   const totalMultiple =
     multiplePayments.reduce(
-      (
-        sum,
-        payment
-      ) =>
+      (sum, payment) =>
         sum +
-        Number(
-          payment?.amount || 0
-        ),
+        Number(payment?.amount || 0),
       0
     );
-
-  /* =========================================================
-     AFFICHAGE
-  ========================================================= */
 
   return (
 
@@ -324,9 +282,7 @@ export default function CaisseDetail() {
           </h2>
 
           <p className="muted">
-
             Détail des ventes par évènement et par tarif.
-
           </p>
 
           {events.length === 0 ? (
@@ -344,9 +300,7 @@ export default function CaisseDetail() {
               ) => {
 
                 const tickets =
-                  Array.isArray(
-                    event.tickets
-                  )
+                  Array.isArray(event.tickets)
                     ? event.tickets
                     : [];
 
@@ -392,41 +346,19 @@ export default function CaisseDetail() {
                           ticketIndex
                         ) => {
 
-                          /*
-                           * ANCIEN FORMAT
-                           *
-                           * Certains historiques peuvent
-                           * contenir :
-                           *
-                           * [
-                           *   ['Adulte', 10],
-                           *   ['Enfant', 5]
-                           * ]
-                           *
-                           * NOUVEAU FORMAT
-                           *
-                           * Les nouvelles caisses enregistrent :
-                           *
-                           * {
-                           *   id,
-                           *   name,
-                           *   price,
-                           *   quantity,
-                           *   total
-                           * }
-                           *
-                           * On accepte les deux formats.
-                           */
-
                           let name;
                           let price;
                           let quantity;
                           let total;
 
+                          /*
+                           * Ancien format :
+                           *
+                           * [name, price]
+                           */
+
                           if (
-                            Array.isArray(
-                              ticket
-                            )
+                            Array.isArray(ticket)
                           ) {
 
                             name =
@@ -439,16 +371,28 @@ export default function CaisseDetail() {
 
                             quantity =
                               Number(
-                                quantities[
-                                  name
-                                ] || 0
+                                quantities[name] || 0
                               );
 
                             total =
                               quantity *
                               price;
 
-                          } else {
+                          }
+
+                          /*
+                           * Nouveau format :
+                           *
+                           * {
+                           *   id,
+                           *   name,
+                           *   price,
+                           *   quantity,
+                           *   total
+                           * }
+                           */
+
+                          else {
 
                             name =
                               ticket?.name ||
@@ -456,16 +400,13 @@ export default function CaisseDetail() {
 
                             price =
                               Number(
-                                ticket?.price ||
-                                0
+                                ticket?.price || 0
                               );
 
                             quantity =
                               Number(
                                 ticket?.quantity ??
-                                quantities[
-                                  name
-                                ] ??
+                                quantities[name] ??
                                 0
                               );
 
@@ -585,10 +526,7 @@ export default function CaisseDetail() {
               openingDenominations
             )
               .sort(
-                (
-                  [a],
-                  [b]
-                ) =>
+                ([a], [b]) =>
                   Number(b) -
                   Number(a)
               )
@@ -621,9 +559,7 @@ export default function CaisseDetail() {
                     <strong>
                       {money(
                         Number(value) *
-                        Number(
-                          quantity
-                        )
+                        Number(quantity)
                       )}
                     </strong>
 
@@ -667,10 +603,7 @@ export default function CaisseDetail() {
               closingDenominations
             )
               .sort(
-                (
-                  [a],
-                  [b]
-                ) =>
+                ([a], [b]) =>
                   Number(b) -
                   Number(a)
               )
@@ -703,9 +636,7 @@ export default function CaisseDetail() {
                     <strong>
                       {money(
                         Number(value) *
-                        Number(
-                          quantity
-                        )
+                        Number(quantity)
                       )}
                     </strong>
 
@@ -874,10 +805,7 @@ export default function CaisseDetail() {
                 ancvByValue
               )
                 .sort(
-                  (
-                    [a],
-                    [b]
-                  ) =>
+                  ([a], [b]) =>
                     Number(a) -
                     Number(b)
                 )
@@ -910,9 +838,7 @@ export default function CaisseDetail() {
                       <strong>
                         {money(
                           Number(value) *
-                          Number(
-                            quantity
-                          )
+                          Number(quantity)
                         )}
                       </strong>
 
@@ -953,18 +879,14 @@ export default function CaisseDetail() {
           </h2>
 
           <p className="muted">
-
             Détail des transactions réglées avec plusieurs
             moyens de paiement.
-
           </p>
 
           {multiplePayments.length === 0 ? (
 
             <div className="info">
-
               Aucun paiement multiple.
-
             </div>
 
           ) : (
@@ -978,7 +900,8 @@ export default function CaisseDetail() {
                 ) => {
 
                   const allocations =
-                    payment?.allocations || {};
+                    payment?.allocations ||
+                    {};
 
                   return (
 
@@ -1007,7 +930,9 @@ export default function CaisseDetail() {
 
                       <div className="info">
 
-                        {allocations.cash > 0 && (
+                        {Number(
+                          allocations.cash
+                        ) > 0 && (
                           <>
                             Espèces :{' '}
                             {money(
@@ -1017,7 +942,9 @@ export default function CaisseDetail() {
                           </>
                         )}
 
-                        {allocations.tpe > 0 && (
+                        {Number(
+                          allocations.tpe
+                        ) > 0 && (
                           <>
                             TPE :{' '}
                             {money(
@@ -1027,7 +954,9 @@ export default function CaisseDetail() {
                           </>
                         )}
 
-                        {allocations.web > 0 && (
+                        {Number(
+                          allocations.web
+                        ) > 0 && (
                           <>
                             CB Web :{' '}
                             {money(
@@ -1037,7 +966,9 @@ export default function CaisseDetail() {
                           </>
                         )}
 
-                        {allocations.cheque > 0 && (
+                        {Number(
+                          allocations.cheque
+                        ) > 0 && (
                           <>
                             Chèque :{' '}
                             {money(
@@ -1047,7 +978,9 @@ export default function CaisseDetail() {
                           </>
                         )}
 
-                        {allocations.ancv > 0 && (
+                        {Number(
+                          allocations.ancv
+                        ) > 0 && (
                           <>
                             ANCV :{' '}
                             {money(
@@ -1057,7 +990,9 @@ export default function CaisseDetail() {
                           </>
                         )}
 
-                        {allocations.autre > 0 && (
+                        {Number(
+                          allocations.autre
+                        ) > 0 && (
                           <>
                             Autre :{' '}
                             {money(
