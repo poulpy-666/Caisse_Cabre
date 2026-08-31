@@ -14,7 +14,6 @@ export default function Tarifs() {
 
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [openEventId, setOpenEventId] = useState(null);
 
   const [authLoading, setAuthLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -25,17 +24,28 @@ export default function Tarifs() {
   const [saving, setSaving] = useState(false);
 
   /* =========================================================
+     ÉVÉNEMENT OUVERT
+  ========================================================= */
+
+  const [openEventId, setOpenEventId] =
+    useState(null);
+
+  /* =========================================================
      FORMULAIRE NOUVEL ÉVÉNEMENT
   ========================================================= */
 
-  const [newEventName, setNewEventName] = useState('');
-  const [showNewEvent, setShowNewEvent] = useState(false);
+  const [newEventName, setNewEventName] =
+    useState('');
+
+  const [showNewEvent, setShowNewEvent] =
+    useState(false);
 
   /* =========================================================
      NOUVEAU TARIF
   ========================================================= */
 
-  const [newTarif, setNewTarif] = useState(null);
+  const [newTarif, setNewTarif] =
+    useState(null);
 
   /* =========================================================
      AUTHENTIFICATION
@@ -253,9 +263,11 @@ export default function Tarifs() {
       ]
     );
 
+    /* Ouvre automatiquement le nouvel événement */
+    setOpenEventId(data.id);
+
     setNewEventName('');
     setShowNewEvent(false);
-    setOpenEventId(data.id);
 
     setSaving(false);
   }
@@ -381,6 +393,12 @@ export default function Tarifs() {
         )
     );
 
+    if (
+      openEventId === eventId
+    ) {
+      setOpenEventId(null);
+    }
+
     setSaving(false);
   }
 
@@ -391,6 +409,8 @@ export default function Tarifs() {
   function startNewTarif(
     eventId
   ) {
+
+    setOpenEventId(eventId);
 
     setNewTarif({
       eventId,
@@ -441,9 +461,7 @@ export default function Tarifs() {
       .insert({
         event_id:
           newTarif.eventId,
-
         name,
-
         price
       })
       .select()
@@ -845,7 +863,7 @@ export default function Tarifs() {
         </header>
 
         {/* =================================================
-            ACTIONS
+            ÉVÉNEMENTS
         ================================================= */}
 
         <section className="card">
@@ -901,6 +919,10 @@ export default function Tarifs() {
 
           </div>
 
+          {/* =================================================
+              NOUVEL ÉVÉNEMENT
+          ================================================= */}
+
           {showNewEvent && (
 
             <div className="multiple">
@@ -914,8 +936,13 @@ export default function Tarifs() {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowNewEvent(false);
+
+                    setShowNewEvent(
+                      false
+                    );
+
                     setNewEventName('');
+
                   }}
                 >
                   Annuler
@@ -988,290 +1015,297 @@ export default function Tarifs() {
 
           ) : (
 
-            <div className="usersList">
+            <div className="eventsList">
 
-              {events.map(event => (
+              {events.map(event => {
 
-                <div
-  className="card eventCard"
-  key={event.id}
->
+                const isOpen =
+                  openEventId ===
+                  event.id;
 
-  {/* EN-TÊTE CLIQUABLE */}
+                return (
 
-  <div
-    className="eventHeader"
-    onClick={() =>
-      setOpenEventId(
-        openEventId === event.id
-          ? null
-          : event.id
-      )
-    }
-  >
+                  <div
+                    className={
+                      isOpen
+                        ? 'eventCard open'
+                        : 'eventCard'
+                    }
+                    key={
+                      event.id
+                    }
+                  >
 
-    <div>
-
-      <h2>
-        {event.name}
-      </h2>
-
-      <span className="muted">
-        {(event.tarifs || []).length}{' '}
-        tarif
-        {(event.tarifs || []).length > 1
-          ? 's'
-          : ''}
-      </span>
-
-    </div>
-
-    <strong className="eventChevron">
-      {openEventId === event.id
-        ? '⌃'
-        : '⌄'}
-    </strong>
-
-  </div>
-
-  {/* CONTENU */}
-
-  {openEventId === event.id && (
-
-    <div className="eventContent">
-
-      {/* ton contenu actuel de modification
-          de l'événement et des tarifs ici */}
-
-    </div>
-
-  )}
-
-</div>
-
-                  {/* ===========================
-                      EN-TÊTE ÉVÉNEMENT
-                  =========================== */}
-
-                  <div className="multipleHeader">
-
-                    <div
-                      style={{
-                        flex: 1
-                      }}
-                    >
-
-                      <input
-                        type="text"
-                        defaultValue={
-                          event.name
-                        }
-                        onBlur={e =>
-                          updateEvent(
-                            event.id,
-                            e.target.value
-                          )
-                        }
-                        style={{
-                          fontSize: '20px',
-                          fontWeight: '700'
-                        }}
-                      />
-
-                    </div>
+                    {/* =====================================
+                        EN-TÊTE
+                    ===================================== */}
 
                     <button
                       type="button"
+                      className="eventHeader"
                       onClick={() =>
-                        deactivateEvent(
-                          event.id
+                        setOpenEventId(
+                          isOpen
+                            ? null
+                            : event.id
                         )
                       }
-                      disabled={
-                        saving
-                      }
                     >
-                      🗑️ Désactiver
+
+                      <div>
+
+                        <strong>
+                          {event.name}
+                        </strong>
+
+                        <span>
+                          {(event.tarifs || []).length}{' '}
+                          tarif
+                          {(event.tarifs || []).length > 1
+                            ? 's'
+                            : ''}
+                        </span>
+
+                      </div>
+
+                      <span className="eventChevron">
+                        {isOpen
+                          ? '⌃'
+                          : '⌄'}
+                      </span>
+
                     </button>
+
+                    {/* =====================================
+                        CONTENU OUVERT
+                    ===================================== */}
+
+                    {isOpen && (
+
+                      <div className="eventContent">
+
+                        {/* ===============================
+                            MODIFICATION ÉVÉNEMENT
+                        =============================== */}
+
+                        <div className="eventEdit">
+
+                          <label>
+
+                            Nom de l'événement
+
+                            <input
+                              type="text"
+                              defaultValue={
+                                event.name
+                              }
+                              onBlur={e =>
+                                updateEvent(
+                                  event.id,
+                                  e.target.value
+                                )
+                              }
+                            />
+
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              deactivateEvent(
+                                event.id
+                              )
+                            }
+                            disabled={
+                              saving
+                            }
+                          >
+                            🗑️ Désactiver l'événement
+                          </button>
+
+                        </div>
+
+                        {/* ===============================
+                            TARIFS
+                        =============================== */}
+
+                        <h3>
+                          Tarifs
+                        </h3>
+
+                        {!event.tarifs ||
+                        event.tarifs.length === 0 ? (
+
+                          <div className="info">
+
+                            Aucun tarif pour cet événement.
+
+                          </div>
+
+                        ) : (
+
+                          <div className="tarifsList">
+
+                            {event.tarifs.map(
+                              tarif => (
+
+                                <TarifRow
+                                  key={
+                                    tarif.id
+                                  }
+                                  tarif={
+                                    tarif
+                                  }
+                                  eventId={
+                                    event.id
+                                  }
+                                  saving={
+                                    saving
+                                  }
+                                  onSave={
+                                    updateTarif
+                                  }
+                                  onDelete={
+                                    deactivateTarif
+                                  }
+                                />
+
+                              )
+                            )}
+
+                          </div>
+
+                        )}
+
+                        {/* ===============================
+                            AJOUT TARIF
+                        =============================== */}
+
+                        {newTarif?.eventId ===
+                        event.id ? (
+
+                          <div className="multiple">
+
+                            <div className="multipleHeader">
+
+                              <strong>
+                                Nouveau tarif
+                              </strong>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setNewTarif(
+                                    null
+                                  )
+                                }
+                              >
+                                Annuler
+                              </button>
+
+                            </div>
+
+                            <div className="grid2">
+
+                              <label>
+
+                                Nom du tarif
+
+                                <input
+                                  type="text"
+                                  value={
+                                    newTarif.name
+                                  }
+                                  onChange={e =>
+                                    setNewTarif(
+                                      prev => ({
+                                        ...prev,
+                                        name:
+                                          e.target
+                                            .value
+                                      })
+                                    )
+                                  }
+                                  placeholder="Ex : Tarif plein"
+                                  autoFocus
+                                />
+
+                              </label>
+
+                              <label>
+
+                                Prix
+
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={
+                                    newTarif.price
+                                  }
+                                  onChange={e =>
+                                    setNewTarif(
+                                      prev => ({
+                                        ...prev,
+                                        price:
+                                          Number(
+                                            e.target
+                                              .value
+                                          ) || 0
+                                      })
+                                    )
+                                  }
+                                />
+
+                              </label>
+
+                            </div>
+
+                            <div className="actions">
+
+                              <button
+                                type="button"
+                                className="primary"
+                                onClick={
+                                  createTarif
+                                }
+                                disabled={
+                                  saving
+                                }
+                              >
+                                {saving
+                                  ? '⏳ Création...'
+                                  : '✓ Ajouter le tarif'}
+                              </button>
+
+                            </div>
+
+                          </div>
+
+                        ) : (
+
+                          <button
+                            type="button"
+                            className="primary"
+                            onClick={() =>
+                              startNewTarif(
+                                event.id
+                              )
+                            }
+                          >
+                            ＋ Ajouter un tarif
+                          </button>
+
+                        )}
+
+                      </div>
+
+                    )}
 
                   </div>
 
-                  {/* ===========================
-                      TARIFS
-                  =========================== */}
-
-                  <h3>
-                    Tarifs
-                  </h3>
-
-                  {!event.tarifs ||
-                  event.tarifs.length === 0 ? (
-
-                    <div className="info">
-
-                      Aucun tarif pour cet événement.
-
-                    </div>
-
-                  ) : (
-
-                    <div className="paymentSummary">
-
-                      {event.tarifs.map(
-                        tarif => (
-
-                          <TarifRow
-                            key={
-                              tarif.id
-                            }
-                            tarif={
-                              tarif
-                            }
-                            eventId={
-                              event.id
-                            }
-                            saving={
-                              saving
-                            }
-                            onSave={
-                              updateTarif
-                            }
-                            onDelete={
-                              deactivateTarif
-                            }
-                          />
-
-                        )
-                      )}
-
-                    </div>
-
-                  )}
-
-                  {/* ===========================
-                      AJOUT TARIF
-                  =========================== */}
-
-                  {newTarif?.eventId ===
-                  event.id ? (
-
-                    <div className="multiple">
-
-                      <div className="multipleHeader">
-
-                        <strong>
-                          Nouveau tarif
-                        </strong>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setNewTarif(
-                              null
-                            )
-                          }
-                        >
-                          Annuler
-                        </button>
-
-                      </div>
-
-                      <div className="grid2">
-
-                        <label>
-
-                          Nom du tarif
-
-                          <input
-                            type="text"
-                            value={
-                              newTarif.name
-                            }
-                            onChange={e =>
-                              setNewTarif(
-                                prev => ({
-                                  ...prev,
-                                  name:
-                                    e.target
-                                      .value
-                                })
-                              )
-                            }
-                            placeholder="Ex : Tarif plein"
-                            autoFocus
-                          />
-
-                        </label>
-
-                        <label>
-
-                          Prix
-
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={
-                              newTarif.price
-                            }
-                            onChange={e =>
-                              setNewTarif(
-                                prev => ({
-                                  ...prev,
-                                  price:
-                                    Number(
-                                      e.target
-                                        .value
-                                    ) || 0
-                                })
-                              )
-                            }
-                          />
-
-                        </label>
-
-                      </div>
-
-                      <div className="actions">
-
-                        <button
-                          type="button"
-                          className="primary"
-                          onClick={
-                            createTarif
-                          }
-                          disabled={
-                            saving
-                          }
-                        >
-                          {saving
-                            ? '⏳ Création...'
-                            : '✓ Ajouter le tarif'}
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  ) : (
-
-                    <button
-                      type="button"
-                      className="primary"
-                      onClick={() =>
-                        startNewTarif(
-                          event.id
-                        )
-                      }
-                    >
-                      ＋ Ajouter un tarif
-                    </button>
-
-                  )}
-
-                </div>
-
-              ))}
+                );
+              })}
 
             </div>
 
@@ -1280,7 +1314,7 @@ export default function Tarifs() {
         </section>
 
         {/* =================================================
-            INFORMATION
+            INFORMATIONS
         ================================================= */}
 
         <section className="card">
@@ -1337,18 +1371,7 @@ function TarifRow({
 
   return (
 
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns:
-          '1fr 130px auto',
-        gap: '10px',
-        alignItems: 'end',
-        padding: '8px 0',
-        borderBottom:
-          '1px solid rgba(128,128,128,.18)'
-      }}
-    >
+    <div className="tarifRow">
 
       <label>
 
@@ -1386,13 +1409,7 @@ function TarifRow({
 
       </label>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '6px',
-          paddingBottom: '1px'
-        }}
-      >
+      <div className="tarifActions">
 
         <button
           type="button"
@@ -1429,6 +1446,5 @@ function TarifRow({
       </div>
 
     </div>
-
   );
 }
