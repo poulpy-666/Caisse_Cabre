@@ -136,9 +136,7 @@ export default function Utilisateurs() {
       error
     } = await supabase
       .from('profiles')
-      .select(
-        'id, role, created_at'
-      )
+      .select('id, name, role, created_at')
       .order(
         'created_at',
         {
@@ -440,7 +438,7 @@ export default function Utilisateurs() {
                       <div>
 
                         <strong>
-                          Compte utilisateur
+                          {user.name || 'Nom non renseigné'}
                         </strong>
 
                         <small>
