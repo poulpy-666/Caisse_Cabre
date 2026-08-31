@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from './lib/supabase';
 import Header from './composants/Header';
 import OuvertureCaisse from './composants/OuvertureCaisse';
+import Billetterie from './composants/Billetterie';
 
 /* =========================================================
    OUTILS
@@ -1811,230 +1812,20 @@ export default function Home() {
             2. BILLETTERIE
         ================================================= */}
 
-        <section className="card">
-
-          <h2>
-            2. Billetterie
-          </h2>
-
-          <p className="muted">
-            Ajoute les évènements concernés par la manifestation puis saisis les ventes.
-          </p>
-
-          {eventsError && (
-
-            <div className="info bad">
-              {eventsError}
-            </div>
-
-          )}
-
-          {eventsLoading ? (
-
-            <div className="info">
-              ⏳ Chargement des événements et tarifs...
-            </div>
-
-          ) : events.length === 0 ? (
-
-            <div className="info">
-              Aucun événement avec tarif actif n'est disponible.
-              <br />
-              Crée un événement et ses tarifs dans la page Tarifs.
-            </div>
-
-          ) : (
-
-            <div className="grid2">
-
-              <label>
-
-                Évènement
-
-                <select
-                  value={
-                    selectedEventId
-                  }
-                  onChange={e =>
-                    setSelectedEventId(
-                      e.target.value
-                    )
-                  }
-                >
-
-                  {events.map(
-                    event => (
-
-                      <option
-                        key={
-                          event.id
-                        }
-                        value={
-                          event.id
-                        }
-                      >
-                        {event.name}
-                      </option>
-
-                    )
-                  )}
-
-                </select>
-
-              </label>
-
-              <div>
-
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={
-                    addEvent
-                  }
-                >
-                  ＋ Ajouter l'évènement
-                </button>
-
-              </div>
-
-            </div>
-
-          )}
-
-          {eventTotals.length === 0 ? (
-
-            <div className="info">
-
-              Aucun évènement ajouté.
-
-            </div>
-
-          ) : (
-
-            eventTotals.map(
-              event => (
-
-                <div
-                  className="multiple"
-                  key={
-                    event.id
-                  }
-                >
-
-                  <div className="multipleHeader">
-
-                    <strong>
-                      {event.eventName}
-                    </strong>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeEvent(
-                          event.id
-                        )
-                      }
-                    >
-                      🗑️ Supprimer
-                    </button>
-
-                  </div>
-
-                  <div className="ticketgrid">
-
-                    {event.tickets.map(
-                      ticket => (
-
-                        <div
-                          className="ticket"
-                          key={
-                            ticket.id
-                          }
-                        >
-
-                          <div>
-
-                            <strong>
-                              {ticket.name}
-                            </strong>
-
-                            <span>
-                              {money(
-                                ticket.price
-                              )}
-                            </span>
-
-                          </div>
-
-                          <NumberField
-                            value={
-                              event
-                                .quantities[
-                                  ticket.name
-                                ] || 0
-                            }
-                            onChange={x =>
-                              updateTicketQuantity(
-                                event.id,
-                                ticket.name,
-                                x
-                              )
-                            }
-                          />
-
-                          <b>
-                            {money(
-                              ticket.price *
-                              (
-                                event
-                                  .quantities[
-                                    ticket.name
-                                  ] || 0
-                              )
-                            )}
-                          </b>
-
-                        </div>
-
-                      )
-                    )}
-
-                  </div>
-
-                  <div className="caBox">
-
-                    <span>
-                      CA {event.eventName}
-                    </span>
-
-                    <strong>
-                      {money(
-                        event.total
-                      )}
-                    </strong>
-
-                  </div>
-
-                </div>
-
-              )
-            )
-
-          )}
-
-          <div className="caBox">
-
-            <span>
-              CA BILLETTERIE TOTAL
-            </span>
-
-            <strong>
-              {money(ca)}
-            </strong>
-
-          </div>
-
-        </section>
+        <Billetterie
+  events={events}
+  eventsLoading={eventsLoading}
+  eventsError={eventsError}
+  selectedEventId={selectedEventId}
+  setSelectedEventId={setSelectedEventId}
+  addEvent={addEvent}
+  eventTotals={eventTotals}
+  removeEvent={removeEvent}
+  updateTicketQuantity={updateTicketQuantity}
+  ca={ca}
+  money={money}
+  NumberField={NumberField}
+/>
         {/* =================================================
             3. FERMETURE — ESPÈCES
         ================================================= */}
