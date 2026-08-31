@@ -1781,100 +1781,12 @@ export default function Home() {
             HEADER
         ================================================= */}
 
-        <header>
-
-          <div>
-
-            <div className="eyebrow">
-              BILLETTERIE ASSOCIATIVE
-            </div>
-
-            <h1>
-              Clôture de caisse
-            </h1>
-
-            <p>
-              Ouverture → comptage → fermeture → contrôle.
-            </p>
-
-          </div>
-
-          <div className="headerActions">
-
-            <span className="userRole">
-
-              {userRole === 'admin'
-                ? 'Administrateur'
-                : userRole === 'responsable'
-                  ? 'Responsable'
-                  : 'Bénévole'}
-
-            </span>
-
-            {userRole === 'admin' && (
-
-              <Link href="/Utilisateur">
-                <button
-                  type="button"
-                >
-                  👥 Utilisateurs
-                </button>
-              </Link>
-
-            )}
-
-            {(userRole === 'admin' ||
-              userRole === 'responsable') && (
-
-              <Link href="/historique">
-                <button
-                  type="button"
-                >
-                  📋 Historique
-                </button>
-              </Link>
-
-            )}
-
-            {(userRole === 'admin' ||
-              userRole === 'responsable') && (
-
-              <Link href="/Tarifs">
-                <button
-                  type="button"
-                >
-                  💶 Tarifs
-                </button>
-              </Link>
-
-            )}
-
-            <button
-              type="button"
-              onClick={
-                handleLogout
-              }
-            >
-              Déconnexion
-            </button>
-
-            <button
-              className="theme"
-              onClick={() =>
-                setDark(
-                  !dark
-                )
-              }
-              aria-label="Changer de thème"
-            >
-              {dark
-                ? '☀️'
-                : '🌙'}
-            </button>
-
-          </div>
-
-        </header>
+        <Header
+  userRole={userRole}
+  dark={dark}
+  setDark={setDark}
+  onLogout={handleLogout}
+/>
 
        <OuvertureCaisse
   eventName={eventName}
