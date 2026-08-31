@@ -9,6 +9,7 @@ import Billetterie from './composants/Billetterie';
 import FermetureEspeces from './composants/FermetureEspeces';
 import MoyensPaiement from './composants/MoyensPaiement';
 import PaiementsMultiples from './composants/PaiementsMultiples';
+import ResultatsCaisse from './composants/ResultatsCaisse';
 
 /* =========================================================
    OUTILS
@@ -1890,195 +1891,23 @@ export default function Home() {
             RESULTATS
         ================================================= */}
 
-        <section className="result">
-
-          <div>
-
-            <span>
-              CA billetterie
-            </span>
-
-            <strong>
-              {money(ca)}
-            </strong>
-
-          </div>
-
-          <div>
-
-            <span>
-              Somme billets
-            </span>
-
-            <strong>
-              {money(
-                cashBills
-              )}
-            </strong>
-
-          </div>
-
-          <div>
-
-            <span>
-              Somme monnaie
-            </span>
-
-            <strong>
-              {money(
-                cashCoins
-              )}
-            </strong>
-
-          </div>
-
-          <div>
-
-            <span>
-              Somme totale espèces
-            </span>
-
-            <strong>
-              {money(
-                closingCash
-              )}
-            </strong>
-
-          </div>
-
-          <div>
-
-            <span>
-              Espèces issues des ventes
-            </span>
-
-            <strong>
-              {money(
-                cashSales
-              )}
-            </strong>
-
-          </div>
-
-          <div>
-
-            <span>
-              ANCV total
-            </span>
-
-            <strong>
-              {money(
-                ancvTotal
-              )}
-            </strong>
-
-          </div>
-
-          <div>
-
-            <span>
-              Total encaissé
-            </span>
-
-            <strong>
-              {money(
-                paymentsTotal
-              )}
-            </strong>
-
-          </div>
-
-          <div
-            className={
-              Math.abs(
-                difference
-              ) < 0.005
-                ? 'ok'
-                : 'bad'
-            }
-          >
-
-            <span>
-              Écart
-            </span>
-
-            <strong>
-              {money(
-                difference
-              )}
-            </strong>
-
-          </div>
-
-          <div className="actions">
-
-            <button
-              className="primary"
-              onClick={
-                closeCash
-              }
-              disabled={
-                saving ||
-                closed
-              }
-            >
-
-              {saving
-                ? '⏳ Sauvegarde...'
-                : closed
-                  ? '✓ Caisse sauvegardée'
-                  : 'Clôturer et sauvegarder'}
-
-            </button>
-
-            <button
-              onClick={
-                reset
-              }
-              disabled={
-                saving
-              }
-            >
-              Nouvelle caisse
-            </button>
-
-            {closed && (
-
-              <button
-                onClick={() =>
-                  window.print()
-                }
-              >
-                🖨️ Imprimer
-              </button>
-
-            )}
-
-          </div>
-
-          {closed && (
-
-            <div className="closed">
-
-              ✓ Caisse clôturée —{' '}
-
-              {eventName ||
-                'Manifestation'}
-
-              {' — '}
-
-              {responsible}
-
-              {' — '}
-
-              {date}
-
-            </div>
-
-          )}
-
-        </section>
-
+        <ResultatsCaisse
+  ca={ca}
+  openingCash={openingCash}
+  closingCash={closingCash}
+  cashSales={cashSales}
+  cashDifference={cashDifference}
+  paymentsTotal={paymentsTotal}
+  difference={difference}
+  payments={payments}
+  ancvTotal={ancvTotal}
+  multiplePayments={multiplePayments}
+  saving={saving}
+  closed={closed}
+  closeCash={closeCash}
+  reset={reset}
+  money={money}
+/>
       </div>
 
     </main>
