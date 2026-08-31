@@ -1247,3 +1247,229 @@ select:focus {
   }
 
 }
+/* =========================================================
+   PAGE TARIFS — ÉVÉNEMENTS REPLIABLES
+========================================================= */
+
+.eventsList {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.eventCard {
+  border: 1px solid #dfe4e9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.dark .eventCard {
+  background: #252a30;
+  border-color: #3c434b;
+}
+
+/* ---------------------------------------------------------
+   EN-TÊTE DE L'ÉVÉNEMENT
+--------------------------------------------------------- */
+
+.eventHeader {
+  width: 100%;
+  min-height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 14px 18px;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+  color: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.eventHeader:hover {
+  background: #f5f7f8;
+}
+
+.dark .eventHeader:hover {
+  background: #2d3339;
+}
+
+.eventHeader > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eventHeader strong {
+  font-size: 18px;
+}
+
+.eventHeader span {
+  font-size: 13px;
+  opacity: .65;
+}
+
+.eventChevron {
+  flex-shrink: 0;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #d5dbe0;
+  border-radius: 9px;
+
+  font-size: 20px !important;
+  font-weight: 700;
+
+  opacity: .8 !important;
+}
+
+.dark .eventChevron {
+  border-color: #49515a;
+}
+
+/* ---------------------------------------------------------
+   CONTENU OUVERT
+--------------------------------------------------------- */
+
+.eventContent {
+  padding: 0 18px 18px;
+
+  border-top: 1px solid #e5e8eb;
+}
+
+.dark .eventContent {
+  border-color: #3b4148;
+}
+
+/* ---------------------------------------------------------
+   MODIFICATION DE L'ÉVÉNEMENT
+--------------------------------------------------------- */
+
+.eventEdit {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+
+  gap: 12px;
+
+  padding: 18px 0 4px;
+}
+
+.eventEdit button {
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   LISTE DES TARIFS
+--------------------------------------------------------- */
+
+.tarifsList {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tarifRow {
+  display: grid;
+  grid-template-columns: 1fr 130px auto;
+
+  gap: 10px;
+
+  align-items: end;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid #e5e8eb;
+}
+
+.dark .tarifRow {
+  border-color: #3b4148;
+}
+
+.tarifActions {
+  display: flex;
+  gap: 6px;
+  padding-bottom: 1px;
+}
+
+.tarifActions button {
+  min-width: 42px;
+  height: 42px;
+  padding: 8px 10px;
+}
+
+/* ---------------------------------------------------------
+   PETITE ANIMATION
+--------------------------------------------------------- */
+
+.eventContent {
+  animation: eventOpen .15s ease-out;
+}
+
+@keyframes eventOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+--------------------------------------------------------- */
+
+@media (max-width: 650px) {
+
+  .eventHeader {
+    min-height: 64px;
+    padding: 12px 14px;
+  }
+
+  .eventHeader strong {
+    font-size: 16px;
+  }
+
+  .eventContent {
+    padding: 0 14px 14px;
+  }
+
+  .eventEdit {
+    grid-template-columns: 1fr;
+  }
+
+  .eventEdit button {
+    width: 100%;
+  }
+
+  .tarifRow {
+    grid-template-columns: 1fr 100px;
+  }
+
+  .tarifActions {
+    grid-column: 1 / -1;
+  }
+
+  .tarifActions button {
+    flex: 1;
+  }
+
+}
