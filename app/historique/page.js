@@ -116,10 +116,7 @@ export default function Historique() {
 
   useEffect(() => {
 
-    if (
-      !session ||
-      !userRole
-    ) {
+    if (!session || !userRole) {
       return;
     }
 
@@ -171,16 +168,25 @@ export default function Historique() {
 
     if (error) {
 
-      console.error(error);
-
-      setError(
-        'Impossible de charger l’historique des caisses.'
+      console.error(
+        'Erreur historique Supabase:',
+        error
       );
 
+      setError(
+        `Impossible de charger l’historique.\n\n${error.message}`
+      );
+
+      setCaisses([]);
       setLoading(false);
 
       return;
     }
+
+    console.log(
+      'Caisses récupérées:',
+      data
+    );
 
     setCaisses(data || []);
 
@@ -294,9 +300,7 @@ export default function Historique() {
 
               <button
                 className="primary"
-                onClick={
-                  handleLogout
-                }
+                onClick={handleLogout}
               >
                 Se déconnecter
               </button>
@@ -356,9 +360,7 @@ export default function Historique() {
             </Link>
 
             <button
-              onClick={
-                handleLogout
-              }
+              onClick={handleLogout}
             >
               Déconnexion
             </button>
@@ -371,18 +373,33 @@ export default function Historique() {
 
           <div className="historyHeader">
 
-            <h2>
-              Caisses clôturées
-            </h2>
+            <div>
+
+              <h2>
+                Caisses clôturées
+              </h2>
+
+              {!loading &&
+                !error && (
+                  <p className="muted">
+                    {caisses.length}{' '}
+                    caisse
+                    {caisses.length > 1
+                      ? 's'
+                      : ''}{' '}
+                    enregistrée
+                    {caisses.length > 1
+                      ? 's'
+                      : ''}
+                  </p>
+                )}
+
+            </div>
 
             <button
               type="button"
-              onClick={
-                loadCaisses
-              }
-              disabled={
-                loading
-              }
+              onClick={loadCaisses}
+              disabled={loading}
             >
               {loading
                 ? '⏳ Chargement...'
@@ -402,7 +419,9 @@ export default function Historique() {
           {error && (
 
             <div className="info bad">
+
               {error}
+
             </div>
 
           )}
@@ -412,7 +431,17 @@ export default function Historique() {
             caisses.length === 0 && (
 
               <div className="info">
+
                 Aucune caisse clôturée pour le moment.
+
+                <br />
+
+                <small>
+                  Si une caisse existe dans Supabase,
+                  vérifie les politiques RLS de la table
+                  <strong> caisses</strong>.
+                </small>
+
               </div>
 
             )}
@@ -440,9 +469,7 @@ export default function Historique() {
 
                       <Link
                         href={`/historique/${caisse.id}`}
-                        key={
-                          caisse.id
-                        }
+                        key={caisse.id}
                         className="historyItem"
                       >
 
@@ -523,6 +550,7 @@ export default function Historique() {
                       </Link>
 
                     );
+
                   }
                 )}
 
