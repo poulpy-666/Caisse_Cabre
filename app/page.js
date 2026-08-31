@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-
+import { useRouter } from 'next/navigation';
 import { supabase } from './lib/supabase';
 
 import Header from './composants/Header';
@@ -14,7 +13,6 @@ import PaiementsMultiples from './composants/PaiementsMultiples';
 import ResultatsCaisse from './composants/ResultatsCaisse';
 import ImpressionCaisse from './composants/ImpressionCaisse';
 
-
 /* =========================================================
    OUTILS
 ========================================================= */
@@ -25,14 +23,12 @@ const money = n =>
     currency: 'EUR'
   }).format(Number(n) || 0);
 
-
 function NumberField({
   value,
   onChange,
   step = '1',
   min = '0'
 }) {
-
   return (
     <input
       className="num"
@@ -50,9 +46,50 @@ function NumberField({
       }
     />
   );
-
 }
 
+function createTicketQuantities(tickets) {
+  return Object.fromEntries(
+    tickets.map(ticket => [
+      ticket.name,
+      0
+    ])
+  );
+}
+
+function createEventSale(event) {
+  return {
+    id:
+      Date.now() +
+      Math.random(),
+
+    eventId: event.id,
+
+    eventName: event.name,
+
+    tickets: event.tickets,
+
+    quantities:
+      createTicketQuantities(
+        event.tickets
+      )
+  };
+}
+
+function createEmptyMultiple() {
+  return {
+    amount: 0,
+
+    allocations: {
+      cash: 0,
+      tpe: 0,
+      web: 0,
+      cheque: 0,
+      ancv: 0,
+      autre: 0
+    }
+  };
+}
 
 /* =========================================================
    ESPÈCES
@@ -98,87 +135,29 @@ const ancvValues = [
   50
 ];
 
-
-/* =========================================================
-   CRÉATION ÉVÈNEMENT
-========================================================= */
-
-function createTicketQuantities(tickets) {
-
-  return Object.fromEntries(
-    tickets.map(ticket => [
-      ticket.name,
-      0
-    ])
-  );
-
-}
-
-
-function createEventSale(event) {
-
-  return {
-    id:
-      Date.now() +
-      Math.random(),
-
-    eventId:
-      event.id,
-
-    eventName:
-      event.name,
-
-    tickets:
-      event.tickets,
-
-    quantities:
-      createTicketQuantities(
-        event.tickets
-      )
-  };
-
-}
-
-
-function createEmptyMultiple() {
-
-  return {
-    amount: 0,
-
-    allocations: {
-      cash: 0,
-      tpe: 0,
-      web: 0,
-      cheque: 0,
-      ancv: 0,
-      autre: 0
-    }
-  };
-
-}
-
-
 /* =========================================================
    PAGE
 ========================================================= */
 
 export default function Home() {
 
-  const searchParams =
-    useSearchParams();
+  const router = useRouter();
 
-  const router =
-    useRouter();
+  /* =======================================================
+     MODIFICATION
+  ======================================================= */
 
-  const editId =
-    searchParams.get('edit');
+  const [editId, setEditId] =
+    useState(null);
 
   const isEditing =
     Boolean(editId);
 
+  const [editLoading, setEditLoading] =
+    useState(false);
 
   /* =======================================================
-     AUTH
+     AUTHENTIFICATION
   ======================================================= */
 
   const [session, setSession] =
@@ -202,14 +181,12 @@ export default function Home() {
   const [loggingIn, setLoggingIn] =
     useState(false);
 
-
   /* =======================================================
      THÈME
   ======================================================= */
 
   const [dark, setDark] =
     useState(false);
-
 
   /* =======================================================
      INFORMATIONS CAISSE
@@ -228,9 +205,8 @@ export default function Home() {
         .slice(0, 10)
     );
 
-
   /* =======================================================
-     ÉVÈNEMENTS / TARIFS
+     ÉVÉNEMENTS / TARIFS SUPABASE
   ======================================================= */
 
   const [events, setEvents] =
@@ -244,7 +220,6 @@ export default function Home() {
 
   const [selectedEventId, setSelectedEventId] =
     useState('');
-
 
   /* =======================================================
      OUVERTURE
@@ -260,7 +235,6 @@ export default function Home() {
       )
     );
 
-
   /* =======================================================
      FERMETURE
   ======================================================= */
@@ -275,14 +249,12 @@ export default function Home() {
       )
     );
 
-
   /* =======================================================
      BILLETERIE
   ======================================================= */
 
   const [eventSales, setEventSales] =
     useState([]);
-
 
   /* =======================================================
      ANCV
@@ -297,7 +269,6 @@ export default function Home() {
         ])
       )
     );
-
 
   /* =======================================================
      PAIEMENTS
@@ -316,7 +287,6 @@ export default function Home() {
     setPaymentsValidated
   ] = useState(false);
 
-
   /* =======================================================
      PAIEMENTS MULTIPLES
   ======================================================= */
@@ -331,7 +301,6 @@ export default function Home() {
     setMultiplePayments
   ] = useState([]);
 
-
   /* =======================================================
      CAISSE
   ======================================================= */
@@ -342,14 +311,39 @@ export default function Home() {
   const [saving, setSaving] =
     useState(false);
 
-  const [
-    editLoading,
-    setEditLoading
-  ] = useState(false);
+  /* =======================================================
+     RÉCUPÉRATION DE ?edit=...
+     
+     IMPORTANT :
+     On n'utilise PAS useSearchParams().
+     Cela évite l'erreur de prerender Vercel.
+  ======================================================= */
 
+  useEffect(() => {
+
+    if (
+      typeof window ===
+      'undefined'
+    ) {
+      return;
+    }
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const id =
+      params.get('edit');
+
+    if (id) {
+      setEditId(id);
+    }
+
+  }, []);
 
   /* =======================================================
-     AUTHENTIFICATION
+     AUTH — CHARGEMENT SESSION
   ======================================================= */
 
   useEffect(() => {
@@ -365,8 +359,7 @@ export default function Home() {
       } =
         await supabase.auth.getSession();
 
-      if (!mounted)
-        return;
+      if (!mounted) return;
 
       setSession(session);
 
@@ -385,8 +378,7 @@ export default function Home() {
             )
             .single();
 
-        if (!mounted)
-          return;
+        if (!mounted) return;
 
         if (
           !error &&
@@ -406,11 +398,9 @@ export default function Home() {
       }
 
       setAuthLoading(false);
-
     }
 
     loadSession();
-
 
     const {
       data: {
@@ -426,7 +416,9 @@ export default function Home() {
           if (!mounted)
             return;
 
-          setSession(session);
+          setSession(
+            session
+          );
 
           if (!session?.user) {
 
@@ -458,7 +450,6 @@ export default function Home() {
         }
       );
 
-
     return () => {
 
       mounted = false;
@@ -469,20 +460,19 @@ export default function Home() {
 
   }, []);
 
-
   /* =======================================================
-     CHARGEMENT ÉVÈNEMENTS
+     CHARGEMENT ÉVÉNEMENTS + TARIFS
   ======================================================= */
 
   useEffect(() => {
 
-    if (!session)
+    if (!session) {
       return;
+    }
 
     loadEvents();
 
   }, [session]);
-
 
   async function loadEvents() {
 
@@ -492,23 +482,21 @@ export default function Home() {
     const {
       data: eventData,
       error: eventError
-    } =
-      await supabase
-        .from('events')
-        .select(
-          'id, name, active'
-        )
-        .eq(
-          'active',
-          true
-        )
-        .order(
-          'created_at',
-          {
-            ascending: true
-          }
-        );
-
+    } = await supabase
+      .from('events')
+      .select(
+        'id, name, active'
+      )
+      .eq(
+        'active',
+        true
+      )
+      .order(
+        'created_at',
+        {
+          ascending: true
+        }
+      );
 
     if (eventError) {
 
@@ -526,27 +514,24 @@ export default function Home() {
       return;
     }
 
-
     const {
       data: tarifData,
       error: tarifError
-    } =
-      await supabase
-        .from('tarifs')
-        .select(
-          'id, event_id, name, price, active'
-        )
-        .eq(
-          'active',
-          true
-        )
-        .order(
-          'created_at',
-          {
-            ascending: true
-          }
-        );
-
+    } = await supabase
+      .from('tarifs')
+      .select(
+        'id, event_id, name, price, active'
+      )
+      .eq(
+        'active',
+        true
+      )
+      .order(
+        'created_at',
+        {
+          ascending: true
+        }
+      );
 
     if (tarifError) {
 
@@ -564,19 +549,15 @@ export default function Home() {
       return;
     }
 
-
     const formattedEvents =
       (eventData || [])
         .map(event => ({
 
-          id:
-            event.id,
+          id: event.id,
 
-          name:
-            event.name,
+          name: event.name,
 
-          active:
-            event.active,
+          active: event.active,
 
           tickets:
             (tarifData || [])
@@ -586,18 +567,12 @@ export default function Home() {
                   event.id
               )
               .map(tarif => ({
-
-                id:
-                  tarif.id,
-
-                name:
-                  tarif.name,
-
+                id: tarif.id,
+                name: tarif.name,
                 price:
                   Number(
                     tarif.price
                   ) || 0
-
               }))
 
         }))
@@ -606,11 +581,9 @@ export default function Home() {
             event.tickets.length > 0
         );
 
-
     setEvents(
       formattedEvents
     );
-
 
     if (
       formattedEvents.length > 0 &&
@@ -629,23 +602,20 @@ export default function Home() {
 
     }
 
-
     setEventsLoading(false);
-
   }
 
-
   /* =======================================================
-     CHARGEMENT CAISSE À MODIFIER
+     CHARGEMENT D'UNE CAISSE POUR MODIFICATION
   ======================================================= */
 
   useEffect(() => {
 
     if (
       !session ||
-      !editId
+      !editId ||
+      events.length === 0
     ) {
-
       return;
     }
 
@@ -653,16 +623,19 @@ export default function Home() {
 
   }, [
     session,
-    editId
+    editId,
+    events
   ]);
 
-
   async function loadCaisseForEdit() {
+
+    if (!editId)
+      return;
 
     setEditLoading(true);
 
     const {
-      data: caisse,
+      data,
       error
     } =
       await supabase
@@ -674,210 +647,147 @@ export default function Home() {
         )
         .single();
 
-
     if (error) {
 
       console.error(
-        'Erreur chargement caisse:',
+        'Erreur chargement caisse à modifier:',
         error
       );
 
       alert(
-        `Impossible de charger la caisse.\n\n${error.message}`
+        'Impossible de charger cette caisse.'
       );
 
       setEditLoading(false);
 
-      router.push('/');
-
       return;
     }
-
 
     /* =====================================================
        INFORMATIONS
     ===================================================== */
 
     setEventName(
-      caisse.event_name || ''
+      data.event_name || ''
     );
 
     setResponsible(
-      caisse.responsible || ''
+      data.responsible || ''
     );
 
     setDate(
-      caisse.date ||
+      data.date ||
       new Date()
         .toISOString()
         .slice(0, 10)
     );
 
-
     /* =====================================================
        OUVERTURE
     ===================================================== */
 
-    const savedOpening =
-      caisse.opening_data
-        ?.denominations ||
-      {};
+    const loadedOpening =
+      data.opening_data
+        ?.denominations || {};
 
     setOpening(
       Object.fromEntries(
-        cashValues.map(value => [
-          value,
-          Number(
-            savedOpening[value] || 0
-          )
-        ])
+        cashValues.map(
+          value => [
+            value,
+            Number(
+              loadedOpening[value] || 0
+            )
+          ]
+        )
       )
     );
-
 
     /* =====================================================
        FERMETURE
     ===================================================== */
 
-    const savedClosing =
-      caisse.closing_data
-        ?.denominations ||
-      {};
+    const loadedClosing =
+      data.closing_data
+        ?.denominations || {};
 
     setClosing(
       Object.fromEntries(
-        cashValues.map(value => [
-          value,
-          Number(
-            savedClosing[value] || 0
-          )
-        ])
+        cashValues.map(
+          value => [
+            value,
+            Number(
+              loadedClosing[value] || 0
+            )
+          ]
+        )
       )
     );
-
 
     /* =====================================================
        BILLETERIE
     ===================================================== */
 
     const savedEvents =
-      caisse.ca_data?.events ||
-      [];
+      Array.isArray(
+        data.ca_data?.events
+      )
+        ? data.ca_data.events
+        : [];
 
-    setEventSales(
+    const reconstructedSales =
       savedEvents.map(
-        (event, index) => {
-
-          const tickets =
-            Array.isArray(
-              event.tickets
-            )
-              ? event.tickets
-              : [];
+        (savedEvent, index) => {
 
           const quantities = {};
 
+          const tickets =
+            Array.isArray(
+              savedEvent.tickets
+            )
+              ? savedEvent.tickets
+              : [];
 
           tickets.forEach(
             ticket => {
 
-              const name =
-                Array.isArray(ticket)
-                  ? ticket[0]
-                  : ticket?.name;
-
-              if (!name)
-                return;
-
-              const quantity =
-                Array.isArray(ticket)
-                  ? Number(
-                      event.quantities?.[
-                        name
-                      ] || 0
-                    )
-                  : Number(
-                      ticket.quantity ??
-                      event.quantities?.[
-                        name
-                      ] ??
-                      0
-                    );
-
-              quantities[name] =
-                quantity;
+              quantities[
+                ticket.name
+              ] =
+                Number(
+                  ticket.quantity || 0
+                );
 
             }
           );
 
-
-          /*
-           * On conserve les tarifs enregistrés
-           * dans la caisse.
-           */
-
           return {
 
             id:
-              event.eventId ||
-              event.id ||
-              (
-                Date.now() +
-                index
-              ),
+              savedEvent.eventId ||
+              Date.now() +
+                index,
 
             eventId:
-              event.eventId,
+              savedEvent.eventId,
 
             eventName:
-              event.eventName ||
-              'Évènement',
+              savedEvent.eventName,
 
             tickets:
               tickets.map(
-                ticket => {
+                ticket => ({
+                  id:
+                    ticket.id,
 
-                  if (
-                    Array.isArray(
-                      ticket
-                    )
-                  ) {
+                  name:
+                    ticket.name,
 
-                    return {
-
-                      id:
-                        null,
-
-                      name:
-                        ticket[0],
-
-                      price:
-                        Number(
-                          ticket[1]
-                        ) || 0
-
-                    };
-
-                  }
-
-
-                  return {
-
-                    id:
-                      ticket?.id,
-
-                    name:
-                      ticket?.name ||
-                      'Tarif',
-
-                    price:
-                      Number(
-                        ticket?.price
-                      ) || 0
-
-                  };
-
-                }
+                  price:
+                    Number(
+                      ticket.price
+                    ) || 0
+                })
               ),
 
             quantities
@@ -885,149 +795,93 @@ export default function Home() {
           };
 
         }
-      )
-    );
+      );
 
+    setEventSales(
+      reconstructedSales
+    );
 
     /* =====================================================
        ANCV
     ===================================================== */
 
-    const savedAncv =
-      caisse.payments_data
-        ?.ancv_by_value ||
-      {};
+    const loadedAncv =
+      data.payments_data
+        ?.ancv_by_value || {};
 
     setAncv(
       Object.fromEntries(
-        ancvValues.map(value => [
-          value,
-          Number(
-            savedAncv[value] || 0
-          )
-        ])
+        ancvValues.map(
+          value => [
+            value,
+            Number(
+              loadedAncv[value] || 0
+            )
+          ]
+        )
       )
     );
 
-
     /* =====================================================
-       PAIEMENTS SIMPLES
+       MOYENS DE PAIEMENT
     ===================================================== */
 
-    const savedSimple =
-      caisse.payments_data
-        ?.simple ||
-      {};
+    const simplePayments =
+      data.payments_data
+        ?.simple || {};
 
     setPayments({
-
       tpe:
         Number(
-          savedSimple.tpe || 0
+          simplePayments.tpe || 0
         ),
 
       web:
         Number(
-          savedSimple.web || 0
+          simplePayments.web || 0
         ),
 
       cheque:
         Number(
-          savedSimple.cheque || 0
+          simplePayments.cheque || 0
         ),
 
       autre:
         Number(
-          savedSimple.autre || 0
+          simplePayments.autre || 0
         )
-
     });
-
 
     setPaymentsValidated(
       true
     );
 
-
     /* =====================================================
        PAIEMENTS MULTIPLES
     ===================================================== */
 
-    const savedMultiple =
+    const loadedMultiple =
       Array.isArray(
-        caisse.multiple_payments
+        data.multiple_payments
       )
-        ? caisse.multiple_payments
+        ? data.multiple_payments
         : [];
 
-
     setMultiplePayments(
-      savedMultiple.map(
-        (payment, index) => ({
-
-          id:
-            payment?.id ||
-            (
-              Date.now() +
-              index
-            ),
-
-          amount:
-            Number(
-              payment?.amount || 0
-            ),
-
-          allocations: {
-
-            cash:
-              Number(
-                payment?.allocations
-                  ?.cash || 0
-              ),
-
-            tpe:
-              Number(
-                payment?.allocations
-                  ?.tpe || 0
-              ),
-
-            web:
-              Number(
-                payment?.allocations
-                  ?.web || 0
-              ),
-
-            cheque:
-              Number(
-                payment?.allocations
-                  ?.cheque || 0
-              ),
-
-            ancv:
-              Number(
-                payment?.allocations
-                  ?.ancv || 0
-              ),
-
-            autre:
-              Number(
-                payment?.allocations
-                  ?.autre || 0
-              )
-
-          }
-
-        })
-      )
+      loadedMultiple
     );
 
+    setMultipleDraft(
+      null
+    );
 
-    setClosed(false);
+    setClosed(
+      false
+    );
 
     setEditLoading(false);
 
   }
-
 
   /* =======================================================
      CONNEXION
@@ -1038,24 +892,20 @@ export default function Home() {
     e.preventDefault();
 
     setAuthError('');
-    setLoggingIn(true);
 
+    setLoggingIn(true);
 
     const {
       error
     } =
       await supabase.auth.signInWithPassword({
-
         email:
           email.trim(),
 
         password
-
       });
 
-
     setLoggingIn(false);
-
 
     if (error) {
 
@@ -1066,7 +916,6 @@ export default function Home() {
     }
 
   }
-
 
   /* =======================================================
      DÉCONNEXION
@@ -1081,7 +930,6 @@ export default function Home() {
     setUserRole(null);
 
   }
-
 
   /* =======================================================
      CALCULS ESPÈCES
@@ -1103,7 +951,6 @@ export default function Home() {
       [opening]
     );
 
-
   const closingCash =
     useMemo(
       () =>
@@ -1119,7 +966,6 @@ export default function Home() {
         ),
       [closing]
     );
-
 
   const openingBills =
     useMemo(
@@ -1137,7 +983,6 @@ export default function Home() {
       [opening]
     );
 
-
   const openingCoins =
     useMemo(
       () =>
@@ -1153,7 +998,6 @@ export default function Home() {
         ),
       [opening]
     );
-
 
   const cashBills =
     useMemo(
@@ -1171,7 +1015,6 @@ export default function Home() {
       [closing]
     );
 
-
   const cashCoins =
     useMemo(
       () =>
@@ -1188,11 +1031,9 @@ export default function Home() {
       [closing]
     );
 
-
   const cashSales =
     closingCash -
     openingCash;
-
 
   /* =======================================================
      CA PAR ÉVÈNEMENT
@@ -1223,20 +1064,15 @@ export default function Home() {
                 0
               );
 
-
             return {
-
               ...event,
-
               total
-
             };
 
           }
         ),
       [eventSales]
     );
-
 
   /* =======================================================
      CA GLOBAL
@@ -1256,7 +1092,6 @@ export default function Home() {
         ),
       [eventTotals]
     );
-
 
   /* =======================================================
      ANCV
@@ -1278,7 +1113,6 @@ export default function Home() {
       [ancv]
     );
 
-
   /* =======================================================
      PAIEMENTS MULTIPLES
   ======================================================= */
@@ -1294,15 +1128,14 @@ export default function Home() {
             sum +
             Number(
               payment
-                .allocations
-                .cash ||
+                ?.allocations
+                ?.cash ||
                 0
             ),
           0
         ),
       [multiplePayments]
     );
-
 
   const multipleTpe =
     useMemo(
@@ -1315,15 +1148,14 @@ export default function Home() {
             sum +
             Number(
               payment
-                .allocations
-                .tpe ||
+                ?.allocations
+                ?.tpe ||
                 0
             ),
           0
         ),
       [multiplePayments]
     );
-
 
   const multipleWeb =
     useMemo(
@@ -1336,15 +1168,14 @@ export default function Home() {
             sum +
             Number(
               payment
-                .allocations
-                .web ||
+                ?.allocations
+                ?.web ||
                 0
             ),
           0
         ),
       [multiplePayments]
     );
-
 
   const multipleCheque =
     useMemo(
@@ -1357,15 +1188,14 @@ export default function Home() {
             sum +
             Number(
               payment
-                .allocations
-                .cheque ||
+                ?.allocations
+                ?.cheque ||
                 0
             ),
           0
         ),
       [multiplePayments]
     );
-
 
   const multipleAncv =
     useMemo(
@@ -1378,15 +1208,14 @@ export default function Home() {
             sum +
             Number(
               payment
-                .allocations
-                .ancv ||
+                ?.allocations
+                ?.ancv ||
                 0
             ),
           0
         ),
       [multiplePayments]
     );
-
 
   const multipleAutre =
     useMemo(
@@ -1399,8 +1228,8 @@ export default function Home() {
             sum +
             Number(
               payment
-                .allocations
-                .autre ||
+                ?.allocations
+                ?.autre ||
                 0
             ),
           0
@@ -1408,11 +1237,9 @@ export default function Home() {
       [multiplePayments]
     );
 
-
   const ancvTotal =
     ancvDirectTotal +
     multipleAncv;
-
 
   /* =======================================================
      TOTAL ENCAISSÉ
@@ -1431,11 +1258,9 @@ export default function Home() {
     multipleAncv +
     multipleAutre;
 
-
   const difference =
     paymentsTotal -
     ca;
-
 
   const cashDifference =
     closingCash -
@@ -1443,7 +1268,6 @@ export default function Home() {
       openingCash +
       cashSales
     );
-
 
   /* =======================================================
      PAIEMENT MULTIPLE
@@ -1467,7 +1291,6 @@ export default function Home() {
         )
       : 0;
 
-
   const multipleIsValid =
     multipleDraft &&
     Number(
@@ -1482,7 +1305,6 @@ export default function Home() {
             0
         )
     ) < 0.005;
-
 
   /* =======================================================
      OUTILS
@@ -1503,9 +1325,8 @@ export default function Home() {
 
   };
 
-
   /* =======================================================
-     AJOUT ÉVÈNEMENT
+     AJOUT D'UN ÉVÈNEMENT
   ======================================================= */
 
   function addEvent() {
@@ -1520,14 +1341,12 @@ export default function Home() {
     if (!event)
       return;
 
-
     const alreadyExists =
       eventSales.some(
         sale =>
           sale.eventId ===
           event.id
       );
-
 
     if (alreadyExists) {
 
@@ -1537,7 +1356,6 @@ export default function Home() {
 
       return;
     }
-
 
     setEventSales(
       prev => [
@@ -1550,9 +1368,8 @@ export default function Home() {
 
   }
 
-
   /* =======================================================
-     SUPPRESSION ÉVÈNEMENT
+     SUPPRESSION D'UN ÉVÈNEMENT
   ======================================================= */
 
   function removeEvent(id) {
@@ -1567,9 +1384,8 @@ export default function Home() {
 
   }
 
-
   /* =======================================================
-     QUANTITÉ TICKET
+     MODIFICATION QUANTITÉ TICKET
   ======================================================= */
 
   function updateTicketQuantity(
@@ -1592,7 +1408,6 @@ export default function Home() {
 
             }
 
-
             return {
 
               ...event,
@@ -1614,7 +1429,6 @@ export default function Home() {
 
   }
 
-
   /* =======================================================
      RESET
   ======================================================= */
@@ -1632,7 +1446,6 @@ export default function Home() {
       )
     );
 
-
     setClosing(
       Object.fromEntries(
         cashValues.map(
@@ -1644,13 +1457,11 @@ export default function Home() {
       )
     );
 
-
     setEventSales([]);
 
     setSelectedEventId(
       events[0]?.id || ''
     );
-
 
     setAncv(
       Object.fromEntries(
@@ -1663,16 +1474,12 @@ export default function Home() {
       )
     );
 
-
     setPayments({
-
       tpe: 0,
       web: 0,
       cheque: 0,
       autre: 0
-
     });
-
 
     setPaymentsValidated(
       false
@@ -1688,25 +1495,11 @@ export default function Home() {
 
     setResponsible('');
 
-    setDate(
-      new Date()
-        .toISOString()
-        .slice(0, 10)
-    );
-
     setClosed(false);
 
     setSaving(false);
 
-
-    if (isEditing) {
-
-      router.push('/');
-
-    }
-
   }
-
 
   /* =======================================================
      PAIEMENTS MULTIPLES
@@ -1723,24 +1516,18 @@ export default function Home() {
 
   }
 
-
   function updateMultipleAmount(
     value
   ) {
 
     setMultipleDraft(
       prev => ({
-
         ...prev,
-
-        amount:
-          value
-
+        amount: value
       })
     );
 
   }
-
 
   function updateMultipleAllocation(
     type,
@@ -1749,7 +1536,6 @@ export default function Home() {
 
     setMultipleDraft(
       prev => ({
-
         ...prev,
 
         allocations: {
@@ -1766,19 +1552,16 @@ export default function Home() {
 
   }
 
-
   function validateMultiple() {
 
     if (!multipleDraft)
       return;
-
 
     const amount =
       Number(
         multipleDraft.amount ||
         0
       );
-
 
     const allocated =
       Object.values(
@@ -1795,7 +1578,6 @@ export default function Home() {
         0
       );
 
-
     if (amount <= 0) {
 
       alert(
@@ -1804,7 +1586,6 @@ export default function Home() {
 
       return;
     }
-
 
     if (
       Math.abs(
@@ -1824,14 +1605,11 @@ export default function Home() {
       return;
     }
 
-
     setMultiplePayments(
       prev => [
-
         ...prev,
 
         {
-
           id:
             Date.now() +
             Math.random(),
@@ -1841,19 +1619,16 @@ export default function Home() {
           allocations: {
             ...multipleDraft.allocations
           }
-
         }
 
       ]
     );
-
 
     setMultipleDraft(
       null
     );
 
   }
-
 
   function editMultiple(id) {
 
@@ -1867,7 +1642,6 @@ export default function Home() {
     if (!payment)
       return;
 
-
     setMultipleDraft({
 
       amount:
@@ -1879,7 +1653,6 @@ export default function Home() {
 
     });
 
-
     setMultiplePayments(
       prev =>
         prev.filter(
@@ -1890,7 +1663,6 @@ export default function Home() {
     );
 
   }
-
 
   function removeMultiple(id) {
 
@@ -1905,12 +1677,53 @@ export default function Home() {
 
   }
 
-
   /* =======================================================
-     CONSTRUCTION DONNÉES CAISSE
+     SAUVEGARDE
   ======================================================= */
 
-  function buildCaisseData() {
+  async function closeCash() {
+
+    if (multipleDraft) {
+
+      alert(
+        'Termine ou annule le paiement multiple en cours.'
+      );
+
+      return;
+    }
+
+    if (!paymentsValidated) {
+
+      alert(
+        'Valide les moyens de paiement avant de clôturer la caisse.'
+      );
+
+      return;
+    }
+
+    if (eventSales.length === 0) {
+
+      alert(
+        'Ajoute au moins un évènement à la billetterie.'
+      );
+
+      return;
+    }
+
+    if (!responsible.trim()) {
+
+      alert(
+        'Indique le nom du responsable de caisse.'
+      );
+
+      return;
+    }
+
+    setSaving(true);
+
+    /* =====================================================
+       COPIE DES ÉVÉNEMENTS
+    ===================================================== */
 
     const savedEvents =
       eventTotals.map(
@@ -1941,8 +1754,8 @@ export default function Home() {
                   Number(
                     event
                       .quantities[
-                        ticket.name
-                      ] || 0
+                      ticket.name
+                    ] || 0
                   ),
 
                 total:
@@ -1954,8 +1767,8 @@ export default function Home() {
                   Number(
                     event
                       .quantities[
-                        ticket.name
-                      ] || 0
+                      ticket.name
+                    ] || 0
                   )
 
               })
@@ -1967,8 +1780,11 @@ export default function Home() {
         })
       );
 
+    /* =====================================================
+       DONNÉES DE LA CAISSE
+    ===================================================== */
 
-    return {
+    const caisseData = {
 
       event_name:
         eventName || null,
@@ -1977,7 +1793,6 @@ export default function Home() {
         responsible || null,
 
       date,
-
 
       ca_data: {
 
@@ -1989,7 +1804,6 @@ export default function Home() {
 
       },
 
-
       opening_data: {
 
         denominations:
@@ -1999,7 +1813,6 @@ export default function Home() {
           openingCash
 
       },
-
 
       closing_data: {
 
@@ -2019,7 +1832,6 @@ export default function Home() {
           cashSales
 
       },
-
 
       payments_data: {
 
@@ -2042,10 +1854,8 @@ export default function Home() {
 
         },
 
-
         ancv_by_value:
           ancv,
-
 
         totals: {
 
@@ -2078,10 +1888,8 @@ export default function Home() {
 
       },
 
-
       multiple_payments:
         multiplePayments,
-
 
       total_ca:
         ca,
@@ -2092,62 +1900,6 @@ export default function Home() {
       difference
 
     };
-
-  }
-
-
-  /* =======================================================
-     SAUVEGARDE / MODIFICATION
-  ======================================================= */
-
-  async function closeCash() {
-
-    if (multipleDraft) {
-
-      alert(
-        'Termine ou annule le paiement multiple en cours.'
-      );
-
-      return;
-    }
-
-
-    if (!paymentsValidated) {
-
-      alert(
-        'Valide les moyens de paiement avant de clôturer la caisse.'
-      );
-
-      return;
-    }
-
-
-    if (eventSales.length === 0) {
-
-      alert(
-        'Ajoute au moins un évènement à la billetterie.'
-      );
-
-      return;
-    }
-
-
-    if (!responsible.trim()) {
-
-      alert(
-        'Indique le nom du responsable de caisse.'
-      );
-
-      return;
-    }
-
-
-    setSaving(true);
-
-
-    const caisseData =
-      buildCaisseData();
-
 
     /* =====================================================
        MODIFICATION
@@ -2168,9 +1920,7 @@ export default function Home() {
             editId
           );
 
-
       setSaving(false);
-
 
       if (error) {
 
@@ -2186,11 +1936,8 @@ export default function Home() {
         return;
       }
 
-
-      setClosed(true);
-
       alert(
-        'Caisse modifiée avec succès.'
+        'La caisse a été modifiée avec succès.'
       );
 
       router.push(
@@ -2199,7 +1946,6 @@ export default function Home() {
 
       return;
     }
-
 
     /* =====================================================
        NOUVELLE CAISSE
@@ -2214,9 +1960,7 @@ export default function Home() {
           caisseData
         );
 
-
     setSaving(false);
-
 
     if (error) {
 
@@ -2232,17 +1976,21 @@ export default function Home() {
       return;
     }
 
-
     setClosed(true);
 
   }
 
-
   /* =======================================================
-     CHARGEMENT AUTH
+     CHARGEMENT
   ======================================================= */
 
-  if (authLoading) {
+  if (
+    authLoading ||
+    (
+      isEditing &&
+      editLoading
+    )
+  ) {
 
     return (
 
@@ -2259,7 +2007,9 @@ export default function Home() {
           <section className="card">
 
             <h1>
-              Chargement...
+              {isEditing
+                ? 'Chargement de la caisse...'
+                : 'Chargement...'}
             </h1>
 
           </section>
@@ -2271,7 +2021,6 @@ export default function Home() {
     );
 
   }
-
 
   /* =======================================================
      CONNEXION
@@ -2298,13 +2047,11 @@ export default function Home() {
             onLogout={handleLogout}
           />
 
-
           <section className="card loginCard">
 
             <h2>
               Accès à la caisse
             </h2>
-
 
             <form
               onSubmit={
@@ -2318,9 +2065,7 @@ export default function Home() {
 
                 <input
                   type="email"
-                  value={
-                    email
-                  }
+                  value={email}
                   onChange={e =>
                     setEmail(
                       e.target.value
@@ -2333,16 +2078,13 @@ export default function Home() {
 
               </label>
 
-
               <label>
 
                 Mot de passe
 
                 <input
                   type="password"
-                  value={
-                    password
-                  }
+                  value={password}
                   onChange={e =>
                     setPassword(
                       e.target.value
@@ -2355,7 +2097,6 @@ export default function Home() {
 
               </label>
 
-
               {authError && (
 
                 <div className="info bad">
@@ -2365,7 +2106,6 @@ export default function Home() {
                 </div>
 
               )}
-
 
               <button
                 type="submit"
@@ -2392,7 +2132,6 @@ export default function Home() {
     );
 
   }
-
 
   /* =======================================================
      UTILISATEUR SANS RÔLE
@@ -2422,7 +2161,6 @@ export default function Home() {
               Votre compte n'est pas encore associé à un rôle dans l'application.
             </p>
 
-
             <button
               className="primary"
               onClick={
@@ -2442,58 +2180,6 @@ export default function Home() {
 
   }
 
-
-  /* =======================================================
-     CHARGEMENT MODIFICATION
-  ======================================================= */
-
-  if (
-    isEditing &&
-    editLoading
-  ) {
-
-    return (
-
-      <main
-        className={
-          dark
-            ? 'dark'
-            : ''
-        }
-      >
-
-        <div className="wrap">
-
-          <Header
-            userRole={userRole}
-            dark={dark}
-            setDark={setDark}
-            onLogout={handleLogout}
-          />
-
-          <section className="card">
-
-            <h2>
-              ✏️ Modification de la caisse
-            </h2>
-
-            <div className="info">
-
-              Chargement de la caisse...
-
-            </div>
-
-          </section>
-
-        </div>
-
-      </main>
-
-    );
-
-  }
-
-
   /* =======================================================
      APPLICATION
   ======================================================= */
@@ -2510,18 +2196,12 @@ export default function Home() {
 
       <div className="wrap">
 
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
         <Header
           userRole={userRole}
           dark={dark}
           setDark={setDark}
           onLogout={handleLogout}
         />
-
 
         {/* =================================================
             MODE MODIFICATION
@@ -2531,127 +2211,57 @@ export default function Home() {
 
           <section className="card">
 
-            <div
-              className="multipleHeader"
-            >
+            <h2>
+              ✏️ Modification de la caisse
+            </h2>
 
-              <div>
+            <p className="muted">
 
-                <h2>
-                  ✏️ Modification de la caisse
-                </h2>
+              Tu modifies une caisse existante.
+              Les modifications seront enregistrées
+              à la place de l'ancienne caisse.
 
-                <p className="muted">
-
-                  Les modifications seront enregistrées
-                  dans cette caisse existante.
-
-                </p>
-
-              </div>
-
-
-              <button
-                onClick={() =>
-                  router.push(
-                    `/historique/${editId}`
-                  )
-                }
-              >
-
-                ← Annuler
-
-              </button>
-
-            </div>
+            </p>
 
           </section>
 
         )}
 
-
         {/* =================================================
-            OUVERTURE
+            1. OUVERTURE
         ================================================= */}
 
         <OuvertureCaisse
+          eventName={eventName}
+          setEventName={setEventName}
 
-          eventName={
-            eventName
-          }
+          responsible={responsible}
+          setResponsible={setResponsible}
 
-          setEventName={
-            setEventName
-          }
+          date={date}
+          setDate={setDate}
 
-          responsible={
-            responsible
-          }
+          opening={opening}
+          setOpening={setOpening}
 
-          setResponsible={
-            setResponsible
-          }
+          billValues={billValues}
+          coinValues={coinValues}
 
-          date={
-            date
-          }
+          openingBills={openingBills}
+          openingCoins={openingCoins}
+          openingCash={openingCash}
 
-          setDate={
-            setDate
-          }
-
-          opening={
-            opening
-          }
-
-          setOpening={
-            setOpening
-          }
-
-          billValues={
-            billValues
-          }
-
-          coinValues={
-            coinValues
-          }
-
-          openingBills={
-            openingBills
-          }
-
-          openingCoins={
-            openingCoins
-          }
-
-          openingCash={
-            openingCash
-          }
-
-          money={
-            money
-          }
-
-          NumberField={
-            NumberField
-          }
-
-          setCount={
-            setCount
-          }
-
+          money={money}
+          NumberField={NumberField}
+          setCount={setCount}
         />
 
-
         {/* =================================================
-            BILLETTERIE
+            2. BILLETTERIE
         ================================================= */}
 
         <Billetterie
-
-          events={
-            events
-          }
+          events={events}
 
           eventsLoading={
             eventsLoading
@@ -2696,23 +2306,15 @@ export default function Home() {
           NumberField={
             NumberField
           }
-
         />
 
-
         {/* =================================================
-            FERMETURE
+            3. FERMETURE
         ================================================= */}
 
         <FermetureEspeces
-
-          closing={
-            closing
-          }
-
-          setClosing={
-            setClosing
-          }
+          closing={closing}
+          setClosing={setClosing}
 
           billValues={
             billValues
@@ -2753,16 +2355,13 @@ export default function Home() {
           setCount={
             setCount
           }
-
         />
 
-
         {/* =================================================
-            MOYENS DE PAIEMENT
+            4. MOYENS DE PAIEMENT
         ================================================= */}
 
         <MoyensPaiement
-
           payments={
             payments
           }
@@ -2806,16 +2405,13 @@ export default function Home() {
           setCount={
             setCount
           }
-
         />
 
-
         {/* =================================================
-            PAIEMENTS MULTIPLES
+            5. PAIEMENTS MULTIPLES
         ================================================= */}
 
         <PaiementsMultiples
-
           multiplePayments={
             multiplePayments
           }
@@ -2867,16 +2463,13 @@ export default function Home() {
           NumberField={
             NumberField
           }
-
         />
-
 
         {/* =================================================
             RESULTATS
         ================================================= */}
 
         <ResultatsCaisse
-
           ca={
             ca
           }
@@ -2936,16 +2529,13 @@ export default function Home() {
           money={
             money
           }
-
         />
-
 
         {/* =================================================
             IMPRESSION
         ================================================= */}
 
         <ImpressionCaisse
-
           eventName={
             eventName
           }
@@ -3049,7 +2639,6 @@ export default function Home() {
           money={
             money
           }
-
         />
 
       </div>
