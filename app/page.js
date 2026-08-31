@@ -1864,7 +1864,7 @@ export default function Home() {
             {(userRole === 'admin' ||
               userRole === 'responsable') && (
 
-              <Link href="/tarifs">
+              <Link href="/Tarifs">
                 <button
                   type="button"
                 >
