@@ -221,6 +221,9 @@ export default function Utilisateurs() {
     name
   ) {
 
+    const cleanName =
+      name.trim();
+
     setSavingId(userId);
     setError('');
 
@@ -229,7 +232,7 @@ export default function Utilisateurs() {
     } = await supabase
       .from('profiles')
       .update({
-        name: name.trim()
+        name: cleanName
       })
       .eq(
         'id',
@@ -258,7 +261,7 @@ export default function Utilisateurs() {
           user.id === userId
             ? {
                 ...user,
-                name: name.trim()
+                name: cleanName
               }
             : user
         )
@@ -278,6 +281,55 @@ export default function Utilisateurs() {
     setSession(null);
     setUserRole(null);
 
+  }
+
+  /* =========================================================
+     OUTILS AFFICHAGE
+  ========================================================= */
+
+  function getRoleLabel(role) {
+
+    if (role === 'admin')
+      return 'Administrateur';
+
+    if (role === 'responsable')
+      return 'Responsable';
+
+    if (role === 'benevole')
+      return 'Bénévole';
+
+    return 'Aucun rôle';
+  }
+
+  function getRoleClass(role) {
+
+    if (role === 'admin')
+      return 'roleBadge admin';
+
+    if (role === 'responsable')
+      return 'roleBadge responsable';
+
+    if (role === 'benevole')
+      return 'roleBadge benevole';
+
+    return 'roleBadge none';
+  }
+
+  function getInitial(user) {
+
+    const name =
+      user.name?.trim();
+
+    const email =
+      user.email?.trim();
+
+    return (
+      name ||
+      email ||
+      '?'
+    )
+      .charAt(0)
+      .toUpperCase();
   }
 
   /* =========================================================
@@ -398,6 +450,10 @@ export default function Utilisateurs() {
 
       <div className="wrap">
 
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
         <header>
 
           <div>
@@ -439,6 +495,10 @@ export default function Utilisateurs() {
           </div>
 
         </header>
+
+        {/* =================================================
+            UTILISATEURS
+        ================================================= */}
 
         <section className="card">
 
@@ -509,32 +569,46 @@ export default function Utilisateurs() {
                   }
                 >
 
+                  {/* =====================================
+                      IDENTITÉ
+                  ===================================== */}
+
                   <div className="userInfo">
 
                     <div className="userAvatar">
-                      {(
-                        user.name ||
-                        user.email ||
-                        '?'
-                      )
-                        .charAt(0)
-                        .toUpperCase()}
+                      {getInitial(user)}
                     </div>
 
                     <div className="userIdentity">
 
-                      <strong>
-                        {user.name ||
-                          'Sans nom'}
-                      </strong>
+                      <div className="userNameRow">
 
-                      <span>
+                        <strong>
+                          {user.name?.trim() ||
+                            'Nom non renseigné'}
+                        </strong>
+
+                        <span
+                          className={
+                            getRoleClass(
+                              user.role
+                            )
+                          }
+                        >
+                          {getRoleLabel(
+                            user.role
+                          )}
+                        </span>
+
+                      </div>
+
+                      <span className="userEmail">
                         {user.email ||
                           'E-mail inconnu'}
                       </span>
 
                       <small>
-                        Créé le{' '}
+                        Compte créé le{' '}
                         {user.created_at
                           ? new Date(
                               user.created_at
@@ -548,11 +622,17 @@ export default function Utilisateurs() {
 
                   </div>
 
+                  {/* =====================================
+                      CONTRÔLES
+                  ===================================== */}
+
                   <div className="userControls">
 
                     <label>
 
-                      Nom
+                      <span>
+                        Nom
+                      </span>
 
                       <input
                         type="text"
@@ -560,6 +640,11 @@ export default function Utilisateurs() {
                           user.name ||
                           ''
                         }
+                        disabled={
+                          savingId ===
+                          user.id
+                        }
+                        placeholder="Nom de l'utilisateur"
                         onChange={e => {
 
                           const value =
@@ -593,7 +678,9 @@ export default function Utilisateurs() {
 
                     <label>
 
-                      Rôle
+                      <span>
+                        Rôle
+                      </span>
 
                       <select
                         value={
@@ -652,6 +739,10 @@ export default function Utilisateurs() {
           )}
 
         </section>
+
+        {/* =================================================
+            RÔLES
+        ================================================= */}
 
         <section className="card">
 
