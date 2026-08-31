@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../lib/supabase';
+import Header from '../composants/Header';
 
 export default function Utilisateurs() {
 
   const [session, setSession] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [dark, setDark] = useState(false);
 
   const [authLoading, setAuthLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -446,7 +448,7 @@ export default function Utilisateurs() {
 
   return (
 
-    <main>
+    <main className={dark ? 'dark' : ''}>
 
       <div className="wrap">
 
@@ -454,47 +456,12 @@ export default function Utilisateurs() {
             HEADER
         ================================================= */}
 
-        <header>
-
-          <div>
-
-            <div className="eyebrow">
-              BILLETTERIE ASSOCIATIVE
-            </div>
-
-            <h1>
-              Gestion des utilisateurs
-            </h1>
-
-            <p>
-              Gérez les noms et les droits d'accès.
-            </p>
-
-          </div>
-
-          <div className="headerActions">
-
-            <span className="userRole">
-              Administrateur
-            </span>
-
-            <Link href="/">
-              <button>
-                ← Caisse
-              </button>
-            </Link>
-
-            <button
-              onClick={
-                handleLogout
-              }
-            >
-              Déconnexion
-            </button>
-
-          </div>
-
-        </header>
+        <Header
+      userRole={userRole}
+      dark={dark}
+      setDark={setDark}
+      onLogout={handleLogout}
+    />
 
         {/* =================================================
             UTILISATEURS
