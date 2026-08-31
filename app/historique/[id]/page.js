@@ -12,8 +12,6 @@ const money = n =>
     currency: 'EUR'
   }).format(Number(n) || 0);
 
-const [dark, setDark] = useState(false);
-
 export default function CaisseDetail() {
 
   const params = useParams();
@@ -21,26 +19,58 @@ export default function CaisseDetail() {
 
   const id = params.id;
 
-  const [caisse, setCaisse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  /* =========================================================
+     ÉTATS
+  ========================================================= */
 
-  const [deleting, setDeleting] = useState(false);
+  const [caisse, setCaisse] = useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState('');
+
+  const [deleting, setDeleting] =
+    useState(false);
+
+  /* =========================================================
+     THÈME
+  ========================================================= */
+
+  const [dark, setDark] =
+    useState(false);
+
+  /* =========================================================
+     CHARGEMENT DU THÈME
+  ========================================================= */
 
   useEffect(() => {
 
-  const savedTheme =
-    localStorage.getItem('caisse-theme');
+    const savedTheme =
+      localStorage.getItem('caisse-theme');
 
-  if (savedTheme === 'dark') {
-    setDark(true);
-  }
+    if (savedTheme === 'dark') {
+      setDark(true);
+    }
 
-  if (savedTheme === 'light') {
-    setDark(false);
-  }
+    if (savedTheme === 'light') {
+      setDark(false);
+    }
 
-}, []);
+  }, []);
+
+  /* =========================================================
+     CHARGEMENT CAISSE
+  ========================================================= */
+
+  useEffect(() => {
+
+    if (id) {
+      loadCaisse();
+    }
+
+  }, [id]);
 
   async function loadCaisse() {
 
@@ -80,10 +110,11 @@ export default function CaisseDetail() {
 
   async function deleteCaisse() {
 
-    const confirmation = window.confirm(
-      '⚠️ Supprimer définitivement cette caisse ?\n\n' +
-      'Cette action est irréversible.'
-    );
+    const confirmation =
+      window.confirm(
+        '⚠️ Supprimer définitivement cette caisse ?\n\n' +
+        'Cette action est irréversible.'
+      );
 
     if (!confirmation) {
       return;
@@ -125,7 +156,14 @@ export default function CaisseDetail() {
   if (loading) {
 
     return (
-      <main>
+
+      <main
+        className={
+          dark
+            ? 'dark'
+            : ''
+        }
+      >
 
         <div className="wrap">
 
@@ -150,17 +188,27 @@ export default function CaisseDetail() {
   if (error || !caisse) {
 
     return (
-      <main>
+
+      <main
+        className={
+          dark
+            ? 'dark'
+            : ''
+        }
+      >
 
         <div className="wrap">
 
           <section className="card">
 
             <div className="info bad">
-              {error || 'Caisse introuvable.'}
+              {error ||
+                'Caisse introuvable.'}
             </div>
 
-            <Link href="/historique">
+            <Link
+              href="/historique"
+            >
 
               <button>
                 ← Retour à l'historique
@@ -199,12 +247,16 @@ export default function CaisseDetail() {
     payments.ancv_by_value || {};
 
   const multiplePayments =
-    Array.isArray(caisse.multiple_payments)
+    Array.isArray(
+      caisse.multiple_payments
+    )
       ? caisse.multiple_payments
       : [];
 
   const events =
-    Array.isArray(caData.events)
+    Array.isArray(
+      caData.events
+    )
       ? caData.events
       : [];
 
@@ -215,16 +267,25 @@ export default function CaisseDetail() {
     closing.denominations || {};
 
   const difference =
-    Number(caisse.difference) || 0;
+    Number(
+      caisse.difference
+    ) || 0;
 
   const differenceOk =
-    Math.abs(difference) < 0.005;
+    Math.abs(
+      difference
+    ) < 0.005;
 
   const totalMultiple =
     multiplePayments.reduce(
-      (sum, payment) =>
+      (
+        sum,
+        payment
+      ) =>
         sum +
-        Number(payment?.amount || 0),
+        Number(
+          payment?.amount || 0
+        ),
       0
     );
 
@@ -234,7 +295,13 @@ export default function CaisseDetail() {
 
   return (
 
-    <main className={dark ? 'dark' : ''}>
+    <main
+      className={
+        dark
+          ? 'dark'
+          : ''
+      }
+    >
 
       <div className="wrap screenOnly">
 
@@ -283,7 +350,9 @@ export default function CaisseDetail() {
 
           <div className="headerActions">
 
-            <Link href="/historique">
+            <Link
+              href="/historique"
+            >
 
               <button>
                 ← Historique
@@ -292,7 +361,7 @@ export default function CaisseDetail() {
             </Link>
 
             <Link
-              href={`/ ?edit=${id}`.replace(' ', '')}
+              href={`/?edit=${id}`}
             >
 
               <button className="primary">
@@ -302,8 +371,12 @@ export default function CaisseDetail() {
             </Link>
 
             <button
-              onClick={deleteCaisse}
-              disabled={deleting}
+              onClick={
+                deleteCaisse
+              }
+              disabled={
+                deleting
+              }
             >
 
               {deleting
@@ -315,7 +388,6 @@ export default function CaisseDetail() {
           </div>
 
         </header>
-
 
         {/* =================================================
             RESULTAT GLOBAL
@@ -373,7 +445,6 @@ export default function CaisseDetail() {
 
         </section>
 
-
         {/* =================================================
             BILLETTERIE
         ================================================= */}
@@ -403,12 +474,15 @@ export default function CaisseDetail() {
               ) => {
 
                 const tickets =
-                  Array.isArray(event.tickets)
+                  Array.isArray(
+                    event.tickets
+                  )
                     ? event.tickets
                     : [];
 
                 const quantities =
-                  event.quantities || {};
+                  event.quantities ||
+                  {};
 
                 const eventTotal =
                   Number(
@@ -455,7 +529,9 @@ export default function CaisseDetail() {
                           let total;
 
                           if (
-                            Array.isArray(ticket)
+                            Array.isArray(
+                              ticket
+                            )
                           ) {
 
                             name =
@@ -468,7 +544,9 @@ export default function CaisseDetail() {
 
                             quantity =
                               Number(
-                                quantities[name] || 0
+                                quantities[
+                                  name
+                                ] || 0
                               );
 
                             total =
@@ -483,7 +561,8 @@ export default function CaisseDetail() {
 
                             price =
                               Number(
-                                ticket?.price || 0
+                                ticket?.price ||
+                                0
                               );
 
                             quantity =
@@ -592,7 +671,6 @@ export default function CaisseDetail() {
 
         </section>
 
-
         {/* =================================================
             FOND DE CAISSE
         ================================================= */}
@@ -668,7 +746,6 @@ export default function CaisseDetail() {
           </div>
 
         </section>
-
 
         {/* =================================================
             FERMETURE ESPÈCES
@@ -777,7 +854,6 @@ export default function CaisseDetail() {
           </div>
 
         </section>
-
 
         {/* =================================================
             MOYENS DE PAIEMENT
@@ -945,7 +1021,6 @@ export default function CaisseDetail() {
 
         </section>
 
-
         {/* =================================================
             PAIEMENTS MULTIPLES
         ================================================= */}
@@ -1108,7 +1183,6 @@ export default function CaisseDetail() {
 
         </section>
 
-
         {/* =================================================
             CONTRÔLE
         ================================================= */}
@@ -1193,7 +1267,9 @@ export default function CaisseDetail() {
               🖨️ Imprimer
             </button>
 
-            <Link href="/historique">
+            <Link
+              href="/historique"
+            >
 
               <button>
                 ← Retour à l'historique
@@ -1206,7 +1282,6 @@ export default function CaisseDetail() {
         </section>
 
       </div>
-
 
       {/* =====================================================
           VERSION IMPRESSION
