@@ -1581,9 +1581,7 @@ select:focus {
    IMPRESSION
 ========================================================= */
 
-.printOnly {
-  display: none;
-}
+
 
 @media print {
 
@@ -1653,21 +1651,7 @@ select:focus {
      DOCUMENT D'IMPRESSION
   ------------------------------------------------------- */
 
-  .wrap > .printOnly {
-    display: block !important;
 
-    width: 100% !important;
-    max-width: none !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    background: white !important;
-    color: black !important;
-
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
 
   .printSheet {
     display: block !important;
@@ -2072,6 +2056,56 @@ select:focus {
   tr {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+}
+/* =========================================================
+   IMPRESSION HISTORIQUE
+========================================================= */
+
+.historiquePrint {
+  display: none;
+}
+
+@media print {
+
+  .historiquePrint {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
+    color: black !important;
+  }
+
+  .historiquePrint .printSheet {
+    display: block !important;
+
+    width: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
+    color: black !important;
+  }
+
+  /* On cache uniquement l'affichage normal
+     de la page historique */
+
+  body > main > .wrap {
+    display: none !important;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: white !important;
   }
 
 }
