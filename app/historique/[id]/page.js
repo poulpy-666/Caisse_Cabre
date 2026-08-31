@@ -334,27 +334,123 @@ export default function CaisseDetail() {
                     <div className="paymentSummary">
 
                       {tickets.map(
-                        (
-                          [
-                            name,
-                            price
-                          ]
-                        ) => {
+  (ticket, ticketIndex) => {
 
-                          const quantity =
-                            Number(
-                              quantities[
-                                name
-                              ] || 0
-                            );
+    /*
+     * Les anciennes caisses pouvaient contenir
+     * les tarifs sous forme de tableau :
+     *
+     * [name, price]
+     *
+     * Les nouvelles caisses utilisent maintenant
+     * des objets :
+     *
+     * {
+     *   id,
+     *   name,
+     *   price,
+     *   quantity,
+     *   total
+     * }
+     *
+     * On accepte les deux formats afin de conserver
+     * la compatibilité avec les anciennes caisses.
+     */
 
-                          const total =
-                            quantity *
-                            Number(
-                              price || 0
-                            );
+    let name;
+    let price;
+    let quantity;
+    let total;
 
-                          return (
+    if (Array.isArray(ticket)) {
+
+      name = ticket[0];
+      price = ticket[1];
+
+      quantity =
+        Number(
+          quantities[name] || 0
+        );
+
+      total =
+        quantity *
+        Number(price || 0);
+
+    } else {
+
+      name =
+        ticket.name ||
+        'Tarif';
+
+      price =
+        Number(
+          ticket.price || 0
+        );
+
+      quantity =
+        Number(
+          ticket.quantity ??
+          quantities[name] ??
+          0
+        );
+
+      total =
+        Number(
+          ticket.total ??
+          (
+            quantity *
+            price
+          )
+        );
+
+    }
+
+    return (
+
+      <div
+        key={
+          ticket.id ||
+          name ||
+          ticketIndex
+        }
+      >
+
+        <span>
+
+          {name}
+
+          {' — '}
+
+          {money(
+            price
+          )}
+
+        </span>
+
+        <strong>
+
+          {quantity}
+
+          {' × '}
+
+          {money(
+            price
+          )}
+
+          {' = '}
+
+          {money(
+            total
+          )}
+
+        </strong>
+
+      </div>
+
+    );
+
+  }
+)}
                             <div
                               key={
                                 name
