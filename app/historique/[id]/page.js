@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import ImpressionCaisse from '../../composants/ImpressionCaisse';
@@ -15,16 +15,22 @@ const money = n =>
 export default function CaisseDetail() {
 
   const params = useParams();
+  const router = useRouter();
+
   const id = params.id;
 
   const [caisse, setCaisse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
+
     if (id) {
       loadCaisse();
     }
+
   }, [id]);
 
   async function loadCaisse() {
@@ -50,12 +56,62 @@ export default function CaisseDetail() {
       );
 
       setLoading(false);
+
       return;
     }
 
     setCaisse(data);
+
     setLoading(false);
   }
+
+  /* =========================================================
+     SUPPRESSION
+  ========================================================= */
+
+  async function deleteCaisse() {
+
+    const confirmation = window.confirm(
+      '⚠️ Supprimer définitivement cette caisse ?\n\n' +
+      'Cette action est irréversible.'
+    );
+
+    if (!confirmation) {
+      return;
+    }
+
+    setDeleting(true);
+
+    const {
+      error
+    } = await supabase
+      .from('caisses')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+
+      console.error(
+        'Erreur suppression caisse:',
+        error
+      );
+
+      alert(
+        `Impossible de supprimer la caisse.\n\n${error.message}`
+      );
+
+      setDeleting(false);
+
+      return;
+    }
+
+    router.push('/historique');
+
+  }
+
+  /* =========================================================
+     CHARGEMENT
+  ========================================================= */
 
   if (loading) {
 
@@ -77,6 +133,10 @@ export default function CaisseDetail() {
       </main>
     );
   }
+
+  /* =========================================================
+     ERREUR
+  ========================================================= */
 
   if (error || !caisse) {
 
@@ -106,6 +166,10 @@ export default function CaisseDetail() {
       </main>
     );
   }
+
+  /* =========================================================
+     DONNÉES
+  ========================================================= */
 
   const caData =
     caisse.ca_data || {};
@@ -154,6 +218,10 @@ export default function CaisseDetail() {
         Number(payment?.amount || 0),
       0
     );
+
+  /* =========================================================
+     PAGE
+  ========================================================= */
 
   return (
 
@@ -204,13 +272,38 @@ export default function CaisseDetail() {
 
           </div>
 
-          <Link href="/historique">
+          <div className="headerActions">
 
-            <button>
-              ← Historique
+            <Link href="/historique">
+
+              <button>
+                ← Historique
+              </button>
+
+            </Link>
+
+            <Link
+              href={`/ ?edit=${id}`.replace(' ', '')}
+            >
+
+              <button className="primary">
+                ✏️ Modifier
+              </button>
+
+            </Link>
+
+            <button
+              onClick={deleteCaisse}
+              disabled={deleting}
+            >
+
+              {deleting
+                ? '⏳ Suppression...'
+                : '🗑️ Supprimer'}
+
             </button>
 
-          </Link>
+          </div>
 
         </header>
 
@@ -318,8 +411,8 @@ export default function CaisseDetail() {
                   <div
                     className="multiple"
                     key={
-                      event.id ||
                       event.eventId ||
+                      event.id ||
                       eventIndex
                     }
                   >
@@ -352,12 +445,6 @@ export default function CaisseDetail() {
                           let quantity;
                           let total;
 
-                          /*
-                           * Ancien format :
-                           *
-                           * [name, price]
-                           */
-
                           if (
                             Array.isArray(ticket)
                           ) {
@@ -379,21 +466,7 @@ export default function CaisseDetail() {
                               quantity *
                               price;
 
-                          }
-
-                          /*
-                           * Nouveau format :
-                           *
-                           * {
-                           *   id,
-                           *   name,
-                           *   price,
-                           *   quantity,
-                           *   total
-                           * }
-                           */
-
-                          else {
+                          } else {
 
                             name =
                               ticket?.name ||
@@ -781,11 +854,6 @@ export default function CaisseDetail() {
 
           </div>
 
-
-          {/* =================================================
-              DETAIL ANCV
-          ================================================= */}
-
           <h3>
             Détail des ANCV
           </h3>
@@ -1128,15 +1196,40 @@ export default function CaisseDetail() {
 
         </section>
 
-            </div>
-      <div className="historiquePrint">
-        <ImpressionCaisse
-          eventName={caisse.event_name}
-          responsible={caisse.responsible}
-          date={caisse.date}
-          eventTotals={events}
+      </div>
 
-          billValues={[50, 20, 10, 5]}
+
+      {/* =====================================================
+          VERSION IMPRESSION
+      ===================================================== */}
+
+      <div className="historiquePrint">
+
+        <ImpressionCaisse
+
+          eventName={
+            caisse.event_name
+          }
+
+          responsible={
+            caisse.responsible
+          }
+
+          date={
+            caisse.date
+          }
+
+          eventTotals={
+            events
+          }
+
+          billValues={[
+            50,
+            20,
+            10,
+            5
+          ]}
+
           coinValues={[
             2,
             1,
@@ -1148,86 +1241,151 @@ export default function CaisseDetail() {
             0.01
           ]}
 
-          opening={openingDenominations}
-          closing={closingDenominations}
+          opening={
+            openingDenominations
+          }
+
+          closing={
+            closingDenominations
+          }
 
           openingCash={
-            Number(opening.total) || 0
+            Number(
+              opening.total
+            ) || 0
           }
 
           openingBills={
-            Number(opening.total) || 0
+            Number(
+              opening.total
+            ) || 0
           }
 
           openingCoins={0}
 
           closingCash={
-            Number(closing.total) || 0
+            Number(
+              closing.total
+            ) || 0
           }
 
           cashBills={
-            Number(closing.bills_total) || 0
+            Number(
+              closing.bills_total
+            ) || 0
           }
 
           cashCoins={
-            Number(closing.coins_total) || 0
+            Number(
+              closing.coins_total
+            ) || 0
           }
 
           cashSales={
-            Number(closing.cash_sales) || 0
+            Number(
+              closing.cash_sales
+            ) || 0
           }
 
           cashDifference={
+
             (
-              Number(closing.total) || 0
+              Number(
+                closing.total
+              ) || 0
             ) -
+
             (
-              (Number(opening.total) || 0) +
-              (Number(closing.cash_sales) || 0)
+              (
+                Number(
+                  opening.total
+                ) || 0
+              ) +
+
+              (
+                Number(
+                  closing.cash_sales
+                ) || 0
+              )
             )
+
           }
 
           payments={{
+
             tpe:
-              Number(payments.simple?.tpe) || 0,
+              Number(
+                payments.simple?.tpe
+              ) || 0,
 
             web:
-              Number(payments.simple?.web) || 0,
+              Number(
+                payments.simple?.web
+              ) || 0,
 
             cheque:
-              Number(payments.simple?.cheque) || 0,
+              Number(
+                payments.simple?.cheque
+              ) || 0,
 
             autre:
-              Number(payments.simple?.autre) || 0
+              Number(
+                payments.simple?.autre
+              ) || 0
+
           }}
 
-          ancv={ancvByValue}
+          ancv={
+            ancvByValue
+          }
 
-          ancvValues={[10, 20, 25, 50]}
+          ancvValues={[
+            10,
+            20,
+            25,
+            50
+          ]}
 
           ancvTotal={
-            Number(paymentTotals.ancv) || 0
+            Number(
+              paymentTotals.ancv
+            ) || 0
           }
 
           ancvDirectTotal={
-            Number(payments.simple?.ancv) || 0
+            Number(
+              payments.simple?.ancv
+            ) || 0
           }
 
-          multiplePayments={multiplePayments}
+          multiplePayments={
+            multiplePayments
+          }
 
           paymentsTotal={
-            Number(caisse.total_encaisse) || 0
+            Number(
+              caisse.total_encaisse
+            ) || 0
           }
 
           ca={
-            Number(caisse.total_ca) || 0
+            Number(
+              caisse.total_ca
+            ) || 0
           }
 
-          difference={difference}
+          difference={
+            difference
+          }
 
-          money={money}
+          money={
+            money
+          }
+
         />
+
       </div>
+
     </main>
   );
 }
