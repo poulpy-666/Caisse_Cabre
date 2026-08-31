@@ -6,12 +6,14 @@ html,
 body {
   margin: 0;
   padding: 0;
+
   font-family:
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
   background: #f3f5f7;
   color: #17202a;
 }
@@ -611,329 +613,6 @@ select:focus {
 .usersList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-
-  margin-top: 16px;
-}
-
-.userItem {
-  display: grid;
-
-  grid-template-columns:
-    minmax(230px, 1fr)
-    minmax(360px, 1.4fr);
-
-  gap: 24px;
-
-  align-items: center;
-
-  padding: 16px 18px;
-
-  border: 1px solid #e0e5e9;
-
-  border-radius: 14px;
-
-  background: #fafbfc;
-
-  transition:
-    border-color .15s ease,
-    background .15s ease;
-}
-
-.userItem:hover {
-  border-color: #cbd2d8;
-  background: #f7f9fa;
-}
-
-.dark .userItem {
-  background: #20252a;
-  border-color: #3b4249;
-}
-
-.dark .userItem:hover {
-  background: #252b31;
-  border-color: #4a525b;
-}
-
-/* ---------------------------------------------------------
-   IDENTITÉ
---------------------------------------------------------- */
-
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-
-  min-width: 0;
-}
-
-.userAvatar {
-  flex: 0 0 46px;
-
-  width: 46px;
-  height: 46px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: #e7ebee;
-
-  font-size: 18px;
-  font-weight: 800;
-
-  color: #4c5660;
-}
-
-.dark .userAvatar {
-  background: #343a41;
-  color: #e4e8eb;
-}
-
-.userIdentity {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-
-  min-width: 0;
-}
-
-.userIdentity strong {
-  font-size: 16px;
-  font-weight: 750;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.userIdentity span {
-  font-size: 13px;
-
-  color: #68717c;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dark .userIdentity span {
-  color: #aeb6c0;
-}
-
-.userIdentity small {
-  font-size: 11px;
-  color: #8a939d;
-  margin-top: 2px;
-}
-
-/* ---------------------------------------------------------
-   CONTRÔLES
---------------------------------------------------------- */
-
-.userControls {
-  display: grid;
-
-  grid-template-columns:
-    1fr
-    180px;
-
-  gap: 12px;
-
-  align-items: end;
-}
-
-.userControls label {
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.userControls input,
-.userControls select {
-  height: 42px;
-}
-
-.saving {
-  grid-column: 1 / -1;
-
-  font-size: 11px;
-
-  color: #68717c;
-
-  text-align: right;
-}
-
-/* =========================================================
-   CARTES DES RÔLES
-========================================================= */
-
-.roleCards {
-  display: grid;
-  gap: 10px;
-}
-
-.roleCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-
-  padding: 14px;
-
-  border-radius: 12px;
-
-  background: #f4f6f8;
-}
-
-.dark .roleCard {
-  background: #30363d;
-}
-
-.roleIcon {
-  width: 38px;
-  height: 38px;
-
-  flex: 0 0 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 10px;
-
-  background: white;
-
-  font-size: 18px;
-}
-
-.dark .roleIcon {
-  background: #252a30;
-}
-
-.roleCard strong {
-  font-size: 14px;
-}
-
-.roleCard p {
-  margin: 4px 0 0;
-
-  font-size: 12px;
-  line-height: 1.45;
-
-  color: #68717c;
-}
-
-.dark .roleCard p {
-  color: #aeb6c0;
-}
-
-/* =========================================================
-   CONNEXION
-========================================================= */
-
-.loginCard {
-  max-width: 500px;
-
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.loginCard form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.loginCard button[type="submit"] {
-  width: 100%;
-}
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 700px) {
-
-  .wrap {
-    padding: 18px 12px 40px;
-  }
-
-  header {
-    flex-direction: column;
-  }
-
-  .headerActions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .grid2,
-  .paymentgrid,
-  .result {
-    grid-template-columns: 1fr;
-  }
-
-  .cashColumns {
-    grid-template-columns: 1fr;
-  }
-
-  .userItem {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .userControls {
-    grid-template-columns: 1fr;
-  }
-
-  .saving {
-    text-align: left;
-  }
-
-  .historyItem {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .historyArrow {
-    display: none;
-  }
-
-  .historyItem > div:first-child {
-    grid-column: 1 / -1;
-  }
-
-  .historyItem > div:last-child {
-    grid-column: 2;
-  }
-
-  .cashrow {
-    grid-template-columns:
-      70px
-      95px
-      1fr;
-  }
-
-  .ticket {
-    grid-template-columns:
-      1fr
-      90px
-      80px;
-  }
-
-  h1 {
-    font-size: 28px;
-  }
-
-}
-
-/* =========================================================
-   GESTION DES UTILISATEURS
-========================================================= */
-
-.usersList {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
   margin-top: 18px;
 }
@@ -1015,7 +694,9 @@ select:focus {
   color: #8a929a;
 }
 
-/* BADGES DES RÔLES */
+/* =========================================================
+   BADGES DES RÔLES
+========================================================= */
 
 .roleBadge {
   display: inline-flex;
@@ -1067,7 +748,9 @@ select:focus {
   color: #adb5be;
 }
 
-/* CONTRÔLES */
+/* =========================================================
+   CONTRÔLES UTILISATEURS
+========================================================= */
 
 .userControls {
   display: grid;
@@ -1120,7 +803,9 @@ select:focus {
   color: #68717c;
 }
 
-/* CARTES DES RÔLES */
+/* =========================================================
+   CARTES DES RÔLES
+========================================================= */
 
 .roleCards {
   display: grid;
@@ -1131,9 +816,12 @@ select:focus {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+
   padding: 15px;
+
   border: 1px solid #e1e5e9;
   border-radius: 13px;
+
   background: #fafbfc;
 }
 
@@ -1146,11 +834,15 @@ select:focus {
   width: 38px;
   height: 38px;
   min-width: 38px;
+
   border-radius: 10px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   background: #eef1f4;
+
   font-size: 18px;
 }
 
@@ -1165,8 +857,10 @@ select:focus {
 
 .roleCard p {
   margin: 0;
+
   font-size: 13px;
   line-height: 1.5;
+
   color: #68717c;
 }
 
@@ -1174,44 +868,29 @@ select:focus {
   color: #adb5be;
 }
 
-/* MOBILE */
-
-@media (max-width: 750px) {
-
-  .userItem {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .userControls {
-    grid-template-columns: 1fr 1fr;
-  }
-
-}
-
-@media (max-width: 500px) {
-
-  .userInfo {
-    align-items: flex-start;
-  }
-
-  .userAvatar {
-    width: 46px;
-    height: 46px;
-    min-width: 46px;
-  }
-
-  .userEmail {
-    max-width: 100%;
-  }
-
-  .userControls {
-    grid-template-columns: 1fr;
-  }
-
-}
 /* =========================================================
-   PAGE TARIFS — ÉVÉNEMENTS REPLIABLES
+   CONNEXION
+========================================================= */
+
+.loginCard {
+  max-width: 500px;
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.loginCard form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loginCard button[type="submit"] {
+  width: 100%;
+}
+
+/* =========================================================
+   PAGE TARIFS
 ========================================================= */
 
 .eventsList {
@@ -1231,10 +910,6 @@ select:focus {
   background: #252a30;
   border-color: #3c434b;
 }
-
-/* ---------------------------------------------------------
-   EN-TÊTE DE L'ÉVÉNEMENT
---------------------------------------------------------- */
 
 .eventHeader {
   width: 100%;
@@ -1305,23 +980,16 @@ select:focus {
   border-color: #49515a;
 }
 
-/* ---------------------------------------------------------
-   CONTENU OUVERT
---------------------------------------------------------- */
-
 .eventContent {
   padding: 0 18px 18px;
-
   border-top: 1px solid #e5e8eb;
+
+  animation: eventOpen .15s ease-out;
 }
 
 .dark .eventContent {
   border-color: #3b4148;
 }
-
-/* ---------------------------------------------------------
-   MODIFICATION DE L'ÉVÉNEMENT
---------------------------------------------------------- */
 
 .eventEdit {
   display: grid;
@@ -1336,10 +1004,6 @@ select:focus {
 .eventEdit button {
   white-space: nowrap;
 }
-
-/* ---------------------------------------------------------
-   LISTE DES TARIFS
---------------------------------------------------------- */
 
 .tarifsList {
   display: grid;
@@ -1376,14 +1040,6 @@ select:focus {
   padding: 8px 10px;
 }
 
-/* ---------------------------------------------------------
-   PETITE ANIMATION
---------------------------------------------------------- */
-
-.eventContent {
-  animation: eventOpen .15s ease-out;
-}
-
 @keyframes eventOpen {
   from {
     opacity: 0;
@@ -1396,46 +1052,6 @@ select:focus {
   }
 }
 
-/* ---------------------------------------------------------
-   MOBILE
---------------------------------------------------------- */
-
-@media (max-width: 650px) {
-
-  .eventHeader {
-    min-height: 64px;
-    padding: 12px 14px;
-  }
-
-  .eventHeader strong {
-    font-size: 16px;
-  }
-
-  .eventContent {
-    padding: 0 14px 14px;
-  }
-
-  .eventEdit {
-    grid-template-columns: 1fr;
-  }
-
-  .eventEdit button {
-    width: 100%;
-  }
-
-  .tarifRow {
-    grid-template-columns: 1fr 100px;
-  }
-
-  .tarifActions {
-    grid-column: 1 / -1;
-  }
-
-  .tarifActions button {
-    flex: 1;
-  }
-
-}
 /* =========================================================
    CONTRÔLE DE CAISSE
 ========================================================= */
@@ -1443,8 +1059,10 @@ select:focus {
 .cashControl {
   display: grid;
   gap: 0;
+
   border: 1px solid #dfe4e9;
   border-radius: 12px;
+
   overflow: hidden;
 }
 
@@ -1456,8 +1074,11 @@ select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   gap: 20px;
+
   padding: 13px 15px;
+
   border-bottom: 1px solid #e5e8eb;
 }
 
@@ -1473,9 +1094,13 @@ select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   gap: 20px;
+
   padding: 15px;
+
   background: #eef2f5;
+
   border-bottom: 1px solid #dfe4e9;
 }
 
@@ -1497,8 +1122,11 @@ select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   gap: 20px;
+
   padding: 15px;
+
   font-weight: 700;
 }
 
@@ -1522,7 +1150,6 @@ select:focus {
   background: #432b2b;
 }
 
-
 /* =========================================================
    STATUT FINAL
 ========================================================= */
@@ -1537,9 +1164,13 @@ select:focus {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
   gap: 5px;
+
   padding: 18px;
+
   border-radius: 13px;
+
   text-align: center;
 }
 
@@ -1577,489 +1208,182 @@ select:focus {
 .dark .finalStatusBox.warning {
   background: #443821;
 }
-  /* -------------------------------------------------------
-     PAGE
-  ------------------------------------------------------- */
 
-  @page {
-    size: A4;
-    margin: 12mm;
-  }
-
-  html,
-  body {
-    width: 100%;
-    min-height: 100%;
-    margin: 0 !important;
-    padding: 0 !important;
-
-    background: white !important;
-    color: black !important;
-  }
-
-  body {
-    min-width: 0 !important;
-  }
-
-  /* -------------------------------------------------------
-     STRUCTURE DE L'APPLICATION
-  ------------------------------------------------------- */
-
-  main {
-    display: block !important;
-
-    width: 100% !important;
-    min-height: 0 !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    background: white !important;
-  }
-
-  .wrap {
-    display: block !important;
-
-    width: 100% !important;
-    max-width: none !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    background: white !important;
-  }
-
-  /* -------------------------------------------------------
-     ON CACHE L'APPLICATION
-  ------------------------------------------------------- */
-
-  .wrap > header,
-  .wrap > .card,
-  .wrap > .result {
-    display: none !important;
-  }
-
-  /* -------------------------------------------------------
-     DOCUMENT D'IMPRESSION
-  ------------------------------------------------------- */
-
-
-
-  .printSheet {
-    display: block !important;
-
-    width: 100% !important;
-    max-width: none !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    background: white !important;
-    color: black !important;
-
-    font-family:
-      Arial,
-      Helvetica,
-      sans-serif !important;
-
-    font-size: 10pt;
-    line-height: 1.35;
-
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
-  /* -------------------------------------------------------
-     EN-TÊTE
-  ------------------------------------------------------- */
-
-  .printHeader {
-    display: flex !important;
-
-    justify-content: space-between;
-    align-items: flex-start;
-
-    gap: 20px;
-
-    padding-bottom: 10px;
-    margin-bottom: 14px;
-
-    border-bottom: 2px solid #111;
-  }
-
-  .printEyebrow {
-    font-size: 8pt;
-    font-weight: 700;
-
-    letter-spacing: 1px;
-
-    margin-bottom: 4px;
-  }
-
-  .printHeader h1 {
-    margin: 0;
-
-    font-size: 21pt;
-    line-height: 1.1;
-
-    color: black !important;
-  }
-
-  .printHeaderInfo {
-    min-width: 210px;
-  }
-
-  .printHeaderInfo div {
-    display: flex;
-
-    justify-content: space-between;
-
-    gap: 12px;
-
-    padding: 3px 0;
-
-    border-bottom: 1px solid #ccc;
-  }
-
-  .printHeaderInfo span,
-  .printHeaderInfo strong {
-    color: black !important;
-  }
-
-  .printHeaderInfo span {
-    font-weight: 600;
-  }
-
-  .printHeaderInfo strong {
-    text-align: right;
-  }
-
-  /* -------------------------------------------------------
-     SECTIONS
-  ------------------------------------------------------- */
-
-  .printSection {
-    display: block !important;
-
-    width: 100%;
-
-    margin: 0 0 16px;
-
-    color: black !important;
-
-    background: white !important;
-  }
-
-  .printSection h2 {
-    margin: 0 0 7px;
-
-    padding-bottom: 4px;
-
-    font-size: 13pt;
-
-    color: black !important;
-
-    border-bottom: 1px solid #777;
-  }
-
-  .printSection h3 {
-    margin: 7px 0 4px;
-
-    font-size: 10.5pt;
-
-    color: black !important;
-  }
-
-  .printEvent {
-    margin-bottom: 9px;
-
-    color: black !important;
-
-    background: white !important;
-  }
-
-  .printEvent h3 {
-    margin: 0;
-
-    padding: 5px 7px;
-
-    background: #eee !important;
-
-    color: black !important;
-
-    border: 1px solid #ccc;
-  }
-
-  /* -------------------------------------------------------
-     TABLEAUX
-  ------------------------------------------------------- */
-
-  .printSheet table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    color: black !important;
-
-    background: white !important;
-  }
-
-  .printSheet th,
-  .printSheet td {
-    padding: 3px 6px;
-
-    color: black !important;
-
-    background: transparent;
-
-    border-bottom: 1px solid #ddd;
-
-    text-align: left;
-
-    vertical-align: top;
-  }
-
-  .printSheet th {
-    background: #f2f2f2 !important;
-
-    font-weight: 700;
-  }
-
-  .printSheet .right {
-    text-align: right;
-  }
-
-  .printSheet tfoot td {
-    border-top: 1px solid #555;
-
-    border-bottom: 0;
-  }
-
-  /* -------------------------------------------------------
-     COLONNES
-  ------------------------------------------------------- */
-
-  .printColumns {
-    display: grid !important;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 15px;
-
-    width: 100%;
-  }
-
-  /* -------------------------------------------------------
-     TOTAUX
-  ------------------------------------------------------- */
-
-  .printTotalBox {
-    display: flex !important;
-
-    justify-content: space-between;
-    align-items: center;
-
-    margin-top: 7px;
-
-    padding: 7px 9px;
-
-    background: white !important;
-
-    color: black !important;
-
-    border: 1.5px solid #111;
-
-    font-weight: 700;
-  }
-
-  .printTotalBox strong {
-    font-size: 12pt;
-
-    color: black !important;
-  }
-
-  /* -------------------------------------------------------
-     CONTRÔLES
-  ------------------------------------------------------- */
-
-  .printControlTable {
-    width: 100%;
-  }
-
-  .printControlTable td {
-    padding: 5px 7px;
-  }
-
-  .printControlTable .highlight td {
-    background: #eee !important;
-
-    border-top: 1px solid #555;
-    border-bottom: 1px solid #555;
-  }
-
-  .printControlTable .successRow td,
-  .printControlTable .errorRow td {
-    font-weight: 700;
-  }
-
-  /* -------------------------------------------------------
-     SOUS-SECTIONS
-  ------------------------------------------------------- */
-
-  .printSubsection {
-    display: block !important;
-
-    margin-top: 9px;
-  }
-
-  /* -------------------------------------------------------
-     RÉCAPITULATIF
-  ------------------------------------------------------- */
-
-  .printFinalTable {
-    width: 100%;
-
-    font-size: 11pt;
-  }
-
-  .printFinalTable td {
-    padding: 6px 8px;
-  }
-
-  .printFinalTable .finalDifference td {
-    font-size: 12pt;
-
-    font-weight: 700;
-
-    border-top: 2px solid #111;
-    border-bottom: 2px solid #111;
-  }
-
-  /* -------------------------------------------------------
-     STATUT
-  ------------------------------------------------------- */
-
-  .printStatus {
-    display: flex !important;
-
-    flex-direction: column;
-
-    gap: 2px;
-
-    margin-top: 9px;
-
-    padding: 9px;
-
-    background: white !important;
-
-    color: black !important;
-
-    border: 2px solid #111;
-
-    text-align: center;
-  }
-
-  .printStatus strong {
-    font-size: 12pt;
-
-    color: black !important;
-  }
-
-  .printStatus span {
-    font-size: 9pt;
-
-    color: black !important;
-  }
-
-  .printStatusBad {
-    border-style: double;
-  }
-
-  .printStatusWarning {
-    border-style: dashed;
-  }
-
-  /* -------------------------------------------------------
-     SIGNATURE
-  ------------------------------------------------------- */
-
-  .printSignature {
-    display: grid !important;
-
-    grid-template-columns:
-      1fr
-      1fr
-      1.5fr;
-
-    gap: 18px;
-
-    margin-top: 20px;
-
-    color: black !important;
-
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  .signatureLine {
-    min-height: 23px;
-
-    margin-top: 15px;
-
-    border-bottom: 1px solid #111;
-  }
-
-  .signatureSpace,
-  .observationsSpace {
-    height: 50px;
-
-    margin-top: 7px;
-
-    border: 1px solid #aaa;
-  }
-
-  /* -------------------------------------------------------
-     PIED DE PAGE
-  ------------------------------------------------------- */
-
-  .printFooter {
-    margin-top: 15px;
-
-    padding-top: 5px;
-
-    border-top: 1px solid #aaa;
-
-    color: black !important;
-
-    text-align: center;
-
-    font-size: 8pt;
-  }
-
-  /* -------------------------------------------------------
-     COUPURES DE PAGE
-  ------------------------------------------------------- */
-
-  .printEvent,
-  .printSubsection,
-  .printTotalBox,
-  .printStatus,
-  table,
-  tr {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
 /* =========================================================
-   IMPRESSION CAISSE
+   RESPONSIVE
 ========================================================= */
 
-/* Par défaut : invisible à l'écran */
+@media (max-width: 750px) {
+
+  .userItem {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .userControls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+}
+
+@media (max-width: 700px) {
+
+  .wrap {
+    padding: 18px 12px 40px;
+  }
+
+  header {
+    flex-direction: column;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .grid2,
+  .paymentgrid,
+  .result {
+    grid-template-columns: 1fr;
+  }
+
+  .cashColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .userItem {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .userControls {
+    grid-template-columns: 1fr;
+  }
+
+  .saving {
+    text-align: left;
+  }
+
+  .historyItem {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .historyArrow {
+    display: none;
+  }
+
+  .historyItem > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .historyItem > div:last-child {
+    grid-column: 2;
+  }
+
+  .cashrow {
+    grid-template-columns:
+      70px
+      95px
+      1fr;
+  }
+
+  .ticket {
+    grid-template-columns:
+      1fr
+      90px
+      80px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+}
+
+@media (max-width: 650px) {
+
+  .eventHeader {
+    min-height: 64px;
+    padding: 12px 14px;
+  }
+
+  .eventHeader strong {
+    font-size: 16px;
+  }
+
+  .eventContent {
+    padding: 0 14px 14px;
+  }
+
+  .eventEdit {
+    grid-template-columns: 1fr;
+  }
+
+  .eventEdit button {
+    width: 100%;
+  }
+
+  .tarifRow {
+    grid-template-columns: 1fr 100px;
+  }
+
+  .tarifActions {
+    grid-column: 1 / -1;
+  }
+
+  .tarifActions button {
+    flex: 1;
+  }
+
+}
+
+@media (max-width: 500px) {
+
+  .userInfo {
+    align-items: flex-start;
+  }
+
+  .userAvatar {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+  }
+
+  .userEmail {
+    max-width: 100%;
+  }
+
+  .userControls {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* =========================================================
+   IMPRESSION
+========================================================= */
+
+/*
+ * IMPORTANT :
+ *
+ * Le composant ImpressionCaisse doit être placé dans un
+ * conteneur .printOnly.
+ *
+ * Exemple :
+ *
+ * <div className="printOnly">
+ *   <ImpressionCaisse ... />
+ * </div>
+ *
+ * Il reste totalement invisible à l'écran.
+ */
+
 .printOnly {
   display: none;
 }
 
 /* =========================================================
-   IMPRESSION
+   IMPRESSION A4
 ========================================================= */
 
 @media print {
@@ -2069,12 +1393,17 @@ select:focus {
     margin: 12mm;
   }
 
+  /*
+   * Base
+   */
+
   html,
   body {
+    width: 100% !important;
+    min-width: 0 !important;
+
     margin: 0 !important;
     padding: 0 !important;
-
-    width: 100% !important;
 
     background: white !important;
     color: black !important;
@@ -2084,22 +1413,32 @@ select:focus {
     min-width: 0 !important;
   }
 
-  /* -------------------------------------------------------
-     ON CACHE UNIQUEMENT L'INTERFACE NORMALE
-  ------------------------------------------------------- */
+  /*
+   * On masque absolument tout ce qui appartient
+   * à l'application normale.
+   */
 
   body * {
-    visibility: hidden;
+    visibility: hidden !important;
   }
 
-  /* -------------------------------------------------------
-     DOCUMENT À IMPRIMER
-  ------------------------------------------------------- */
+  /*
+   * On rend uniquement le document d'impression visible.
+   *
+   * IMPORTANT :
+   * visibility:hidden sur les parents n'empêche pas
+   * l'impression puisque .printOnly et ses enfants
+   * repassent explicitement en visible.
+   */
 
   .printOnly,
   .printOnly * {
     visibility: visible !important;
   }
+
+  /*
+   * Le document devient le seul contenu imprimable.
+   */
 
   .printOnly {
     display: block !important;
@@ -2118,9 +1457,9 @@ select:focus {
     color: black !important;
   }
 
-  /* -------------------------------------------------------
-     FEUILLE
-  ------------------------------------------------------- */
+  /*
+   * Feuille
+   */
 
   .printSheet {
     display: block !important;
@@ -2132,12 +1471,15 @@ select:focus {
     padding: 0 !important;
 
     background: white !important;
-    color: black !important;
+    color: #111 !important;
 
-    font-family: Arial, Helvetica, sans-serif !important;
+    font-family:
+      Arial,
+      Helvetica,
+      sans-serif !important;
 
-    font-size: 10pt;
-    line-height: 1.35;
+    font-size: 10pt !important;
+    line-height: 1.35 !important;
   }
 
   /* =======================================================
@@ -2159,19 +1501,24 @@ select:focus {
   }
 
   .printEyebrow {
-    font-size: 8pt;
+    font-size: 8pt !important;
+
     font-weight: 700;
+
     letter-spacing: 1px;
+
     margin-bottom: 4px;
+
+    color: #111 !important;
   }
 
   .printHeader h1 {
-    margin: 0;
+    margin: 0 !important;
 
-    font-size: 21pt;
+    font-size: 21pt !important;
     line-height: 1.1;
 
-    color: black !important;
+    color: #111 !important;
   }
 
   .printHeaderInfo {
@@ -2179,7 +1526,7 @@ select:focus {
   }
 
   .printHeaderInfo div {
-    display: flex;
+    display: flex !important;
 
     justify-content: space-between;
 
@@ -2192,7 +1539,7 @@ select:focus {
 
   .printHeaderInfo span,
   .printHeaderInfo strong {
-    color: black !important;
+    color: #111 !important;
   }
 
   .printHeaderInfo span {
@@ -2210,48 +1557,53 @@ select:focus {
   .printSection {
     display: block !important;
 
-    width: 100%;
+    width: 100% !important;
 
-    margin: 0 0 16px;
+    margin: 0 0 16px !important;
+
+    color: #111 !important;
 
     background: white !important;
-    color: black !important;
   }
 
   .printSection h2 {
-    margin: 0 0 7px;
+    margin: 0 0 7px !important;
 
     padding-bottom: 4px;
 
-    font-size: 13pt;
+    font-size: 13pt !important;
 
-    color: black !important;
+    color: #111 !important;
 
     border-bottom: 1px solid #777;
   }
 
   .printSection h3 {
-    margin: 7px 0 4px;
+    margin: 7px 0 4px !important;
 
-    font-size: 10.5pt;
+    font-size: 10.5pt !important;
 
-    color: black !important;
+    color: #111 !important;
   }
 
   .printEvent {
+    display: block !important;
+
     margin-bottom: 9px;
 
+    color: #111 !important;
+
     background: white !important;
-    color: black !important;
   }
 
   .printEvent h3 {
-    margin: 0;
+    margin: 0 !important;
 
     padding: 5px 7px;
 
     background: #eee !important;
-    color: black !important;
+
+    color: #111 !important;
 
     border: 1px solid #ccc;
   }
@@ -2261,20 +1613,40 @@ select:focus {
   ======================================================= */
 
   .printSheet table {
-    width: 100%;
+    display: table !important;
+
+    width: 100% !important;
 
     border-collapse: collapse;
 
+    color: #111 !important;
+
     background: white !important;
-    color: black !important;
+  }
+
+  .printSheet thead {
+    display: table-header-group !important;
+  }
+
+  .printSheet tbody {
+    display: table-row-group !important;
+  }
+
+  .printSheet tfoot {
+    display: table-footer-group !important;
+  }
+
+  .printSheet tr {
+    display: table-row !important;
   }
 
   .printSheet th,
   .printSheet td {
     padding: 3px 6px;
 
+    color: #111 !important;
+
     background: transparent !important;
-    color: black !important;
 
     border-bottom: 1px solid #ddd;
 
@@ -2285,15 +1657,17 @@ select:focus {
 
   .printSheet th {
     background: #f2f2f2 !important;
+
     font-weight: 700;
   }
 
   .printSheet .right {
-    text-align: right;
+    text-align: right !important;
   }
 
   .printSheet tfoot td {
     border-top: 1px solid #555;
+
     border-bottom: 0;
   }
 
@@ -2308,7 +1682,7 @@ select:focus {
 
     gap: 15px;
 
-    width: 100%;
+    width: 100% !important;
   }
 
   /* =======================================================
@@ -2326,7 +1700,8 @@ select:focus {
     padding: 7px 9px;
 
     background: white !important;
-    color: black !important;
+
+    color: #111 !important;
 
     border: 1.5px solid #111;
 
@@ -2334,16 +1709,17 @@ select:focus {
   }
 
   .printTotalBox strong {
-    font-size: 12pt;
-    color: black !important;
+    font-size: 12pt !important;
+
+    color: #111 !important;
   }
 
   /* =======================================================
-     CONTRÔLE
+     CONTRÔLES
   ======================================================= */
 
   .printControlTable {
-    width: 100%;
+    width: 100% !important;
   }
 
   .printControlTable td {
@@ -2377,9 +1753,9 @@ select:focus {
   ======================================================= */
 
   .printFinalTable {
-    width: 100%;
+    width: 100% !important;
 
-    font-size: 11pt;
+    font-size: 11pt !important;
   }
 
   .printFinalTable td {
@@ -2387,7 +1763,7 @@ select:focus {
   }
 
   .printFinalTable .finalDifference td {
-    font-size: 12pt;
+    font-size: 12pt !important;
 
     font-weight: 700;
 
@@ -2411,7 +1787,8 @@ select:focus {
     padding: 9px;
 
     background: white !important;
-    color: black !important;
+
+    color: #111 !important;
 
     border: 2px solid #111;
 
@@ -2419,13 +1796,15 @@ select:focus {
   }
 
   .printStatus strong {
-    font-size: 12pt;
-    color: black !important;
+    font-size: 12pt !important;
+
+    color: #111 !important;
   }
 
   .printStatus span {
-    font-size: 9pt;
-    color: black !important;
+    font-size: 9pt !important;
+
+    color: #111 !important;
   }
 
   .printStatusBad {
@@ -2452,11 +1831,10 @@ select:focus {
 
     margin-top: 20px;
 
-    background: white !important;
-    color: black !important;
+    color: #111 !important;
 
-    break-inside: avoid;
     page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .signatureLine {
@@ -2487,11 +1865,11 @@ select:focus {
 
     border-top: 1px solid #aaa;
 
-    color: black !important;
+    color: #111 !important;
 
     text-align: center;
 
-    font-size: 8pt;
+    font-size: 8pt !important;
   }
 
   /* =======================================================
@@ -2506,8 +1884,43 @@ select:focus {
   .printSignature,
   table,
   tr {
-    break-inside: avoid;
-    page-break-inside: avoid;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+}
+
+/* =========================================================
+   IMPRESSION HISTORIQUE
+========================================================= */
+
+/*
+ * La page historique utilise exactement le même
+ * composant ImpressionCaisse.
+ *
+ * Le composant doit être placé dans :
+ *
+ * <div className="printOnly">
+ *   <ImpressionCaisse ... />
+ * </div>
+ *
+ * Il n'y a donc pas besoin d'une deuxième règle
+ * spéciale historique.
+ */
+
+/* =========================================================
+   MOBILE IMPRESSION / PETITS ÉCRANS
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .printHeader {
+    flex-direction: column;
+  }
+
+  .printHeaderInfo {
+    width: 100%;
+    min-width: 0;
   }
 
 }
