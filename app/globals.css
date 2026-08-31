@@ -6,9 +6,14 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f4f5f7;
-  color: #20252b;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: #f3f5f7;
+  color: #17202a;
 }
 
 body {
@@ -16,24 +21,18 @@ body {
 }
 
 /* =========================================================
-   GLOBAL
+   THÈME SOMBRE
 ========================================================= */
-
-button,
-input,
-select {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
 
 .dark {
   min-height: 100vh;
-  background: #191c20;
-  color: #eeeeee;
+  background: #1b1e22;
+  color: #eee;
 }
+
+/* =========================================================
+   CONTENEUR
+========================================================= */
 
 .wrap {
   max-width: 900px;
@@ -55,31 +54,25 @@ header {
 
 .eyebrow {
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  opacity: 0.6;
+  font-weight: 800;
+  letter-spacing: .08em;
+  opacity: .65;
 }
 
 h1 {
   font-size: 32px;
-  line-height: 1.15;
-  margin: 5px 0 7px;
-  letter-spacing: -0.02em;
+  margin: 4px 0;
 }
 
 header p,
 .muted {
-  color: #6b737d;
+  color: #68717c;
 }
 
 .dark header p,
 .dark .muted {
   color: #aeb6c0;
 }
-
-/* =========================================================
-   HEADER ACTIONS
-========================================================= */
 
 .headerActions {
   display: flex;
@@ -90,13 +83,9 @@ header p,
 }
 
 .userRole {
-  font-size: 13px;
-  color: #6b737d;
-  padding-right: 4px;
-}
-
-.dark .userRole {
-  color: #aeb6c0;
+  font-size: .85rem;
+  font-weight: 700;
+  opacity: .7;
 }
 
 /* =========================================================
@@ -104,97 +93,66 @@ header p,
 ========================================================= */
 
 button {
-  border: 1px solid #d5d9de;
-  background: #ffffff;
-  color: #343a40;
-  border-radius: 8px;
-  padding: 9px 13px;
+  cursor: pointer;
+
+  border: 1px solid #ccd3da;
+  background: #fff;
+  color: inherit;
+
+  border-radius: 10px;
+
+  padding: 10px 14px;
+
+  font: inherit;
   font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
+  font-weight: 650;
+
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.05s ease;
+    background .15s ease,
+    border-color .15s ease,
+    transform .1s ease;
 }
 
 button:hover:not(:disabled) {
-  background: #f6f7f8;
-  border-color: #c4c9cf;
+  background: #f1f3f5;
+  border-color: #b9c1c9;
 }
 
 button:active:not(:disabled) {
   transform: translateY(1px);
 }
 
-button:focus-visible {
-  outline: 2px solid #9aa3ad;
-  outline-offset: 2px;
-}
-
 button:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Bouton principal */
-
-button.primary {
-  background: #3b4652;
-  border-color: #3b4652;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-button.primary:hover:not(:disabled) {
-  background: #303a45;
-  border-color: #303a45;
-}
-
-/* Bouton danger */
-
-button.danger {
-  background: transparent;
-  border-color: #dfc3c3;
-  color: #a34b4b;
-}
-
-button.danger:hover:not(:disabled) {
-  background: #fbf2f2;
-  border-color: #d6aaaa;
-}
-
-/* Bouton thème */
-
-button.theme {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border-radius: 10px;
-  font-size: 18px;
+  opacity: .55;
 }
 
 .dark button {
-  background: #252a30;
-  color: #eeeeee;
-  border-color: #414850;
+  background: #2b3036;
+  border-color: #48505a;
+  color: #eee;
 }
 
 .dark button:hover:not(:disabled) {
-  background: #2d333a;
-  border-color: #515963;
+  background: #343a41;
 }
 
-.dark button.primary {
-  background: #e6e9ec;
-  color: #20252b;
-  border-color: #e6e9ec;
+.primary {
+  background: #202830 !important;
+  color: white !important;
+  border-color: #202830 !important;
 }
 
-.dark button.primary:hover:not(:disabled) {
-  background: #ffffff;
-  border-color: #ffffff;
+.primary:hover:not(:disabled) {
+  background: #303a44 !important;
+}
+
+.theme {
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 19px;
 }
 
 /* =========================================================
@@ -203,9 +161,9 @@ button.theme {
 
 .card,
 .result {
-  background: #ffffff;
-  border: 1px solid #e0e3e7;
-  border-radius: 14px;
+  background: white;
+  border: 1px solid #dfe4e9;
+  border-radius: 18px;
   padding: 20px;
   margin: 14px 0;
 }
@@ -213,13 +171,12 @@ button.theme {
 .dark .card,
 .dark .result {
   background: #252a30;
-  border-color: #3b424a;
+  border-color: #3c434b;
 }
 
 h2 {
   font-size: 19px;
   margin: 0 0 16px;
-  letter-spacing: -0.01em;
 }
 
 h3 {
@@ -240,44 +197,44 @@ h3 {
 label {
   display: grid;
   gap: 7px;
+
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 input,
 select {
   width: 100%;
-  height: 43px;
-  border: 1px solid #d1d6dc;
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: #ffffff;
-  color: inherit;
-  outline: none;
-}
+  height: 44px;
 
-input:hover,
-select:hover {
-  border-color: #bcc3ca;
+  border: 1px solid #cfd6dd;
+  border-radius: 10px;
+
+  padding: 8px 10px;
+
+  font: inherit;
+
+  background: white;
+  color: inherit;
+
+  outline: none;
+
+  transition:
+    border-color .15s ease,
+    box-shadow .15s ease;
 }
 
 input:focus,
 select:focus {
-  border-color: #8d97a2;
-  box-shadow: 0 0 0 2px rgba(120, 130, 140, 0.12);
+  border-color: #8d99a5;
+  box-shadow: 0 0 0 3px rgba(100, 120, 140, .12);
 }
 
 .dark input,
 .dark select {
-  background: #1b1f23;
-  color: #eeeeee;
-  border-color: #464e57;
-}
-
-.dark input:focus,
-.dark select:focus {
-  border-color: #6d7782;
-  box-shadow: 0 0 0 2px rgba(150, 160, 170, 0.1);
+  background: #191c20;
+  color: #eee;
+  border-color: #49515a;
 }
 
 .num {
@@ -285,34 +242,28 @@ select:focus {
 }
 
 /* =========================================================
-   FOND DE CAISSE
+   CAISSE
 ========================================================= */
-
-.cashColumns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.cashPanel {
-  border: 1px solid #e0e3e7;
-  border-radius: 11px;
-  padding: 15px;
-  background: #fafbfc;
-}
-
-.dark .cashPanel {
-  background: #20252a;
-  border-color: #3b424a;
-}
-
-.cashPanel h3 {
-  margin-top: 0;
-}
 
 .cashgrid {
   display: grid;
   gap: 6px;
+}
+
+.cashColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.cashPanel {
+  border: 1px solid rgba(128, 128, 128, .25);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.cashPanel h3 {
+  margin-top: 0;
 }
 
 .cashrow {
@@ -327,10 +278,6 @@ select:focus {
   text-align: right;
 }
 
-/* =========================================================
-   BILLETTERIE
-========================================================= */
-
 .ticketgrid {
   display: grid;
   gap: 8px;
@@ -341,8 +288,10 @@ select:focus {
   grid-template-columns: 1fr 110px 100px;
   gap: 12px;
   align-items: center;
+
   padding: 9px 0;
-  border-bottom: 1px solid #e7e9ec;
+
+  border-bottom: 1px solid #e5e8eb;
 }
 
 .dark .ticket {
@@ -357,26 +306,25 @@ select:focus {
 
 .ticket span {
   font-size: 13px;
-  color: #707983;
+  color: #68717c;
 }
 
 .ticket b {
   text-align: right;
 }
 
-/* =========================================================
-   BLOCS TOTAL
-========================================================= */
-
 .caBox {
   margin-top: 18px;
-  padding: 15px;
-  border-radius: 11px;
-  background: #f0f2f4;
+  padding: 16px;
+
+  border-radius: 13px;
+
+  background: #eef2f5;
+
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 16px;
+
+  font-size: 18px;
 }
 
 .dark .caBox {
@@ -384,16 +332,19 @@ select:focus {
 }
 
 .caBox strong {
-  font-size: 23px;
+  font-size: 25px;
 }
 
 .totalline {
   display: flex;
   justify-content: space-between;
-  border-top: 1px solid #e1e4e7;
+
+  border-top: 1px solid #e1e5e8;
+
   margin-top: 12px;
-  padding-top: 12px;
-  font-size: 16px;
+  padding-top: 13px;
+
+  font-size: 17px;
 }
 
 .dark .totalline {
@@ -401,14 +352,18 @@ select:focus {
 }
 
 /* =========================================================
-   INFOS / ALERTES
+   INFORMATIONS
 ========================================================= */
 
 .info {
   margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 9px;
-  background: #f1f3f5;
+
+  padding: 11px 13px;
+
+  border-radius: 10px;
+
+  background: #f0f3f5;
+
   font-size: 13px;
 }
 
@@ -416,20 +371,16 @@ select:focus {
   background: #30363d;
 }
 
-.info.bad {
-  border: 1px solid #d9a7a7;
-  background: #fcf5f5;
-  color: #914545;
+.ok {
+  border: 1px solid #55a86b;
 }
 
-.dark .info.bad {
-  background: #392727;
-  border-color: #714444;
-  color: #e3aaaa;
+.bad {
+  border: 1px solid #d06464;
 }
 
 /* =========================================================
-   MOYENS DE PAIEMENT
+   PAIEMENTS
 ========================================================= */
 
 .paymentgrid {
@@ -440,19 +391,23 @@ select:focus {
 
 .paymentSummary {
   display: grid;
-  gap: 5px;
+  gap: 8px;
 }
 
 .paymentSummary > div {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #e7e9ec;
+
+  padding: 10px 12px;
+
+  border-radius: 10px;
+
+  background: #f1f3f5;
 }
 
 .dark .paymentSummary > div {
-  border-color: #3b4148;
+  background: #30363d;
 }
 
 /* =========================================================
@@ -460,16 +415,16 @@ select:focus {
 ========================================================= */
 
 .multiple {
-  margin-top: 12px;
-  padding: 15px;
-  border: 1px solid #e0e3e7;
-  border-radius: 11px;
-  background: #fafbfc;
+  margin-top: 14px;
+
+  padding: 14px;
+
+  border: 1px solid #dfe4e9;
+  border-radius: 13px;
 }
 
 .dark .multiple {
-  background: #20252a;
-  border-color: #3b424a;
+  border-color: #3c434b;
 }
 
 .multipleHeader {
@@ -477,12 +432,11 @@ select:focus {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
 }
 
-.multipleHeader button {
-  padding: 6px 9px;
-  font-size: 13px;
+.multipleHeader > div {
+  display: flex;
+  gap: 6px;
 }
 
 /* =========================================================
@@ -491,15 +445,22 @@ select:focus {
 
 .result {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
   gap: 10px;
+
   align-items: stretch;
 }
 
 .result > div:not(.actions):not(.closed) {
-  padding: 14px;
-  border-radius: 10px;
-  background: #f2f4f6;
+  padding: 15px;
+
+  border-radius: 12px;
+
+  background: #f1f3f5;
+
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -511,35 +472,360 @@ select:focus {
 
 .result span {
   font-size: 13px;
-  opacity: 0.75;
+  opacity: .75;
 }
 
 .result strong {
-  font-size: 21px;
+  font-size: 23px;
 }
-
-/* =========================================================
-   ÉTATS OK / ERREUR
-========================================================= */
-
-.ok {
-  border: 1px solid #91c49c;
-}
-
-.bad {
-  border: 1px solid #d9a1a1;
-}
-
-/* =========================================================
-   ACTIONS
-========================================================= */
 
 .actions {
   grid-column: 1 / -1;
+
   display: flex;
-  gap: 8px;
+
+  gap: 10px;
+
   flex-wrap: wrap;
+
   margin-top: 5px;
+}
+
+.closed {
+  grid-column: 1 / -1;
+
+  padding: 12px;
+
+  text-align: center;
+
+  border-radius: 10px;
+
+  background: #e9f6ec;
+}
+
+.dark .closed {
+  background: #23372a;
+}
+
+/* =========================================================
+   HISTORIQUE
+========================================================= */
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.historyHeader h2 {
+  margin-bottom: 2px;
+}
+
+.historyHeader p {
+  margin: 0;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.historyItem {
+  display: grid;
+
+  grid-template-columns:
+    minmax(180px, 1.5fr)
+    minmax(100px, .7fr)
+    minmax(100px, .7fr)
+    minmax(90px, .6fr)
+    30px;
+
+  gap: 15px;
+
+  align-items: center;
+
+  padding: 14px;
+
+  border: 1px solid #e0e5e9;
+
+  border-radius: 12px;
+
+  background: #fafbfc;
+
+  color: inherit;
+
+  text-decoration: none;
+
+  transition:
+    background .15s ease,
+    border-color .15s ease;
+}
+
+.historyItem:hover {
+  background: #f4f6f8;
+  border-color: #cbd2d8;
+}
+
+.dark .historyItem {
+  background: #20252a;
+  border-color: #3b4249;
+}
+
+.dark .historyItem:hover {
+  background: #292f35;
+}
+
+.historyItem > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.historyItem span {
+  font-size: 12px;
+  opacity: .7;
+}
+
+.historyItem strong {
+  font-size: 15px;
+}
+
+.historyItem small {
+  font-size: 11px;
+  opacity: .65;
+}
+
+.historyArrow {
+  font-size: 22px;
+  opacity: .5;
+  text-align: right;
+}
+
+/* =========================================================
+   UTILISATEURS
+========================================================= */
+
+.usersList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  margin-top: 16px;
+}
+
+.userItem {
+  display: grid;
+
+  grid-template-columns:
+    minmax(230px, 1fr)
+    minmax(360px, 1.4fr);
+
+  gap: 24px;
+
+  align-items: center;
+
+  padding: 16px 18px;
+
+  border: 1px solid #e0e5e9;
+
+  border-radius: 14px;
+
+  background: #fafbfc;
+
+  transition:
+    border-color .15s ease,
+    background .15s ease;
+}
+
+.userItem:hover {
+  border-color: #cbd2d8;
+  background: #f7f9fa;
+}
+
+.dark .userItem {
+  background: #20252a;
+  border-color: #3b4249;
+}
+
+.dark .userItem:hover {
+  background: #252b31;
+  border-color: #4a525b;
+}
+
+/* ---------------------------------------------------------
+   IDENTITÉ
+--------------------------------------------------------- */
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  min-width: 0;
+}
+
+.userAvatar {
+  flex: 0 0 46px;
+
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e7ebee;
+
+  font-size: 18px;
+  font-weight: 800;
+
+  color: #4c5660;
+}
+
+.dark .userAvatar {
+  background: #343a41;
+  color: #e4e8eb;
+}
+
+.userIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  min-width: 0;
+}
+
+.userIdentity strong {
+  font-size: 16px;
+  font-weight: 750;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userIdentity span {
+  font-size: 13px;
+
+  color: #68717c;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .userIdentity span {
+  color: #aeb6c0;
+}
+
+.userIdentity small {
+  font-size: 11px;
+  color: #8a939d;
+  margin-top: 2px;
+}
+
+/* ---------------------------------------------------------
+   CONTRÔLES
+--------------------------------------------------------- */
+
+.userControls {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    180px;
+
+  gap: 12px;
+
+  align-items: end;
+}
+
+.userControls label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.userControls input,
+.userControls select {
+  height: 42px;
+}
+
+.saving {
+  grid-column: 1 / -1;
+
+  font-size: 11px;
+
+  color: #68717c;
+
+  text-align: right;
+}
+
+/* =========================================================
+   CARTES DES RÔLES
+========================================================= */
+
+.roleCards {
+  display: grid;
+  gap: 10px;
+}
+
+.roleCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  background: #f4f6f8;
+}
+
+.dark .roleCard {
+  background: #30363d;
+}
+
+.roleIcon {
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: white;
+
+  font-size: 18px;
+}
+
+.dark .roleIcon {
+  background: #252a30;
+}
+
+.roleCard strong {
+  font-size: 14px;
+}
+
+.roleCard p {
+  margin: 4px 0 0;
+
+  font-size: 12px;
+  line-height: 1.45;
+
+  color: #68717c;
+}
+
+.dark .roleCard p {
+  color: #aeb6c0;
 }
 
 /* =========================================================
@@ -548,6 +834,7 @@ select:focus {
 
 .loginCard {
   max-width: 500px;
+
   margin-left: auto;
   margin-right: auto;
 }
@@ -563,131 +850,45 @@ select:focus {
 }
 
 /* =========================================================
-   FERMETURE
-========================================================= */
-
-.closed {
-  grid-column: 1 / -1;
-  padding: 11px;
-  text-align: center;
-  border-radius: 9px;
-  background: #eaf5ec;
-  color: #315c39;
-}
-
-.dark .closed {
-  background: #23372a;
-  color: #b8d7bd;
-}
-
-/* =========================================================
-   HISTORIQUE
-========================================================= */
-
-.historyHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.historyHeader h2 {
-  margin: 0;
-}
-
-.history {
-  display: grid;
-  gap: 7px;
-}
-
-.historyItem {
-  display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr 1fr 30px;
-  gap: 14px;
-  align-items: center;
-  padding: 13px;
-  border: 1px solid #e1e4e7;
-  border-radius: 10px;
-  background: #fafbfc;
-  color: inherit;
-  text-decoration: none;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.05s ease;
-}
-
-.historyItem:hover {
-  background: #f3f5f6;
-  border-color: #cbd1d7;
-}
-
-.historyItem:active {
-  transform: translateY(1px);
-}
-
-.dark .historyItem {
-  background: #20252a;
-  border-color: #3b424a;
-}
-
-.dark .historyItem:hover {
-  background: #292f35;
-  border-color: #4b535c;
-}
-
-.historyItem > div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.historyItem span {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-.historyItem small {
-  font-size: 11px;
-  opacity: 0.6;
-}
-
-.historyArrow {
-  font-size: 20px;
-  opacity: 0.45;
-  text-align: center;
-}
-
-/* =========================================================
    RESPONSIVE
 ========================================================= */
 
 @media (max-width: 700px) {
 
+  .wrap {
+    padding: 18px 12px 40px;
+  }
+
+  header {
+    flex-direction: column;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .grid2,
   .paymentgrid,
-  .result,
+  .result {
+    grid-template-columns: 1fr;
+  }
+
   .cashColumns {
     grid-template-columns: 1fr;
   }
 
-  .headerActions {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+  .userItem {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
-  .userRole {
-    width: 100%;
-    text-align: right;
+  .userControls {
+    grid-template-columns: 1fr;
   }
 
-  .cashrow {
-    grid-template-columns: 70px 95px 1fr;
-  }
-
-  .ticket {
-    grid-template-columns: 1fr 90px 80px;
+  .saving {
+    text-align: left;
   }
 
   .historyItem {
@@ -698,13 +899,32 @@ select:focus {
     display: none;
   }
 
-  .wrap {
-    padding: 18px 12px 40px;
+  .historyItem > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .historyItem > div:last-child {
+    grid-column: 2;
+  }
+
+  .cashrow {
+    grid-template-columns:
+      70px
+      95px
+      1fr;
+  }
+
+  .ticket {
+    grid-template-columns:
+      1fr
+      90px
+      80px;
   }
 
   h1 {
     font-size: 28px;
   }
+
 }
 
 /* =========================================================
@@ -720,8 +940,8 @@ select:focus {
   }
 
   .theme,
-  .headerActions button,
-  .actions button {
+  .actions button:not(:last-child),
+  .headerActions {
     display: none;
   }
 
@@ -732,9 +952,7 @@ select:focus {
   }
 
   .dark .card,
-  .dark .result,
-  .dark .cashPanel,
-  .dark .multiple {
+  .dark .result {
     background: white;
     color: black;
   }
@@ -743,32 +961,6 @@ select:focus {
   .dark select {
     color: black;
     background: white;
-  }
-}
-/* =========================================================
-   GESTION UTILISATEURS
-========================================================= */
-
-.historyItem > div:last-child {
-  align-items: flex-end;
-}
-
-.historyItem > div:last-child .actions {
-  justify-content: flex-end;
-}
-
-.historyItem select {
-  min-width: 160px;
-}
-
-@media (max-width: 700px) {
-
-  .historyItem > div:last-child {
-    align-items: flex-start;
-  }
-
-  .historyItem select {
-    min-width: 0;
   }
 
 }
