@@ -2028,6 +2028,7 @@ export default function Home() {
 
                     <button
                       type="button"
+                       className="danger"
                       onClick={() =>
                         removeEvent(
                           event.id
